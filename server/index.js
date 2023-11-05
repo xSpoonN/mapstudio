@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 
 // Connect to the MongoDB database
-mongoose.connect('mongodb://localhost:27017/barebones', {
+mongoose.connect('mongodb+srv://ktao:z4byPOvyyzZzarCn@ms.1qbqx7r.mongodb.net/?retryWrites=true&w=majority', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
