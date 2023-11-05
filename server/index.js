@@ -5,10 +5,10 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const apiRoutes = require('./routes/router');
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = 8080/* process.env.PORT || 4000 */;
 
 // Connect to the MongoDB database
-mongoose.connect('mongodb://localhost:27017/barebones', {
+mongoose.connect('mongodb+srv://ktao:z4byPOvyyzZzarCn@ms.1qbqx7r.mongodb.net/?retryWrites=true&w=majority', {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -16,7 +16,7 @@ mongoose.connect('mongodb://localhost:27017/barebones', {
 // Middleware
 app.use(bodyParser.json());
 app.use(cors({
-  origin: ["http://localhost:3000"],
+  origin: ["https://mapstudio.azurewebsites.net:8080"],
   credentials: true
 }))
 
