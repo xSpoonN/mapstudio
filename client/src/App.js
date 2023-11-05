@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+const url = (route) => { return "https://mapstudio.azurewebsites.net/" + route };
 
 function App() {
   const [users, setUsers] = useState([]);
@@ -10,14 +11,14 @@ function App() {
   const [selectedUserId, setSelectedUserId] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:4000/api/users')
+    fetch(url('api/users'))
       .then((response) => response.json())
       .then((data) => setUsers(data))
       .catch((error) => console.error('Error fetching data:', error));
   }, []);
 
   const handleCreateUser = () => {
-    fetch('http://localhost:4000/api/users', {
+    fetch(url('api/users'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, age }),
@@ -36,7 +37,7 @@ function App() {
   };
 
   const handleUpdateUser = () => {
-    fetch(`http://localhost:4000/api/users/${selectedUserId}`, {
+    fetch(url(`api/users/${selectedUserId}`), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: updateName, age: updateAge }),
@@ -56,7 +57,7 @@ function App() {
   };
 
   const handleDeleteUser = () => {
-    fetch(`http://localhost:4000/api/users/${selectedUserId}`, {
+    fetch(url(`api/users/${selectedUserId}`), {
       method: 'DELETE',
     })
       .then(() => {
@@ -72,7 +73,7 @@ function App() {
   };
 
   const fetchUsers = () => {
-    fetch('http://localhost:4000/api/users')
+    fetch(url('api/users'))
       .then((response) => response.json())
       .then((data) => setUsers(data))
       .catch((error) => console.error('Error fetching data:', error));
