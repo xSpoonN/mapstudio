@@ -18,7 +18,7 @@ jobs:
     - uses: cypress-io/github-action@v6
       with:
         build: cd client && npm run build
-        start: npm run start
+        start: cd client && npm run start
         browser: chrome
         
     # - uses: actions/upload-artifact@v2
