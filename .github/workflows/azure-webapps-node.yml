@@ -20,6 +20,8 @@ name: Deploy to Azure Hosting
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'server/**'
   workflow_dispatch:
 
 env:
