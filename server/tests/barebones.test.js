@@ -5,7 +5,7 @@ describe('/users', () => {
     let userid;
 
     it('should create a new user', async () => {
-        const res = await request(app).post('/users')
+        const res = await request(app).post('/api/users')
         .send({
             name: 'John',
             age: 30  
@@ -18,7 +18,7 @@ describe('/users', () => {
     });
 
     it('should get a list of all users', async () => {
-        const res = await request(app).get('/users');
+        const res = await request(app).get('/api/users');
         
         expect(res.statusCode).toEqual(200);
         expect(Array.isArray(res.body)).toBeTruthy();
@@ -26,7 +26,7 @@ describe('/users', () => {
     });
 
     it('should get a user by id', async () => {
-      const res = await request(app).get('/users/' + userid);
+      const res = await request(app).get('/api/users/' + userid);
         
       expect(res.statusCode).toEqual(200);
       expect(res.body).toHaveProperty('name', 'John');
@@ -35,7 +35,7 @@ describe('/users', () => {
     });
 
     it('should update a user by id', async () => {
-        const res = await request(app).put('/users/' + userid)
+        const res = await request(app).put('/api/users/' + userid)
         .send({
             name: 'John',
             age: 31 
@@ -48,7 +48,7 @@ describe('/users', () => {
     });
 
     it('should delete a user by id', async () => {
-        const res = await request(app).delete('/users/' + userid);
+        const res = await request(app).delete('/api/users/' + userid);
             
         expect(res.statusCode).toEqual(204);
     });
