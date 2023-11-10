@@ -12,7 +12,7 @@ export default function RegisterScreen() {
     const { store } = useContext(GlobalStoreContext);
     const handleSubmit = (event) => {
         event.preventDefault();
-        const formData = new FormData(event.currentTarget);
+        //const formData = new FormData(event.currentTarget);
     };
 
     function handleLoginScreen() {

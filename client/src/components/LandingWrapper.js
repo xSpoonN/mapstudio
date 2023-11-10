@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useContext } from 'react';
 import { GlobalStoreContext } from '../store'
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
@@ -8,7 +8,7 @@ import { Grid } from '@mui/material';
 import MapCard from './MapCard';
 
 const popularMaps = Array.from({ length: 4 }, (_, i) => `Popular Map ${i + 1}`);
-const newMaps = Array.from({ length: 4 }, (_, i) => `New Map ${i + 1}`);
+//const newMaps = Array.from({ length: 4 }, (_, i) => `New Map ${i + 1}`);
 
 export default function LandingWrapper() {
     const { store } = useContext(GlobalStoreContext);

@@ -1,5 +1,4 @@
-import { useState, useContext } from 'react';
-import { GlobalStoreContext } from '../store'
+import { useState } from 'react';
 import MapCard from './MapCard';
 
 import InputLabel from '@mui/material/InputLabel';
@@ -7,7 +6,6 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 

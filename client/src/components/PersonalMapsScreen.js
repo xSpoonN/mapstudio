@@ -1,5 +1,4 @@
-import { useState, useContext } from 'react';
-import { GlobalStoreContext } from '../store'
+import { useState } from 'react';
 import MapCard from './MapCard';
 
 import InputLabel from '@mui/material/InputLabel';

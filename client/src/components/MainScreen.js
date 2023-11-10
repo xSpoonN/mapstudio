@@ -14,12 +14,6 @@ import Box from '@mui/material/Box';
 
 export default function MainScreen() {
     const { store } = useContext(GlobalStoreContext);
-    const styles = {
-        backgroundColor: '#EEEEEE',
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center'
-    };
 
     let Content
     switch (store.currentScreen) {
