@@ -30,6 +30,11 @@ export default function AppBanner() {
 		store.changeToPersonal();
 	};
 
+	const handleProfileScreen = () => {
+		setAnchorElUser(null);
+		store.changeToProfile();
+	}
+
 	let loggedIn = true
 	let x = 
 		<Box sx={{ flexGrow: 0 }}>
@@ -51,7 +56,7 @@ export default function AppBanner() {
 				open={Boolean(anchorElUser)}
 				onClose={handleCloseUserMenu}
 			>
-				<MenuItem key="Profile" onClick={handleCloseUserMenu}>
+				<MenuItem key="Profile" onClick={handleProfileScreen}>
 						<Typography textAlign="center">Profile</Typography>
 				</MenuItem>
 				<MenuItem key="Personal Maps" onClick={handlePersonalMapScreen}>

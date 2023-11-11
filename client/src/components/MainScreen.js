@@ -7,6 +7,7 @@ import ForgotPasswordScreen from './ForgotPasswordScreen';
 import LoginScreen from './LoginScreen';
 import SearchScreen from './SearchScreen';
 import PersonalMapsScreen from './PersonalMapsScreen';
+import Profile from './Profile';
 import Barebones from './Barebones';
 
 import Box from '@mui/material/Box';
@@ -37,6 +38,9 @@ export default function MainScreen() {
             break;
         case 'personal':
             Content = <PersonalMapsScreen />
+            break;
+        case 'profile':
+            Content = <Profile />
             break;
         default:
             Content = <></>

@@ -95,6 +95,15 @@ function GlobalStoreContextProvider(props) {
             }
         });
     }
+    
+    store.changeToProfile = function() {
+        storeReducer({
+            type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
+            payload: {
+                screen: 'profile'
+            }
+        });
+    }
 
     store.closeModal = function() {
         storeReducer({
