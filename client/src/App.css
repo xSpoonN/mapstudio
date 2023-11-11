@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap');
+
 .App {
   text-align: center;
 }
@@ -35,4 +37,96 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+
+.account-circle {
+  margin-right: 38px;
+  margin-left: 38px;
+}
+
+.logo:hover {
+  cursor: pointer;
+}
+
+.link:hover {
+  cursor: pointer;
+}
+
+.modal {
+  position: relative;
+  max-width: 800px;
+  max-height: 80vh;
+  background: white;
+  overflow: auto;
+  cursor: default;
+  border-width: 0px;
+  border-radius: 10px;
+  border-style: solid;
+}
+
+.modal-dialog {
+  position: relative;
+  max-width: 800px;
+  max-height: 80vh;
+  background: white;
+  overflow: auto;
+  cursor: default;
+  border-width: 0px;
+  border-radius: 10px;
+  border-style: solid;
+}
+
+.modal-dialog > * {
+  padding: 1rem;
+}
+
+.modal-root > * {
+  padding: 1rem;
+}
+
+.modal-header,
+.modal-footer {
+  background: #D3D3D3;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: dotted;
+}
+
+.modal-header,
+.modal-close {
+  font-size: 1.5rem;
+}
+
+.modal p + p {
+  margin-top: 1rem;
+}
+
+.modal-control {
+  cursor: pointer;
+  width: 20%;
+}
+
+.dialog-header {
+  font-size: 24pt;
+}
+
+#close-modal-button {
+  float: right;
+}
+
+#confirm-cancel-container {
+  text-align: center;
+}
+
+.modal-south {
+  text-align: center;
+}
+
+html {
+  background-color: #EEEEEE
 }
