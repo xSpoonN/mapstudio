@@ -1,57 +1,37 @@
-/* import { useState } from 'react';
-import MapCard from './MapCard';
-
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
-import FormControl from '@mui/material/FormControl';
-import Select from '@mui/material/Select'; */
 import Box from '@mui/material/Box';
-/* import Button from '@mui/material/Button'; */
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { Container, Card, CardMedia, CardContent} from "@mui/material";
-
-/* const maps = Array.from({ length: 8 }, (_, i) => `Your Map ${i + 1}`);
-const share = Array.from({ length: 8 }, () => ['Private', 'Public'][Math.floor(Math.random() * 2)]); */
+import MapCard from './MapCard';
 
 export default function Profile() {
-/*     const [filter, setFilter] = useState('None');
-    const [sort, setSort] = useState('Newest');
-
-    const handleSetFilter = (event) => {
-        setFilter(event.target.value);
-    };
-
-    const handleSetSort = (event) => {
-        setSort(event.target.value);
-    }; */
-
-    const styles = {
+    const styles = { // Shaped by the hands of the gods, the hands of the devil, the hands of the self
         card: {
-            maxWidth: 500,
-            borderRadius: 16, // Adjust the value to control the roundness of corners
-            minWidth: 500,
-            height: 600, // Set the height to a larger value
+            maxWidth: 500, // Restricting the infinite, the unbounded, the unending
+            borderRadius: 16, // Softening the edges of the world. Though it is a lie, it is a comforting one
+            minWidth: 500, // The illusion of freedom, but you're trapped in a cell
+            height: 650 // A fixed stage, unmoving, unchanging for all eternity
         },
         media: {
-            height: 0,
-            paddingTop: '50%', // 1:1 aspect ratio for the photo
-            borderRadius: '50%',
-            maxWidth: '50%',
-            alignItems: 'center',
-            margin: 'auto',
-            marginTop: '64px',
-            marginBottom: '64px'
+            height: 0, // When it all ends, we will return to the void, the singularity
+            paddingTop: '50%', // Half of infinity, half of nothing, half of everything
+            maxWidth: '50%', // The matching half, the other half, the missing half
+            borderRadius: '50%', // A wheel, the ouroboros, the eternal dance of life, death, and rebirth
+            alignItems: 'center', // The center of the universe, the center of the labyrinth
+            margin: 'auto', // The center of the maze, the center of the storm
+            marginTop: '64px', // The eye of the storm, the eye of the beholder
+            marginBottom: '64px' // The beholder, the observer, the self
         },
-        profilename: {
-            marginBottom: '32px'
+        profilename: { // What is a name, but a mask for the soul?
+            marginBottom: '32px' 
         },
-        profilebio: {
+        profilebio: { // What is a bio, but a lie for the heart?
             margin: '32px'
         }
     }
 
     return (
+        // The container is the world, the universe, the multiverse, one that holds all and is held by none
         <Container maxWidth="lg" style={{ paddingTop: '64px' }}>
             <Box height="100vh">
                 <Grid container spacing={3} height="100%">
@@ -66,8 +46,7 @@ export default function Profile() {
                                 <CardContent>
                                     <Typography variant="h3" align="center" style={styles.profilename}>John Doe</Typography>
                                     <Typography variant="body1" align='center' style={styles.profilebio}>
-                                        Biography goes here. Lorem ipsum dolor sit amet consectetur
-                                        adipisicing elit.
+                                    They are a creature of duality, capable of both great compassion and terrible cruelty. They are said to be the source of both the greatest blessings and the most devastating curses. 
                                     </Typography>
                                 </CardContent>
                             </Card>
@@ -81,7 +60,17 @@ export default function Profile() {
                                             <Typography variant="h4" align="left" color='#E3256B'>Created Maps</Typography>
                                             <Typography variant="h5" align="left" sx={{ ml: 2 }} color='#000000' flexGrow={1}>8</Typography>
                                         </Box>
-                                        {/* Map cards go here */}
+                                    </Box>
+                                    <Box display="flex" flexDirection="row" alignItems="center">
+                                        {Array.from({ length: 3 }, (_, i) => (
+                                            <Grid item xs={12} md={6} key={i} sx={{ margin: '8px' }}>
+                                                <MapCard
+                                                    name={`Your Map ${i + 1}`}
+                                                    shared={['Private', 'Public'][1]}
+                                                    style={{ width: '600px', height: '300px' }}
+                                                />
+                                            </Grid>
+                                        ))}
                                     </Box>
                                 </Grid>
 
@@ -90,7 +79,17 @@ export default function Profile() {
                                         <Typography variant="h4" align="left" color='#E3256B'>Discussion Posts</Typography>
                                         <Typography variant="h5" align="left" sx={{ ml: 2 }} color='#000000' flexGrow={1}>14</Typography>
                                     </Box>
-                                    {/* Discussion cards go here */}
+                                    <Box display="flex" flexDirection="row" alignItems="center">
+                                        {Array.from({ length: 3 }, (_, i) => (
+                                            <Grid item xs={12} md={6} key={i} sx={{ margin: '8px' }}>
+                                                <MapCard
+                                                    name={`Post ${i + 1}`}
+                                                    shared={['Private', 'Public'][1]}
+                                                    style={{ width: '600px', height: '300px' }}
+                                                />
+                                            </Grid>
+                                        ))}
+                                    </Box>
                                 </Grid>
                             </Grid>
                         </Grid>
