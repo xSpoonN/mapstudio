@@ -130,3 +130,46 @@
 html {
   background-color: #EEEEEE
 }
+
+.discussion-cards {
+  overflow-y: scroll;
+  height: 75vh;
+}
+
+.list-card {
+  margin: 10px;
+  padding: 20px;
+  border-radius: 25px;
+  width: 100%;
+  background-color: #ffffff;
+  border: 3px solid #000000;
+  overflow-wrap: anywhere;
+}
+
+.list-card:hover {
+  cursor: pointer;
+}
+
+.map-card:hover {
+  cursor: pointer;
+}
+
+.post-comments {
+  overflow-y: scroll;
+  height: 40vh;
+}
+
+.comment-card {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 20px;
+  border-radius: 25px;
+  width: 100%;
+  background-color: #FFFFFF;
+  border: 3px solid #000000;
+  overflow-wrap: anywhere;
+}
+
+.map-comments {
+  overflow-y: scroll;
+}
