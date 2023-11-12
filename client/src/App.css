@@ -1,0 +1,175 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&display=swap');
+
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+.account-circle {
+  margin-right: 38px;
+  margin-left: 38px;
+}
+
+.logo:hover {
+  cursor: pointer;
+}
+
+.link:hover {
+  cursor: pointer;
+}
+
+.modal {
+  position: relative;
+  max-width: 800px;
+  max-height: 80vh;
+  background: white;
+  overflow: auto;
+  cursor: default;
+  border-width: 0px;
+  border-radius: 10px;
+  border-style: solid;
+}
+
+.modal-dialog {
+  position: relative;
+  max-width: 800px;
+  max-height: 80vh;
+  background: white;
+  overflow: auto;
+  cursor: default;
+  border-width: 0px;
+  border-radius: 10px;
+  border-style: solid;
+}
+
+.modal-dialog > * {
+  padding: 1rem;
+}
+
+.modal-root > * {
+  padding: 1rem;
+}
+
+.modal-header,
+.modal-footer {
+  background: #D3D3D3;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: dotted;
+}
+
+.modal-header,
+.modal-close {
+  font-size: 1.5rem;
+}
+
+.modal p + p {
+  margin-top: 1rem;
+}
+
+.modal-control {
+  cursor: pointer;
+  width: 20%;
+}
+
+.dialog-header {
+  font-size: 24pt;
+}
+
+#close-modal-button {
+  float: right;
+}
+
+#confirm-cancel-container {
+  text-align: center;
+}
+
+.modal-south {
+  text-align: center;
+}
+
+html {
+  background-color: #EEEEEE
+}
+
+.discussion-cards {
+  overflow-y: scroll;
+  height: 75vh;
+}
+
+.list-card {
+  margin: 10px;
+  padding: 20px;
+  border-radius: 25px;
+  width: 100%;
+  background-color: #ffffff;
+  border: 3px solid #000000;
+  overflow-wrap: anywhere;
+}
+
+.list-card:hover {
+  cursor: pointer;
+}
+
+.map-card:hover {
+  cursor: pointer;
+}
+
+.post-comments {
+  overflow-y: scroll;
+  height: 40vh;
+}
+
+.comment-card {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 20px;
+  border-radius: 25px;
+  width: 100%;
+  background-color: #FFFFFF;
+  border: 3px solid #000000;
+  overflow-wrap: anywhere;
+}
+
+.map-comments {
+  overflow-y: scroll;
+}

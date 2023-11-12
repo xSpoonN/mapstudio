@@ -1,11 +1,11 @@
-name: CI
+name: CI-Tests
 
 on: 
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
+  workflow_run:
+    workflows: ["Deploy to Firebase Hosting on merge", "Deploy to Azure Hosting"]
+    branches: [main]
+    types:
+      - completed
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -14,38 +14,32 @@ jobs:
   cypress-test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - uses: cypress-io/github-action@v2
+    - uses: actions/checkout@v3
+    - uses: cypress-io/github-action@v6
       with:
-        start: npm run start:prod
-        wait-on: 'http://localhost:3000'
+        working-directory: client
+        build: npm run build
+        start: npm run start
+        browser: chrome
         
-    - uses: actions/upload-artifact@v2
-      if: failure()
-      with:
-        name: cypress-screenshots
-        path: cypress/screenshots
+    # - uses: actions/upload-artifact@v2
+    #   if: failure()
+    #   with:
+    #     name: cypress-screenshots
+    #     path: cypress/screenshots
   
   api-test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Use Node.js
-      uses: actions/setup-node@v1
-
-    - name: Install Dependencies
-      run: npm ci
-      
-    - name: Run Jest and SuperTest
-      run: |
-        npm run test:jest
-        npm run test:supertest
+    - uses: actions/checkout@v3
+    - name: Install Dependencies and Test
+      run: cd server && npm ci && npm test
         
-  visual-test:
-    needs: [cypress-test, api-test]
-    runs-on: ubuntu-latest
-    steps:
-    - name: Check test status
-      if: ${{ needs.cypress-test.result != 'success' || needs.api-test.result != 'success' }} 
-      run: exit 1
+  # visual-test:
+  #   needs: [cypress-test, api-test]
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #   - name: Check test status
+  #     if: ${{ needs.cypress-test.result != 'success' || needs.api-test.result != 'success' }} 
+  #     run: exit 1
