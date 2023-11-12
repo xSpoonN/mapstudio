@@ -2,10 +2,14 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { Container, Card, CardMedia, CardContent} from "@mui/material";
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import MapCard from './MapCard';
 import PostCard from './PostCard';
+import { useContext } from 'react';
+import { GlobalStoreContext } from '../store'
 
 export default function Profile() {
+    const { store } = useContext(GlobalStoreContext);
     const styles = { // Shaped by the hands of the gods, the hands of the devil, the hands of the self
         card: {
             maxWidth: 500, // Restricting the infinite, the unbounded, the unending
@@ -39,7 +43,7 @@ export default function Profile() {
             <Box height="100%">
                 <Grid container spacing={3} height="100%">
                     <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} md={4}>
                             <Card style={styles.card}>
                                 <CardMedia
                                     style={styles.media}
@@ -55,7 +59,7 @@ export default function Profile() {
                             </Card>
                         </Grid>
 
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} md={8}>
                             <Grid container spacing={3}>
                                 <Grid item xs={12}>
                                     <Box display="flex" flexDirection="row" alignItems="center">
@@ -74,6 +78,7 @@ export default function Profile() {
                                                 />
                                             </Grid>
                                         ))}
+                                        <ArrowRightIcon style={{ color:'grey', fontSize: '40px' }} mx={1} onClick={() => store.changeToPersonal()} />
                                     </Box>
                                 </Grid>
 
@@ -92,6 +97,7 @@ export default function Profile() {
                                                 />
                                             </Grid>
                                         ))}
+                                        <ArrowRightIcon style={{ color:'grey', fontSize: '40px' }} mx={1}/>
                                     </Box>
                                 </Grid>
                             </Grid>

@@ -17,7 +17,7 @@ export default function MapCard(props) {
         },
         media: {
             height: 0,
-            paddingTop: '100%', // 1:1 aspect ratio for the photo
+            paddingTop: '60%', // 1:1 aspect ratio for the photo
             borderRadius: '16px 16px 0 0', // Rounded top corners
         },
         content: {
@@ -86,7 +86,7 @@ export default function MapCard(props) {
         <Card className="map-card" style={styles.card} onClick={handleCardClick}>
             <CardMedia
                 style={styles.media}
-                image='https://source.unsplash.com/random/500x500'
+                image='https://source.unsplash.com/random/500x300'
                 title="Card Image"
             />
             <CardContent style={styles.content}>
