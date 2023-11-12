@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import MapCard from './MapCard';
+import { useState, useContext } from 'react';
+import GlobalStoreContext from '../store';
 
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -7,16 +7,24 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Grid from '@mui/material/Grid';
+import List from '@mui/material/List';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 
-const maps = Array.from({ length: 8 }, (_, i) => `Your Map ${i + 1}`);
-const share = Array.from({ length: 8 }, () => ['Private', 'Public'][Math.floor(Math.random() * 2)]);
+import DiscussionPostListCard from './DiscussionPostListCard';
 
-export default function PersonalMapsScreen() {
+const posts = Array.from({ length: 10 }, (_, i) => `Discussion Post ${i + 1}`);
+
+const styles = {
+    scroll: {
+        scrollbarWidth: 'thin'
+    }
+}
+
+export default function DiscussionHomeScreen() {
+    const { store } = useContext(GlobalStoreContext);
     const [filter, setFilter] = useState('None');
     const [sort, setSort] = useState('Newest');
 
@@ -28,14 +36,18 @@ export default function PersonalMapsScreen() {
         setSort(event.target.value);
     };
 
+    function handleCreate() {
+        store.changeToDiscussionPostNew();
+    }
+
     return (
-        <Box>
+        <Box display="flex" flexDirection="column">
             <Box display="flex" flexDirection="row" alignItems="flex-end">
                 <Typography variant="h2" align="left" sx={{ mx: 6, my: 6 }} color='#E3256B'>
-                    Your Maps
+                    Discuss!
                 </Typography>
                 <Typography variant="h3" align="left" sx={{ mx: 6, my: 6 }} color='#000000' flexGrow={1}>
-                    8
+                    10
                 </Typography>
                 <Box justifyContent="center" sx={{ flexGrow: 2, mx: 6, my: 6 }}>
 					<TextField
@@ -71,6 +83,7 @@ export default function PersonalMapsScreen() {
                     style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px'}} 
                     disableRipple
                     color='razzmatazz'
+                    onClick={handleCreate}
                 >
                     Create +
                 </Button>
@@ -121,19 +134,16 @@ export default function PersonalMapsScreen() {
                     </Select>
                 </FormControl>
             </Box>
-
-            <Grid container
-                spacing={0}
-                direction="row"
-                alignItems="center"
-                justify="center"
-            >
-                {maps.map((map, index) => (
-                    <Grid item lg={3} md={4} sm={6} xs={12} align="center" sx={{ my: 4 }}>
-                        <MapCard name={map} shared={share[index]}/>
-                    </Grid>   
-                ))}
-            </Grid>
+            <Box className="discussion-cards" display="flex" style={styles.scroll} >
+                <List sx={{ width: '90%', left: '5%' }}>
+                    {posts.map((post) => (
+                            <DiscussionPostListCard 
+                                title={post}
+                            />
+                        ))
+                    }
+                </List>
+            </Box>                       
         </Box>
     )
 }

@@ -1,3 +1,6 @@
+import { useContext } from 'react'
+import { GlobalStoreContext } from '../store'
+
 import { Card, CardMedia, CardContent, Typography, Box } from "@mui/material";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
@@ -5,6 +8,8 @@ import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import EditIcon from '@mui/icons-material/Edit';
 
 export default function MapCard(props) {
+    const { store } = useContext(GlobalStoreContext);
+
     const styles = {
         card: {
             maxWidth: 400,
@@ -72,8 +77,12 @@ export default function MapCard(props) {
             </div>
     }
 
+    function handleCardClick() {
+        store.changeToMapView();
+    }
+
     return (
-        <Card style={styles.card}>
+        <Card className="map-card" style={styles.card} onClick={handleCardClick}>
             <CardMedia
                 style={styles.media}
                 image='https://source.unsplash.com/random/500x500'

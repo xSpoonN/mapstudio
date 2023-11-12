@@ -96,6 +96,42 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
+    store.changeToDiscussionHome = function() {
+        storeReducer({
+            type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
+            payload: {
+                screen: 'discussionHome'
+            }
+        });
+    }
+
+    store.changeToDiscussionPostNew = function() {
+        storeReducer({
+            type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
+            payload: {
+                screen: 'discussionPostNew'
+            }
+        });
+    }
+
+    store.changeToDiscussionPost = function() {
+        storeReducer({
+            type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
+            payload: {
+                screen: 'discussionPost'
+            }
+        });
+    }
+
+    store.changeToMapView = function() {
+        storeReducer({
+            type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
+            payload: {
+                screen: 'mapView'
+            }
+        });
+    }
+
     store.closeModal = function() {
         storeReducer({
             type: GlobalStoreActionType.CLOSE_MODAL
