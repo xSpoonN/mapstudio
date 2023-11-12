@@ -9,6 +9,10 @@ import SearchScreen from './SearchScreen';
 import PersonalMapsScreen from './PersonalMapsScreen';
 import Profile from './Profile';
 import Barebones from './Barebones';
+import DiscussionHomeScreen from './DiscussionHomeScreen';
+import DiscussionPostNew from './DiscussionPostNew';
+import DiscussionPost from './DiscussionPost';
+import MapView from './MapVew';
 
 import Box from '@mui/material/Box';
 
@@ -38,6 +42,18 @@ export default function MainScreen() {
             break;
         case 'personal':
             Content = <PersonalMapsScreen />
+            break;
+        case 'discussionHome':
+            Content = <DiscussionHomeScreen />
+            break;
+        case 'discussionPostNew':
+            Content = <DiscussionPostNew />
+            break;
+        case 'discussionPost':
+            Content = <DiscussionPost />
+            break;
+        case 'mapView':
+            Content = <MapView />
             break;
         case 'profile':
             Content = <Profile />

@@ -48,7 +48,6 @@ export default function AppBanner() {
 					vertical: 'top',
 					horizontal: 'right',
 				}}
-				keepMounted
 				transformOrigin={{
 					vertical: 'top',
 					horizontal: 'right',
@@ -120,6 +119,10 @@ export default function AppBanner() {
 		store.changeToSearch();
 	}
 
+	function handleDiscuss() {
+		store.changeToDiscussionHome();
+	}
+
 	return (
 		<AppBar position="static" style={{ background: '#E3256B'}} elevation={0}>
 			<Toolbar>
@@ -147,6 +150,7 @@ export default function AppBanner() {
 						sx={{ my: 2, color: 'white', display: 'block',  mx: 6}}
 						style={{fontSize:'16pt', backgroundColor: 'transparent'}}
 						disableRipple
+						onClick={handleDiscuss}
 					>
 						Discuss
 					</Button>
