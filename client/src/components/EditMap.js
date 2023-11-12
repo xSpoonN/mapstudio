@@ -4,9 +4,16 @@ import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import { Box, AppBar, Toolbar, Typography, Button, Drawer } from '@mui/material';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import MapSidebar from './MapSidebar';
+import PointSidebar from './PointSidebar';
+import SubdivisionSidebar from './SubdivisionSidebar';
+import BinSidebar from './BinSidebar';
+import GradientSidebar from './GradientSidebar';
+import TemplateSidebar from './TemplateSidebar';
 
 export default function EditMap() {
     const [openDrawer, setOpenDrawer] = useState(true);
+    const [sidebar, setSidebar] = useState('map');
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
@@ -67,12 +74,12 @@ export default function EditMap() {
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Delete</Button>
                         </Box>
                         <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px' }}>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setOpenDrawer(true)}>Map Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setOpenDrawer(true)}>Subdivision Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setOpenDrawer(true)}>Point Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setOpenDrawer(true)}>Bin Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setOpenDrawer(true)}>Gradient Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setOpenDrawer(true)}>Templates</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('map')}>Map Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('subdivision')}>Subdivision Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('point')}>Point Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('bin')}>Bin Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('gradient')}>Gradient Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('template')}>Templates</Button>
                         </Box>
                     </Toolbar>
                     {/* </div> */}
@@ -81,6 +88,7 @@ export default function EditMap() {
                     style={{ backgroundColor: '#FFFFFF', borderRadius: '8px' }}
                     height='84vh'
                     alignItems="center"
+                    overflow="hidden"
                     ref={mapRef}
                 >
                 </Box>
@@ -88,11 +96,11 @@ export default function EditMap() {
 
             <Drawer
                 anchor="right"
-                variant="permanent"
+                variant="persistent"
                 open={openDrawer}
                 sx={{
                     width: '25%',
-                    height: '70vh',
+                    height: '80%',
                     flexShrink: 0,
                     '& .MuiDrawer-paper': {
                         width: '25%',
@@ -102,7 +110,12 @@ export default function EditMap() {
                 onClose={() => setOpenDrawer(false)}
             >
                 <Toolbar style={{marginTop: '25px'}}/>
-                blah
+                {sidebar === 'map' && <MapSidebar />}
+                {sidebar === 'subdivision' && <SubdivisionSidebar />}
+                {sidebar === 'point' && <PointSidebar />}
+                {sidebar === 'bin' && <BinSidebar />}
+                {sidebar === 'gradient' && <GradientSidebar />}
+                {sidebar === 'template' && <TemplateSidebar />}
             </Drawer>
         </Box>
     );
