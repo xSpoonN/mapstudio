@@ -96,7 +96,7 @@ export default function MapCard(props) {
                 <Typography variant="h6" component="div" color={props.shared === 'Public' ? '#66bb6a' : (props.shared === 'Private' ? '#ef5350' : undefined)}>
                     {props.shared}
                 </Typography>   
-                {x}
+                {/* props.hideTime ||  */x}
             </CardContent>
         </Card>
     );
