@@ -11,6 +11,29 @@ export default function EditMap() {
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
     const { store } = useContext(GlobalStoreContext);
+    const styles = {
+        standardButton: {
+            fontSize: '14pt', 
+            maxWidth: '105px', 
+            maxHeight: '45px',
+            minWidth: '105px', 
+            minHeight: '45px'
+        },
+        bigButton: {
+            fontSize: '14pt', 
+            maxWidth: '200px', 
+            maxHeight: '45px', 
+            minWidth: '105px', 
+            minHeight: '45px'
+        },
+        sxOverride: {
+            color: '#333333', 
+            mx: 0.5, 
+            '&:hover': {
+                color: '#E3256B'
+            }
+        }
+    }
 
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
@@ -31,26 +54,32 @@ export default function EditMap() {
 
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); }; // Remove GeoJSON layer on unmount
     });
-
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
-            {/* <AppBar position="static">
-                <Toolbar>
-                    <Box sx={{ marginLeft: 'auto' }}>
-                        <Button variant="contained">Import</Button>
-                        <Button variant="contained">Export</Button>
-                        <Button variant="contained">Publish</Button>
-                    </Box>
-                </Toolbar>
-            </AppBar> */}
-
-            <Box
-                height='100vh'
-                width='100vw'
-            >
+            <Box height='80vh' width='100vw' style={{ flex: 1 }} >
+                <AppBar position="static" style={{ background: 'transparent', zIndex: 2000 }}>
+                    {/* <div style={{margin: '-9px', marginTop: '-10px'}}>   */}
+                    <Toolbar sx={{display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 2}}>
+                        <Box sx={{ marginRight: 'auto', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '460px', maxWidth: '460px'}}>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Import</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Publish</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Delete</Button>
+                        </Box>
+                        <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px'}}>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple>Map Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple>Subdivision Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple>Point Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple>Bin Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple>Gradient Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple>Templates</Button>
+                        </Box>
+                    </Toolbar>
+                    {/* </div> */}
+                </AppBar>
                 <Box
                     style={{ backgroundColor: '#FFFFFF', borderRadius: '8px' }}
-                    height='100vh'
+                    height='84vh'
                     alignItems="center"
                     ref={mapRef}
                 >
