@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useContext } from 'react';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import TextField from '@mui/material/TextField';
@@ -8,6 +8,7 @@ import Avatar from '@mui/material/Avatar';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import Button from '@mui/material/Button';
+import { GlobalStoreContext } from '../store';
 
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -27,6 +28,7 @@ export default function MapView() {
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
+    const { store } = useContext(GlobalStoreContext);
 
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
@@ -123,6 +125,7 @@ export default function MapView() {
                         disableRipple
                         color='razzmatazz'
                         alignItems='right'
+                        onClick={() => store.changeToEditMap()}
                     >
                         Fork
                     </Button>
