@@ -45,34 +45,35 @@ export default function MapCard(props) {
     };
 
     let x = 
-        <div style={styles.edited}>
+        <div style={styles.counters}>
             <Box style={styles.item}>
-                <EditIcon style={{ color:'grey' }} mx={1}/>
                 <Typography variant="caption" color="grey" mx={1}>
-                    Yesterday at 10:58
+                    {Math.floor(Math.random() * 1000)}
                 </Typography>
+                <VisibilityIcon style={{ color:'grey' }} mx={1}/>
+            </Box>
+            <Box style={styles.item}>
+                <Typography variant="caption" color="grey" mx={1}>
+                    {Math.floor(Math.random() * 500)}
+                </Typography>
+                <ThumbUpIcon style={{ color:'grey' }} mx={1}/>
+            </Box>
+            <Box style={styles.item}>
+                <Typography variant="caption" color="grey" mx={1}>
+                    {Math.floor(Math.random() * 100)}
+                </Typography>
+                <ThumbDownIcon style={{ color:'grey' }} mx={1}/>
             </Box>
         </div>
+        
     if(props.shared === "Public") {
         x = 
-            <div style={styles.counters}>
+            <div style={styles.edited}>
                 <Box style={styles.item}>
+                    <EditIcon style={{ color:'grey' }} mx={1}/>
                     <Typography variant="caption" color="grey" mx={1}>
-                        {Math.floor(Math.random() * 1000)}
+                        Yesterday at 10:58
                     </Typography>
-                    <VisibilityIcon style={{ color:'grey' }} mx={1}/>
-                </Box>
-                <Box style={styles.item}>
-                    <Typography variant="caption" color="grey" mx={1}>
-                        {Math.floor(Math.random() * 500)}
-                    </Typography>
-                    <ThumbUpIcon style={{ color:'grey' }} mx={1}/>
-                </Box>
-                <Box style={styles.item}>
-                    <Typography variant="caption" color="grey" mx={1}>
-                        {Math.floor(Math.random() * 100)}
-                    </Typography>
-                    <ThumbDownIcon style={{ color:'grey' }} mx={1}/>
                 </Box>
             </div>
     }

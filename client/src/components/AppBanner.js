@@ -43,7 +43,6 @@ export default function AppBanner() {
 					vertical: 'top',
 					horizontal: 'right',
 				}}
-				keepMounted
 				transformOrigin={{
 					vertical: 'top',
 					horizontal: 'right',
