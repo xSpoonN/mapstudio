@@ -13,22 +13,22 @@ export default function EditMap() {
     const { store } = useContext(GlobalStoreContext);
     const styles = {
         standardButton: {
-            fontSize: '14pt', 
-            maxWidth: '105px', 
+            fontSize: '14pt',
+            maxWidth: '105px',
             maxHeight: '45px',
-            minWidth: '105px', 
+            minWidth: '105px',
             minHeight: '45px'
         },
         bigButton: {
-            fontSize: '14pt', 
-            maxWidth: '200px', 
-            maxHeight: '45px', 
-            minWidth: '105px', 
+            fontSize: '14pt',
+            maxWidth: '200px',
+            maxHeight: '45px',
+            minWidth: '105px',
             minHeight: '45px'
         },
         sxOverride: {
-            color: '#333333', 
-            mx: 0.5, 
+            color: '#333333',
+            mx: 0.5,
             '&:hover': {
                 color: '#E3256B'
             }
@@ -59,20 +59,20 @@ export default function EditMap() {
             <Box height='80vh' width='100vw' style={{ flex: 1 }} >
                 <AppBar position="static" style={{ background: 'transparent', zIndex: 2000 }}>
                     {/* <div style={{margin: '-9px', marginTop: '-10px'}}>   */}
-                    <Toolbar sx={{display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 2}}>
-                        <Box sx={{ marginRight: 'auto', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '460px', maxWidth: '460px'}}>
+                    <Toolbar sx={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 2 }}>
+                        <Box sx={{ marginRight: 'auto', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '460px', maxWidth: '460px' }}>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Import</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Publish</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Delete</Button>
                         </Box>
-                        <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px'}}>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple>Map Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple>Subdivision Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple>Point Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple>Bin Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple>Gradient Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple>Templates</Button>
+                        <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px' }}>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setOpenDrawer(true)}>Map Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setOpenDrawer(true)}>Subdivision Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setOpenDrawer(true)}>Point Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setOpenDrawer(true)}>Bin Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setOpenDrawer(true)}>Gradient Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setOpenDrawer(true)}>Templates</Button>
                         </Box>
                     </Toolbar>
                     {/* </div> */}
@@ -86,13 +86,24 @@ export default function EditMap() {
                 </Box>
             </Box>
 
-            {/*             <Drawer
+            <Drawer
                 anchor="right"
+                variant="permanent"
                 open={openDrawer}
+                sx={{
+                    width: '25%',
+                    height: '70vh',
+                    flexShrink: 0,
+                    '& .MuiDrawer-paper': {
+                        width: '25%',
+                        boxSizing: 'border-box'
+                    }
+                }}
                 onClose={() => setOpenDrawer(false)}
-            > */}
-            {/* Sidebar content */}
-            {/* </Drawer> */}
+            >
+                <Toolbar style={{marginTop: '25px'}}/>
+                blah
+            </Drawer>
         </Box>
     );
 }

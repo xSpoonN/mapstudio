@@ -54,6 +54,7 @@ export default function AppBanner() {
 				}}
 				open={Boolean(anchorElUser)}
 				onClose={handleCloseUserMenu}
+				style={{zIndex: 8888}}
 			>
 				<MenuItem key="Profile" onClick={handleProfileScreen}>
 						<Typography textAlign="center">Profile</Typography>
@@ -93,6 +94,7 @@ export default function AppBanner() {
 				}}
 				open={Boolean(anchorElUser)}
 				onClose={handleCloseUserMenu}
+				style={{zIndex: 8888}}
 				>
 					<MenuItem key="Log In" onClick={handleCloseUserMenu}>
 							<Typography textAlign="center">Log In</Typography>
@@ -124,7 +126,7 @@ export default function AppBanner() {
 	}
 
 	return (
-		<AppBar position="static" style={{ background: '#E3256B'}} elevation={0}>
+		<AppBar position="static" style={{ background: '#E3256B', zIndex: 7777}} elevation={0}>
 			<Toolbar>
 				<Box sx={{ display: { xs: 'none', md: 'flex' } }} paddingX={2}>
 					<img src="/Logo.png" alt="Mapstudio Logo" width="200" height="auto" className="logo" onClick={handleLogo}/>
