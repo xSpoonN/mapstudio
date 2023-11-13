@@ -1,10 +1,6 @@
 import { useState } from 'react';
-import { Button, TextField, FormControl, Select, MenuItem, IconButton, Divider, Box, Typography } from '@mui/material';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
-import DeleteIcon from '@mui/icons-material/Delete';
+import { Button, IconButton, Divider, Box, Typography } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
-import { TwitterPicker } from 'react-color';
 import Bin from './BinItem';
 
 export default function BinInfoSidebar() {
