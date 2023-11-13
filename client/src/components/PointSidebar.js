@@ -7,11 +7,11 @@ import CheckIcon from '@mui/icons-material/Check';
 import { TwitterPicker } from 'react-color';
 
 export default function PointInfoSidebar() {
-    const [name, setName] = useState('Point 1');
+    const [name, setName] = useState('Paris');
     const [dropdownValue, setDropdownValue] = useState('Option 1');
-    const [value, setValue] = useState('Value');
+    const [value, setValue] = useState('55');
     const [size, setSize] = useState(10); 
-    const [color, setColor] = useState('#0000ff');
+    const [color, setColor] = useState('#E3256B');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
     return (
@@ -24,8 +24,8 @@ export default function PointInfoSidebar() {
             <Box sx={{ p: 0, width: '100%', display: 'flex', justifyContent: 'center', height: '100%' }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                        <Typography sx={{ mr: 1, ml: '10%' }}>Name:</Typography>  
-                        <TextField value={name} sx={{ marginLeft: 'auto' }} onChange={e => setName(e.target.value)} />
+                        <Typography sx={{ mr: 1, ml: '10%' }}>Name</Typography>  
+                        <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} onChange={e => setName(e.target.value)} />
                         <IconButton disabled={true}>
                         <CheckIcon  sx={{ marginLeft: 'auto', color: 'white' }} />  
                         </IconButton>
@@ -33,13 +33,15 @@ export default function PointInfoSidebar() {
 
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <FormControl sx={{ mr: 1, ml: '10%' }}>
-                        <Select value={dropdownValue} onChange={e => setDropdownValue(e.target.value)}>
+                        <Select value={dropdownValue} onChange={e => setDropdownValue(e.target.value)} sx={{ borderRadius: 3 }}>
                             <MenuItem value="Option 1">Option 1</MenuItem>
                             <MenuItem value="Option 2">Option 2</MenuItem>
                         </Select>
                         </FormControl>
 
-                        <TextField value={value} sx={{ marginLeft: 'auto', width: '100px' }} onChange={e => setValue(e.target.value)}/>
+                        <TextField value={value} sx={{ margin: '2px', marginLeft: 'auto', width: '100px' }}
+                        inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
+                        onChange={e => setValue(e.target.value)}/>
                         
                         <IconButton>
                         <DeleteIcon  sx={{ marginLeft: 'auto' }} />  
@@ -47,13 +49,16 @@ export default function PointInfoSidebar() {
                     </Box>
 
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                        <Typography sx={{ mr: 1, ml: '10%' }}>Size:</Typography>
+                        <Typography sx={{ mr: 1, ml: '10%' }}>Size</Typography>
+
 
                         <IconButton sx={{ marginLeft: 'auto'}} onClick={() => setSize(size - 1)}>
                         <RemoveIcon />
                         </IconButton>
 
-                        <TextField value={size} sx={{ marginLeft: 'auto', width: '100px' }} onChange={e => setSize(Number(e.target.value))}/>
+                        <TextField value={size} sx={{ width: '50px', margin: '2px' }} 
+                        inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
+                        onChange={e => setSize(Number(e.target.value))}/>
 
                         <IconButton  onClick={() => setSize(size + 1)}>
                         <AddIcon />
@@ -61,7 +66,7 @@ export default function PointInfoSidebar() {
                     </Box>
 
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>  
-                        <Typography sx={{ mr: 1, ml: '10%' }}>Color:</Typography>
+                        <Typography sx={{ mr: 1, ml: '10%' }}>Color</Typography>
 
                         <Box sx={{ width: 30, height: 30, backgroundColor: color, marginLeft: 'auto' }} onClick={() => setDisplayColorPicker(!displayColorPicker)} />
                         <IconButton disabled={true}>
