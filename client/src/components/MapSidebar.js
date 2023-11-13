@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { TextField, FormControlLabel, Checkbox, Divider, Box } from '@mui/material';
 
 export default function MapInfoSidebar() {
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
+    const [title, setTitle] = useState('Map of the Mongol Empire');
+    const [description, setDescription] = useState('From the vast steppes of Central Asia, the Mongol Empire rose to become one of the most powerful and influential empires in history. Led by the charismatic and brilliant Genghis Khan, the Mongols conquered a vast swath of territory, stretching from the Pacific Ocean to the Black Sea.');
     const [satelliteView, setSatelliteView] = useState(false);
 
     return (
@@ -12,6 +12,7 @@ export default function MapInfoSidebar() {
                 label="Title"
                 value={title}
                 style={{margin: '10px', width: '80%'}}
+                inputProps={{style: { textAlign: 'center'}}} // Do not ask why capitalization matters here...
                 InputProps={{ sx: { borderRadius: 3 } }}
                 onChange={(e) => setTitle(e.target.value)}
             />
