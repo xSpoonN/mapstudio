@@ -94,7 +94,7 @@ function Barebones() {
           value={age}
           onChange={(e) => setAge(e.target.value)}
         />
-        <button onClick={handleCreateUser}>Create</button>
+        <button onClick={handleCreateUser}>Create User</button>
       </div>
 
       <div>
