@@ -8,9 +8,14 @@ import { TwitterPicker } from 'react-color';
 import Bin from './BinItem';
 
 export default function BinInfoSidebar() {
-    const [value, setValue] = useState('Rome');
-    const [color, setColor] = useState('#E3256B');
-    const [displayColorPicker, setDisplayColorPicker] = useState(false);
+    const [bins, setBins] = useState([
+        {color: '#E3256B', value: 'French'},
+        {color: '#A23B13', value: 'Communist'}
+    ]);
+
+    const addBin = () => {
+        setBins(bins => [...bins, {color: '#E3256B', value: 'New Bin'}]);
+    }
 
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
@@ -22,33 +27,17 @@ export default function BinInfoSidebar() {
             <Typography variant="h6" style={{ margin: '10px' }}>Bin Data</Typography>
             <Box sx={{ p: 0, width: '100%', display: 'flex', justifyContent: 'center', height: '100%' }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                        <IconButton sx={{ ml: '2%' }}>
-                        <AddIcon />
-                        <RemoveIcon />
-                        </IconButton>
-                        <Box sx={{ width: 30, height: 30, backgroundColor: color, borderRadius: '5px', marginRight: '2px' }} onClick={() => setDisplayColorPicker(!displayColorPicker)} />
-                        <Typography>Bin</Typography>
-
-
-
-                        <TextField value={value} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} onChange={e => setValue(e.target.value)} />
-
-                        <IconButton>
-                        <DeleteIcon  sx={{ marginLeft: 'auto' }} />  
-                        </IconButton>
-                    </Box>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
-                        {displayColorPicker && (<TwitterPicker color={color} onChangeComplete={color => setColor(color.hex)} sx={{ marginLeft: 'auto'}} triangle='hide'/>)}
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>  
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>  
+                        {bins.map((bin, index) => (
+                            <Bin key={index} binColor={bin.color} binValue={bin.value} />
+                        ))}
                         <Button 
                             variant="text"
                             sx={{ color: 'black', marginTop: 'auto', marginBottom: '10px', marginLeft: 'auto' }} 
                             style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '190px', minHeight: '20px'}} 
                             disableRipple
                             color='razzmatazz'
+                            onClick={addBin}
                         >
                             + New Bin
                         </Button>

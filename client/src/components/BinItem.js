@@ -5,9 +5,9 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { TwitterPicker } from 'react-color';
 
-export default function Bin() {
-    const [value, setValue] = useState('Rome');
-    const [color, setColor] = useState('#E3256B');
+export default function Bin({binColor, binValue}) {
+    const [value, setValue] = useState(binValue);
+    const [color, setColor] = useState(binColor);
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
     return (
         <>
