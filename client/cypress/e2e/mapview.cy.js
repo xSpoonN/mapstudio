@@ -6,7 +6,7 @@ describe('Map View', () => {
       cy.visit('https://mapstudio-cse416.web.app/')
       cy.get('img.logo').click(); // Click on logo to go to home page
       cy.viewport(1920, 1080);
-      cy.get('div.map-card').click();
+      cy.get('div.map-card').first().click();
     })
   
     it('contains comments', () => {
