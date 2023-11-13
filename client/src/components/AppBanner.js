@@ -145,6 +145,7 @@ export default function AppBanner() {
 						sx={{ my: 2, color: 'white', display: 'block',  mx: 6}}
 						style={{fontSize:'16pt', backgroundColor: 'transparent'}}
 						disableRipple
+                        onClick={() => store.changeToEditMap()}
 					>
 						Create
 					</Button>
