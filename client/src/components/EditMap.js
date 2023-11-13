@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { GlobalStoreContext } from '../store';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'; // eslint-disable-line
-import { Box, AppBar, Toolbar, Button, Drawer } from '@mui/material';
+import { IconButton, Box, AppBar, Toolbar, Button, Drawer } from '@mui/material';
+import ReplayIcon from '@mui/icons-material/Replay';
+import SaveIcon from '@mui/icons-material/Save';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import MapSidebar from './MapSidebar';
@@ -32,6 +34,28 @@ export default function EditMap() {
             maxHeight: '45px',
             minWidth: '105px',
             minHeight: '45px'
+        },
+        toolbarButton: {
+            position: 'absolute',
+            fontSize: '14pt',
+            left: '-5px',
+            maxWidth: '45px',
+            maxHeight: '45px',
+            minWidth: '45px',
+            minHeight: '45px',
+            zIndex: 9999
+        },
+        toolbarBG: {
+            position: 'absolute', 
+            top: '225px', 
+            left: '5.5px',
+            marginRight: 'auto', 
+            backgroundColor: '#DDDDDD',
+            border: '1px solid #333333',
+            borderRadius: '20px', 
+            minWidth: '40px', 
+            minHeight: '130px',
+            zIndex: 9998
         },
         sxOverride: {
             color: '#333333',
@@ -92,6 +116,13 @@ export default function EditMap() {
                     overflow="hidden"
                     ref={mapRef}
                 >
+                </Box>
+
+                
+                <Box sx={styles.toolbarBG}>
+                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton}}><ReplayIcon/></IconButton>
+                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'40px'}}><ReplayIcon sx={{ transform: 'scaleX(-1)' }} /></IconButton>
+                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'80px'}}><SaveIcon/></IconButton>
                 </Box>
             </Box>
 
