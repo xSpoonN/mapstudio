@@ -16,22 +16,28 @@ export default function PointInfoSidebar() {
 
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
+            {/* Map Info Header */}
             <Typography variant="h6" style={{ margin: '10px' }}>Map of the Pacific Ocean</Typography>
             <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
             <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>A graphic showing the amount of water in the Pacific Ocean. It's a lot.</Typography>
             <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '80px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
 
+            {/* Point Data */}
             <Typography variant="h6" style={{ margin: '10px' }}>Point Data</Typography>
             <Box sx={{ p: 0, width: '100%', display: 'flex', justifyContent: 'center', height: '100%' }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
+                    {/* Point Name */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <Typography sx={{ mr: 1, ml: '10%' }}>Name</Typography>  
                         <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} onChange={e => setName(e.target.value)} />
+
+                        {/* Placeholder to take up space for alignment */}
                         <IconButton disabled={true}>
                         <CheckIcon  sx={{ marginLeft: 'auto', color: 'white' }} />  
                         </IconButton>
                     </Box>
 
+                    {/* Point Properties */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <FormControl sx={{ mr: 1, ml: '10%' }}>
                         <Select value={dropdownValue} onChange={e => setDropdownValue(e.target.value)} sx={{ borderRadius: 3 }}>
@@ -49,6 +55,7 @@ export default function PointInfoSidebar() {
                         </IconButton>
                     </Box>
 
+                    {/* Point Size */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <Typography sx={{ mr: 1, ml: '10%' }}>Size</Typography>
 
@@ -66,19 +73,23 @@ export default function PointInfoSidebar() {
                         </IconButton>
                     </Box>
 
+                    {/* Point Color */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>  
                         <Typography sx={{ mr: 1, ml: '10%' }}>Color</Typography>
-
                         <Box sx={{ width: 30, height: 30, borderRadius: '5px', backgroundColor: color, marginLeft: 'auto' }} onClick={() => setDisplayColorPicker(!displayColorPicker)} />
+
+                        {/* Placeholder to take up space for alignment */}
                         <IconButton disabled={true}>
                         <CheckIcon  sx={{ marginLeft: 'auto', color: 'white' }} />  
                         </IconButton>
                     </Box>
 
+                    {/* Color Picker */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
                         {displayColorPicker && (<TwitterPicker color={color} onChangeComplete={color => setColor(color.hex)} sx={{ marginLeft: 'auto'}} triangle='hide'/>)}
                     </Box>
 
+                    {/* Add New Property */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', justifyContent: 'center' }}>
                         <Button 
                             variant="contained"
@@ -91,6 +102,7 @@ export default function PointInfoSidebar() {
                         </Button>
                     </Box>
                     
+                    {/* Move/Delete Point */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '80%' }}>  
                         <Button 
                             variant="contained"

@@ -15,13 +15,15 @@ export default function Gradient({gradientColor, gradientColor2, gradientValue, 
     return (
         <>
             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                {/* Add/Remove from Gradient */}
                 <IconButton sx={{ ml: '2%' }}>
                 <AddIcon />
                 <RemoveIcon />
                 </IconButton>
+                {/* Color squares */}
                 <Box sx={{ width: 30, height: 30, backgroundColor: color, borderRadius: '5px', marginRight: '2px' }} onClick={() => setDisplayColorPicker(!displayColorPicker)} />
                 <Box sx={{ width: 30, height: 30, backgroundColor: color2, borderRadius: '5px', marginRight: '2px' }} onClick={() => setDisplayColorPicker2(!displayColorPicker2)} />
-                {/* <TextField value={value} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} onChange={e => setValue(e.target.value)} /> */}
+                {/* Gradient value dropdown */}
                 <Select 
                     value={value}
                     sx={{ marginLeft: 'auto' }}
@@ -35,11 +37,13 @@ export default function Gradient({gradientColor, gradientColor2, gradientValue, 
                     ))}
                 </Select>
 
+                {/* Delete Gradient */}
                 <IconButton>
                 <DeleteIcon  sx={{ marginLeft: 'auto' }} />  
                 </IconButton>
             </Box>
 
+            {/* Color Pickers */}
             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
                 {displayColorPicker && (<TwitterPicker color={color} onChangeComplete={color => setColor(color.hex)} sx={{ marginLeft: 'auto'}} triangle='hide'/>)}
             </Box>

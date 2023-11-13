@@ -12,22 +12,26 @@ export default function Bin({binColor, binValue}) {
     return (
         <>
             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                {/* Add/Remove from Bin */}
                 <IconButton sx={{ ml: '2%' }}>
                 <AddIcon />
                 <RemoveIcon />
                 </IconButton>
+
+                {/* Bin Color */}
                 <Box sx={{ width: 30, height: 30, backgroundColor: color, borderRadius: '5px', marginRight: '2px' }} onClick={() => setDisplayColorPicker(!displayColorPicker)} />
                 <Typography>Bin</Typography>
-
-
-
+                
+                {/* Bin Name */}
                 <TextField value={value} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} onChange={e => setValue(e.target.value)} />
 
+                {/* Delete Bin */}
                 <IconButton>
                 <DeleteIcon  sx={{ marginLeft: 'auto' }} />  
                 </IconButton>
             </Box>
-
+    
+            {/* Color Picker */}
             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
                 {displayColorPicker && (<TwitterPicker color={color} onChangeComplete={color => setColor(color.hex)} sx={{ marginLeft: 'auto'}} triangle='hide'/>)}
             </Box>

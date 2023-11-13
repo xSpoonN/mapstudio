@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { GlobalStoreContext } from '../store';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
-import { Box, AppBar, Toolbar, Typography, Button, Drawer } from '@mui/material';
+import { MapContainer, TileLayer, Marker } from 'react-leaflet'; // eslint-disable-line
+import { Box, AppBar, Toolbar, Button, Drawer } from '@mui/material';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import MapSidebar from './MapSidebar';
@@ -17,7 +17,7 @@ export default function EditMap() {
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
-    const { store } = useContext(GlobalStoreContext);
+    const { store } = useContext(GlobalStoreContext); // eslint-disable-line
     const styles = {
         standardButton: {
             fontSize: '14pt',
@@ -64,8 +64,8 @@ export default function EditMap() {
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Box height='80vh' width='100vw' style={{ flex: 1 }} >
+                {/* Toolbar */}
                 <AppBar position="static" style={{ background: 'transparent', zIndex: 2000 }}>
-                    {/* <div style={{margin: '-9px', marginTop: '-10px'}}>   */}
                     <Toolbar sx={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 2 }}>
                         <Box sx={{ marginRight: 'auto', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '460px', maxWidth: '460px' }}>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Import</Button>
@@ -82,8 +82,9 @@ export default function EditMap() {
                             <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('template')}>Templates</Button>
                         </Box>
                     </Toolbar>
-                    {/* </div> */}
                 </AppBar>
+                    
+                {/* Map */}
                 <Box
                     style={{ backgroundColor: '#FFFFFF', borderRadius: '8px' }}
                     height='84vh'
@@ -94,6 +95,7 @@ export default function EditMap() {
                 </Box>
             </Box>
 
+            {/* Sidebar */}
             <Drawer
                 anchor="right"
                 variant="persistent"

@@ -27,17 +27,15 @@ export default function MapInfoSidebar() {
                 onChange={(e) => setDescription(e.target.value)}
             />
             <Divider variant='middle' style={{ width: '80%', margin: '5px', marginTop: 'auto', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2}}/>
-            {/* <div style={{ marginTop: 'auto'}}> */}
-                <FormControlLabel
-                    label="Satellite View"
-                    control={
-                        <Checkbox
-                            checked={satelliteView}
-                            onChange={(e) => setSatelliteView(e.target.checked)}
-                        />
-                    }
-                />
-            {/* </div> */}
+            <FormControlLabel
+                label="Satellite View"
+                control={
+                    <Checkbox
+                        checked={satelliteView}
+                        onChange={(e) => setSatelliteView(e.target.checked)}
+                    />
+                }
+            />
         </Box>
     );
 }
