@@ -13,6 +13,7 @@ describe('Login Page', () => {
         cy.contains('Create Account').should('exist');
         cy.contains('Forgot Password').should('exist');
         cy.contains('Log In').should('exist');
+        cy.contains('IUBEVLUSEBRDLVIUERDBLVIURB').should('exist');
         cy.contains('Username').should('exist');
         cy.contains('Password').should('exist');
     })
