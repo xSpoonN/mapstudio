@@ -5,7 +5,8 @@ describe('Login Page', () => {
     beforeEach(() => {
       cy.visit('https://mapstudio-cse416.web.app/')
       cy.get('img.logo').click(); // Click on logo to go to home page
-      cy.contains('Log In').click();
+      
+      cy.get('button:contains(Log In)').last().click();
     })
   
     it('contains login functions', () => {
