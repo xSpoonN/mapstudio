@@ -95,6 +95,15 @@ function GlobalStoreContextProvider(props) {
             }
         });
     }
+    
+    store.changeToProfile = function() {
+        storeReducer({
+            type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
+            payload: {
+                screen: 'profile'
+            }
+        });
+    }
 
     store.changeToDiscussionHome = function() {
         storeReducer({
@@ -128,6 +137,15 @@ function GlobalStoreContextProvider(props) {
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
                 screen: 'mapView'
+            }
+        });
+    }
+
+    store.changeToEditMap = function() {
+        storeReducer({
+            type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
+            payload: {
+                screen: 'editMap'
             }
         });
     }

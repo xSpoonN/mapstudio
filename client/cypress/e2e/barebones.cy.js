@@ -11,7 +11,7 @@ describe('Users app', () => {
    
     cy.get('input[placeholder="Name"]').type('John')
     cy.get('input[placeholder="Age"]').type('30')
-    cy.get('button').contains('Create').click()
+    cy.get('button').contains('Create User').click()
     
     cy.get('li').last().contains('John').contains('30')
   })

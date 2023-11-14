@@ -1,13 +1,13 @@
 import { useContext } from 'react'
 import { GlobalStoreContext } from '../store'
 
-import { Card, CardMedia, CardContent, Typography, Box } from "@mui/material";
+import { Card, CardContent, Typography, Box } from "@mui/material";
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import EditIcon from '@mui/icons-material/Edit';
 
-export default function MapCard(props) {
+export default function PostCard(props) {
     const { store } = useContext(GlobalStoreContext);
 
     const styles = {
@@ -17,7 +17,7 @@ export default function MapCard(props) {
         },
         media: {
             height: 0,
-            paddingTop: '60%', // 1:1 aspect ratio for the photo
+            paddingTop: '100%', // 1:1 aspect ratio for the photo
             borderRadius: '16px 16px 0 0', // Rounded top corners
         },
         content: {
@@ -79,16 +79,16 @@ export default function MapCard(props) {
     }
 
     function handleCardClick() {
-        store.changeToMapView();
+        store.changeToDiscussionPost();
     }
 
     return (
-        <Card className="map-card" style={styles.card} onClick={handleCardClick}>
-            <CardMedia
-                style={styles.media}
-                image='https://source.unsplash.com/random/500x300'
-                title="Card Image"
-            />
+        <Card className="post-card" style={styles.card} onClick={handleCardClick}>
+            <CardContent style={styles.content}>
+                <Typography variant="h6" component="div">
+                    We are all one, but we are not the same.
+                </Typography>
+            </CardContent>
             <CardContent style={styles.content}>
                 <Typography variant="h6" component="div">
                     {props.name}

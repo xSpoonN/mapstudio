@@ -7,11 +7,13 @@ import ForgotPasswordScreen from './ForgotPasswordScreen';
 import LoginScreen from './LoginScreen';
 import SearchScreen from './SearchScreen';
 import PersonalMapsScreen from './PersonalMapsScreen';
+import Profile from './Profile';
 import Barebones from './Barebones';
 import DiscussionHomeScreen from './DiscussionHomeScreen';
 import DiscussionPostNew from './DiscussionPostNew';
 import DiscussionPost from './DiscussionPost';
 import MapView from './MapVew';
+import EditMap from './EditMap';
 
 import Box from '@mui/material/Box';
 
@@ -53,6 +55,12 @@ export default function MainScreen() {
             break;
         case 'mapView':
             Content = <MapView />
+            break;
+        case 'profile':
+            Content = <Profile />
+            break;
+        case 'editMap':
+            Content = <EditMap />
             break;
         default:
             Content = <></>
