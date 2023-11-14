@@ -66,7 +66,7 @@ export default function MapCard(props) {
             </Box>
         </div>
         
-    if(props.shared === "Public") {
+    if(props.shared === "Private") {
         x = 
             <div style={styles.edited}>
                 <Box style={styles.item}>
@@ -79,7 +79,11 @@ export default function MapCard(props) {
     }
 
     function handleCardClick() {
-        store.changeToMapView();
+        if(props.redirect === "edit") {
+            store.changeToEditMap();
+        } else {
+            store.changeToMapView();
+        }
     }
 
     return (

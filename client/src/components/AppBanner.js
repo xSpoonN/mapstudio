@@ -16,6 +16,7 @@ import SearchIcon from '@mui/icons-material/Search';
 export default function AppBanner() {
 	const { store } = useContext(GlobalStoreContext);
 	const [anchorElUser, setAnchorElUser] = useState(null);
+	const [loggedIn, setLoggedIn] = useState(false);
 
 	const handleOpenUserMenu = (event) => {
 		setAnchorElUser(event.currentTarget);
@@ -35,7 +36,21 @@ export default function AppBanner() {
 		store.changeToProfile();
 	}
 
-	let loggedIn = true
+	function switchLogin() {
+		setAnchorElUser(null);
+        setLoggedIn(!loggedIn)
+    }
+
+	function handleRegisterScreen() {
+		setAnchorElUser(null);
+        store.changeToRegister();
+    }
+
+    function handleForgotScreen() {
+		setAnchorElUser(null);
+        store.changeToForgot();
+    }
+
 	let x = 
 		<Box sx={{ flexGrow: 0 }}>
 			<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }} className='account-circle'>
@@ -62,7 +77,7 @@ export default function AppBanner() {
 				<MenuItem key="Personal Maps" onClick={handlePersonalMapScreen}>
 						<Typography textAlign="center">Personal Maps</Typography>
 				</MenuItem>
-				<MenuItem key="Log Out" onClick={handleCloseUserMenu}>
+				<MenuItem key="Log Out" onClick={switchLogin}>
 					<Typography textAlign="center">Log Out</Typography>
 				</MenuItem>
 			</Menu>
@@ -96,13 +111,13 @@ export default function AppBanner() {
 				onClose={handleCloseUserMenu}
 				style={{zIndex: 8888}}
 				>
-					<MenuItem key="Log In" onClick={handleCloseUserMenu}>
+					<MenuItem key="Log In" onClick={switchLogin}>
 							<Typography textAlign="center">Log In</Typography>
 					</MenuItem>
-					<MenuItem key="Create Account" onClick={handleCloseUserMenu}>
+					<MenuItem key="Create Account" onClick={handleRegisterScreen}>
 							<Typography textAlign="center">Create Account</Typography>
 					</MenuItem>
-					<MenuItem key="Forgot Account?" onClick={handleCloseUserMenu}>
+					<MenuItem key="Forgot Account?" onClick={handleForgotScreen}>
 						<Typography textAlign="center">Forgot Account?</Typography>
 					</MenuItem>
 				</Menu>
