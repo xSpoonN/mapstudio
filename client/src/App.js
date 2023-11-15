@@ -2,6 +2,7 @@ import './App.css'
 import { React } from 'react'
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { GlobalStoreContextProvider } from './store'
+import { AuthContextProvider } from './auth'
 
 import {
     MainScreen
@@ -25,9 +26,11 @@ const theme = createTheme({
 const App = () => {   
     return (
         <ThemeProvider theme={theme}>
-            <GlobalStoreContextProvider>
-                <MainScreen/>
-            </GlobalStoreContextProvider>
+            <AuthContextProvider>
+                <GlobalStoreContextProvider>
+                    <MainScreen/>
+                </GlobalStoreContextProvider>
+            </AuthContextProvider>
         </ThemeProvider>
     )
 }

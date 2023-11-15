@@ -1,5 +1,7 @@
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { GlobalStoreContext } from '../store'
+import AuthContext from '../auth'
+
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
@@ -13,7 +15,7 @@ const yourMaps = Array.from({ length: 4 }, (_, i) => `Your Map ${i + 1}`);
 
 export default function LandingWrapper() {
     const { store } = useContext(GlobalStoreContext);
-    const [loggedIn, setLoggedIn] = useState(false);
+	const { auth } = useContext(AuthContext);
 
     function handleLoginScreen() {
         store.changeToLogin();
@@ -23,14 +25,10 @@ export default function LandingWrapper() {
         store.changeToRegister();
     }
 
-    function switchLogin() {
-        setLoggedIn(!loggedIn)
-    }
-
     let x = 
         <Box>
             <Typography variant="h1" sx={{ my: 4, mx: 16 }} color='#E3256B'>
-                Welcome back Kenna!
+                {auth.user ? `Welcome back ${auth.user.username}!` : 'Welcome back!'}
             </Typography>
             <Typography variant="h4" sx={{ my: 4, mx: 16 }}>
                 Continue Editing?
@@ -80,14 +78,9 @@ export default function LandingWrapper() {
                     </Grid>   
                 ))}
             </Grid>
-            <Box>
-                <Typography onClick={switchLogin}>
-                    Switch
-                </Typography>
-            </Box>
         </Box>
 
-    if (!loggedIn) {
+    if (!auth.loggedIn) {
         x = 
             <Box>
                 <Typography variant="h1" align="center" sx={{ m: 6 }} color='#E3256B'>
@@ -137,11 +130,6 @@ export default function LandingWrapper() {
                         </Grid>   
                     ))}
                 </Grid>
-                <Box position="absolute" bottom="0px">
-                    <Typography onClick={switchLogin}>
-                        Switch
-                    </Typography>
-                </Box>
             </Box>
     }
 

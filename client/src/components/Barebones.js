@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-const url = (route) => { return "https://mapstudio.azurewebsites.net/" + route };
+const url = (route) => { return "http://localhost:4000/" + route };
 
 function Barebones() {
   const [users, setUsers] = useState([]);
@@ -10,14 +10,14 @@ function Barebones() {
   const [selectedUserId, setSelectedUserId] = useState('');
 
   useEffect(() => {
-    fetch(url('api/users'))
+    fetch(url('api/people'))
       .then((response) => response.json())
       .then((data) => setUsers(data))
       .catch((error) => console.error('Error fetching data:', error));
   }, []);
 
   const handleCreateUser = () => {
-    fetch(url('api/users'), {
+    fetch(url('api/people'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, age }),
@@ -36,7 +36,7 @@ function Barebones() {
   };
 
   const handleUpdateUser = () => {
-    fetch(url(`api/users/${selectedUserId}`), {
+    fetch(url(`api/people/${selectedUserId}`), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: updateName, age: updateAge }),
@@ -56,7 +56,7 @@ function Barebones() {
   };
 
   const handleDeleteUser = () => {
-    fetch(url(`api/users/${selectedUserId}`), {
+    fetch(url(`api/people/${selectedUserId}`), {
       method: 'DELETE',
     })
       .then(() => {
@@ -72,7 +72,7 @@ function Barebones() {
   };
 
   const fetchUsers = () => {
-    fetch(url('api/users'))
+    fetch(url('api/people'))
       .then((response) => response.json())
       .then((data) => setUsers(data))
       .catch((error) => console.error('Error fetching data:', error));

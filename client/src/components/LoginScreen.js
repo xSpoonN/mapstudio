@@ -1,7 +1,8 @@
 import { useContext } from 'react';
 import { GlobalStoreContext } from '../store'
-import AccountModal from './AccountModal';
+import AuthContext from '../auth'
 
+import AccountModal from './AccountModal';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
@@ -10,9 +11,15 @@ import Typography from '@mui/material/Typography';
 
 export default function LoginScreen() {
     const { store } = useContext(GlobalStoreContext);
+    const { auth } = useContext(AuthContext);
     const handleSubmit = (event) => {
         event.preventDefault();
-        //const formData = new FormData(event.currentTarget);
+        const formData = new FormData(event.currentTarget);
+        auth.loginUser(
+            formData.get('username'),
+            formData.get('password'),
+        );
+        store.changeToHome()
     };
 
     function handleRegisterScreen() {
