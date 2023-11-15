@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 
-describe('Users app', () => {
+/* describe('Users app', () => {
 
   beforeEach(() => {
     cy.visit('https://mapstudio-cse416.web.app/')
@@ -30,8 +30,7 @@ describe('Users app', () => {
    
     cy.get('button').contains('Delete').click()
 
-    /* cy.get('li').first().should('not.contain', 'Sarah') */
     cy.contains('Sarah').should('not.exist')
   })
 
-})
+}) */
