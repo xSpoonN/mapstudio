@@ -1,5 +1,6 @@
 import { useContext } from 'react';
 import { GlobalStoreContext } from '../store'
+import AuthContext from '../auth'
 import AccountModal from './AccountModal';
 
 import Box from '@mui/material/Box';
@@ -10,9 +11,16 @@ import Typography from '@mui/material/Typography';
 
 export default function RegisterScreen() {
     const { store } = useContext(GlobalStoreContext);
+    const { auth } = useContext(AuthContext);
     const handleSubmit = (event) => {
         event.preventDefault();
-        //const formData = new FormData(event.currentTarget);
+        const formData = new FormData(event.currentTarget);
+        auth.registerUser(
+            formData.get('username'),
+            formData.get('email'),
+            formData.get('password'),
+        );
+        store.changeToHome()
     };
 
     function handleLoginScreen() {

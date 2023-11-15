@@ -1,5 +1,7 @@
 import { useState, useContext } from 'react';
 import { GlobalStoreContext } from '../store'
+import AuthContext from '../auth'
+
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -15,8 +17,9 @@ import SearchIcon from '@mui/icons-material/Search';
 
 export default function AppBanner() {
 	const { store } = useContext(GlobalStoreContext);
+	const { auth } = useContext(AuthContext);
+
 	const [anchorElUser, setAnchorElUser] = useState(null);
-	const [loggedIn, setLoggedIn] = useState(false);
 
 	const handleOpenUserMenu = (event) => {
 		setAnchorElUser(event.currentTarget);
@@ -36,9 +39,9 @@ export default function AppBanner() {
 		store.changeToProfile();
 	}
 
-	function switchLogin() {
+	function handleLoginScreen() {
 		setAnchorElUser(null);
-        setLoggedIn(!loggedIn)
+        store.changeToLogin();
     }
 
 	function handleRegisterScreen() {
@@ -50,6 +53,12 @@ export default function AppBanner() {
 		setAnchorElUser(null);
         store.changeToForgot();
     }
+
+	function handleLogout() {
+		setAnchorElUser(null);
+		auth.logoutUser();
+		store.changeToHome();
+	}
 
 	let x = 
 		<Box sx={{ flexGrow: 0 }}>
@@ -77,13 +86,13 @@ export default function AppBanner() {
 				<MenuItem key="Personal Maps" onClick={handlePersonalMapScreen}>
 						<Typography textAlign="center">Personal Maps</Typography>
 				</MenuItem>
-				<MenuItem key="Log Out" onClick={switchLogin}>
+				<MenuItem key="Log Out" onClick={handleLogout}>
 					<Typography textAlign="center">Log Out</Typography>
 				</MenuItem>
 			</Menu>
 		</Box>
 
-	if (!loggedIn) {
+	if (!auth.loggedIn) {
 		x = 
 			<Box sx={{ flexGrow: 0 }}>
 				<Button 
@@ -111,7 +120,7 @@ export default function AppBanner() {
 				onClose={handleCloseUserMenu}
 				style={{zIndex: 8888}}
 				>
-					<MenuItem key="Log In" onClick={switchLogin}>
+					<MenuItem key="Log In" onClick={handleLoginScreen}>
 							<Typography textAlign="center">Log In</Typography>
 					</MenuItem>
 					<MenuItem key="Create Account" onClick={handleRegisterScreen}>

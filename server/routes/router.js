@@ -1,70 +1,70 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
+const Person = require('../models/Person');
 
-// Create a new user
-router.post('/users', async (req, res) => {
+// Create a new person
+router.post('/people', async (req, res) => {
   try {
     const { name, age } = req.body;
-    const user = new User({ name, age });
-    await user.save();
-    res.status(201).json(user);
+    const person = new Person({ name, age });
+    await person.save();
+    res.status(201).json(person);
   } catch (err) {
-    res.status(400).json({ error: 'Failed to create a user.' });
+    res.status(400).json({ error: 'Failed to create a person.' });
   }
 });
 
-// Get a list of all users
-router.get('/users', async (req, res) => {
+// Get a list of all people
+router.get('/people', async (req, res) => {
   try {
-    const users = await User.find();
-    res.status(200).json(users);
+    const people = await Person.find();
+    res.status(200).json(people);
   } catch (err) {
-    res.status(400).json({ error: 'Failed to fetch users.' });
+    res.status(400).json({ error: 'Failed to fetch people.' });
   }
 });
 
-// Get a specific user by ID
-router.get('/users/:id', async (req, res) => {
+// Get a specific person by ID
+router.get('/people/:id', async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found.' });
+    const person = await Person.findById(req.params.id);
+    if (!person) {
+      return res.status(404).json({ error: 'Person not found.' });
     }
-    res.status(200).json(user);
+    res.status(200).json(person);
   } catch (err) {
-    res.status(400).json({ error: 'Failed to fetch the user.' });
+    res.status(400).json({ error: 'Failed to fetch the person.' });
   }
 });
 
-// Update a user by ID
-router.put('/users/:id', async (req, res) => {
+// Update a person by ID
+router.put('/people/:id', async (req, res) => {
   try {
     const { name, age } = req.body;
-    const user = await User.findByIdAndUpdate(
+    const person = await Person.findByIdAndUpdate(
       req.params.id,
       { name, age },
       { new: true }
     );
-    if (!user) {
-      return res.status(404).json({ error: 'User not found.' });
+    if (!person) {
+      return res.status(404).json({ error: 'Person not found.' });
     }
-    res.status(200).json(user);
+    res.status(200).json(person);
   } catch (err) {
-    res.status(400).json({ error: 'Failed to update the user.' });
+    res.status(400).json({ error: 'Failed to update the person.' });
   }
 });
 
-// Delete a user by ID
-router.delete('/users/:id', async (req, res) => {
+// Delete a person by ID
+router.delete('/people/:id', async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found.' });
+    const person = await Person.findByIdAndDelete(req.params.id);
+    if (!person) {
+      return res.status(404).json({ error: 'Person not found.' });
     }
     res.status(204).end();
   } catch (err) {
-    res.status(400).json({ error: 'Failed to delete the user.' });
+    res.status(400).json({ error: 'Failed to delete the person.' });
   }
 });
 
