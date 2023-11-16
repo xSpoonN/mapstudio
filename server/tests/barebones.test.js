@@ -1,11 +1,11 @@
 const request = require('supertest');
 const app = require('../index');
 
-describe('/users', () => {
+describe('/people', () => {
     let userid;
 
-    it('should create a new user', async () => {
-        const res = await request(app).post('/api/users')
+    it('should create a new person', async () => {
+        const res = await request(app).post('/api/people')
         .send({
             name: 'John',
             age: 30  
@@ -17,16 +17,16 @@ describe('/users', () => {
         userid = res.body._id;
     });
 
-    it('should get a list of all users', async () => {
-        const res = await request(app).get('/api/users');
+    it('should get a list of all people', async () => {
+        const res = await request(app).get('/api/people');
         
         expect(res.statusCode).toEqual(200);
         expect(Array.isArray(res.body)).toBeTruthy();
         expect(res.body.length).toBeGreaterThan(0);
     });
 
-    it('should get a user by id', async () => {
-      const res = await request(app).get('/api/users/' + userid);
+    it('should get a person by id', async () => {
+      const res = await request(app).get('/api/people/' + userid);
         
       expect(res.statusCode).toEqual(200);
       expect(res.body).toHaveProperty('name', 'John');
@@ -34,8 +34,8 @@ describe('/users', () => {
       expect(res.body).toHaveProperty('_id', userid);
     });
 
-    it('should update a user by id', async () => {
-        const res = await request(app).put('/api/users/' + userid)
+    it('should update a person by id', async () => {
+        const res = await request(app).put('/api/people/' + userid)
         .send({
             name: 'John',
             age: 31 
@@ -47,8 +47,8 @@ describe('/users', () => {
         expect(res.body).toHaveProperty('_id', userid);
     });
 
-    it('should delete a user by id', async () => {
-        const res = await request(app).delete('/api/users/' + userid);
+    it('should delete a person by id', async () => {
+        const res = await request(app).delete('/api/people/' + userid);
             
         expect(res.statusCode).toEqual(204);
     });

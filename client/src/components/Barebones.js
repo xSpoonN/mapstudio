@@ -10,14 +10,14 @@ function Barebones() {
   const [selectedUserId, setSelectedUserId] = useState('');
 
   useEffect(() => {
-    fetch(url('api/users'))
+    fetch(url('api/people'))
       .then((response) => response.json())
       .then((data) => setUsers(data))
       .catch((error) => console.error('Error fetching data:', error));
   }, []);
 
   const handleCreateUser = () => {
-    fetch(url('api/users'), {
+    fetch(url('api/people'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, age }),
@@ -36,7 +36,7 @@ function Barebones() {
   };
 
   const handleUpdateUser = () => {
-    fetch(url(`api/users/${selectedUserId}`), {
+    fetch(url(`api/people/${selectedUserId}`), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: updateName, age: updateAge }),
@@ -56,7 +56,7 @@ function Barebones() {
   };
 
   const handleDeleteUser = () => {
-    fetch(url(`api/users/${selectedUserId}`), {
+    fetch(url(`api/people/${selectedUserId}`), {
       method: 'DELETE',
     })
       .then(() => {
@@ -72,7 +72,7 @@ function Barebones() {
   };
 
   const fetchUsers = () => {
-    fetch(url('api/users'))
+    fetch(url('api/people'))
       .then((response) => response.json())
       .then((data) => setUsers(data))
       .catch((error) => console.error('Error fetching data:', error));
@@ -94,7 +94,7 @@ function Barebones() {
           value={age}
           onChange={(e) => setAge(e.target.value)}
         />
-        <button onClick={handleCreateUser}>Create</button>
+        <button onClick={handleCreateUser}>Create User</button>
       </div>
 
       <div>

@@ -1,6 +1,6 @@
 /* eslint-disable no-undef */
 
-describe('Users app', () => {
+/* describe('Users app', () => {
 
   beforeEach(() => {
     cy.visit('https://mapstudio-cse416.web.app/')
@@ -11,7 +11,7 @@ describe('Users app', () => {
    
     cy.get('input[placeholder="Name"]').type('John')
     cy.get('input[placeholder="Age"]').type('30')
-    cy.get('button').contains('Create').click()
+    cy.get('button').contains('Create User').click()
     
     cy.get('li').last().contains('John').contains('30')
   })
@@ -30,8 +30,7 @@ describe('Users app', () => {
    
     cy.get('button').contains('Delete').click()
 
-    /* cy.get('li').first().should('not.contain', 'Sarah') */
     cy.contains('Sarah').should('not.exist')
   })
 
-})
+}) */

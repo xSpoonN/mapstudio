@@ -3,7 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const apiRoutes = require('./routes/router');
+const cookieParser = require('cookie-parser')
+
 const app = express();
 const PORT = 8080/* process.env.PORT || 4000 */;
 
@@ -15,13 +16,18 @@ mongoose.connect('mongodb+srv://ktao:z4byPOvyyzZzarCn@ms.1qbqx7r.mongodb.net/?re
 
 // Middleware
 app.use(bodyParser.json());
+app.use(express.json())
+app.use(cookieParser())
 app.use(cors({
-  origin: ["https://mapstudio.azurewebsites.net:8080"],
+  origin: ["https://mapstudio-cse416.web.app"],
   credentials: true
 }))
 
 // Routes
-app.use('/api', apiRoutes);
+const authRoutes = require('./routes/auth-router');
+app.use('/auth', authRoutes);
+const routes = require('./routes/router');
+app.use('/api', routes);
 
 // Start the server
 app.listen(PORT, () => {

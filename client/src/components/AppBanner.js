@@ -1,5 +1,7 @@
 import { useState, useContext } from 'react';
 import { GlobalStoreContext } from '../store'
+import AuthContext from '../auth'
+
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Toolbar from '@mui/material/Toolbar';
@@ -15,6 +17,8 @@ import SearchIcon from '@mui/icons-material/Search';
 
 export default function AppBanner() {
 	const { store } = useContext(GlobalStoreContext);
+	const { auth } = useContext(AuthContext);
+
 	const [anchorElUser, setAnchorElUser] = useState(null);
 
 	const handleOpenUserMenu = (event) => {
@@ -35,7 +39,27 @@ export default function AppBanner() {
 		store.changeToProfile();
 	}
 
-	let loggedIn = true
+	function handleLoginScreen() {
+		setAnchorElUser(null);
+        store.changeToLogin();
+    }
+
+	function handleRegisterScreen() {
+		setAnchorElUser(null);
+        store.changeToRegister();
+    }
+
+    function handleForgotScreen() {
+		setAnchorElUser(null);
+        store.changeToForgot();
+    }
+
+	function handleLogout() {
+		setAnchorElUser(null);
+		auth.logoutUser();
+		store.changeToHome();
+	}
+
 	let x = 
 		<Box sx={{ flexGrow: 0 }}>
 			<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }} className='account-circle'>
@@ -54,6 +78,7 @@ export default function AppBanner() {
 				}}
 				open={Boolean(anchorElUser)}
 				onClose={handleCloseUserMenu}
+				style={{zIndex: 8888}}
 			>
 				<MenuItem key="Profile" onClick={handleProfileScreen}>
 						<Typography textAlign="center">Profile</Typography>
@@ -61,13 +86,13 @@ export default function AppBanner() {
 				<MenuItem key="Personal Maps" onClick={handlePersonalMapScreen}>
 						<Typography textAlign="center">Personal Maps</Typography>
 				</MenuItem>
-				<MenuItem key="Log Out" onClick={handleCloseUserMenu}>
+				<MenuItem key="Log Out" onClick={handleLogout}>
 					<Typography textAlign="center">Log Out</Typography>
 				</MenuItem>
 			</Menu>
 		</Box>
 
-	if (!loggedIn) {
+	if (!auth.loggedIn) {
 		x = 
 			<Box sx={{ flexGrow: 0 }}>
 				<Button 
@@ -93,14 +118,15 @@ export default function AppBanner() {
 				}}
 				open={Boolean(anchorElUser)}
 				onClose={handleCloseUserMenu}
+				style={{zIndex: 8888}}
 				>
-					<MenuItem key="Log In" onClick={handleCloseUserMenu}>
+					<MenuItem key="Log In" onClick={handleLoginScreen}>
 							<Typography textAlign="center">Log In</Typography>
 					</MenuItem>
-					<MenuItem key="Create Account" onClick={handleCloseUserMenu}>
+					<MenuItem key="Create Account" onClick={handleRegisterScreen}>
 							<Typography textAlign="center">Create Account</Typography>
 					</MenuItem>
-					<MenuItem key="Forgot Account?" onClick={handleCloseUserMenu}>
+					<MenuItem key="Forgot Account?" onClick={handleForgotScreen}>
 						<Typography textAlign="center">Forgot Account?</Typography>
 					</MenuItem>
 				</Menu>
@@ -124,7 +150,7 @@ export default function AppBanner() {
 	}
 
 	return (
-		<AppBar position="static" style={{ background: '#E3256B'}} elevation={0}>
+		<AppBar position="static" style={{ background: '#E3256B', zIndex: 7777}} elevation={0}>
 			<Toolbar>
 				<Box sx={{ display: { xs: 'none', md: 'flex' } }} paddingX={2}>
 					<img src="/Logo.png" alt="Mapstudio Logo" width="200" height="auto" className="logo" onClick={handleLogo}/>
@@ -143,6 +169,7 @@ export default function AppBanner() {
 						sx={{ my: 2, color: 'white', display: 'block',  mx: 6}}
 						style={{fontSize:'16pt', backgroundColor: 'transparent'}}
 						disableRipple
+                        onClick={() => store.changeToEditMap()}
 					>
 						Create
 					</Button>

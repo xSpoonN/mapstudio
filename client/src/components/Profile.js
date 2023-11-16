@@ -2,15 +2,22 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import { Container, Card, CardMedia, CardContent} from "@mui/material";
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import MapCard from './MapCard';
+import PostCard from './PostCard';
+import { useContext } from 'react';
+import { GlobalStoreContext } from '../store'
 
 export default function Profile() {
+    const { store } = useContext(GlobalStoreContext);
     const styles = { // Shaped by the hands of the gods, the hands of the devil, the hands of the self
         card: {
             maxWidth: 500, // Restricting the infinite, the unbounded, the unending
             borderRadius: 16, // Softening the edges of the world. Though it is a lie, it is a comforting one
             minWidth: 500, // The illusion of freedom, but you're trapped in a cell
-            height: 650 // A fixed stage, unmoving, unchanging for all eternity
+            height: 650, // A fixed stage, unmoving, unchanging for all eternity
+            alignItems: 'center', // The center of the universe, the center of the labyrinth
+            margin: 'auto', // The center of the maze, the center of the storm
         },
         media: {
             height: 0, // When it all ends, we will return to the void, the singularity
@@ -32,11 +39,11 @@ export default function Profile() {
 
     return (
         // The container is the world, the universe, the multiverse, one that holds all and is held by none
-        <Container maxWidth="lg" style={{ paddingTop: '64px' }}>
-            <Box height="100vh">
+        <Container maxWidth="ml" style={{ paddingTop: '64px' }}>
+            <Box height="100%">
                 <Grid container spacing={3} height="100%">
                     <Grid container spacing={3}>
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} md={4}>
                             <Card style={styles.card}>
                                 <CardMedia
                                     style={styles.media}
@@ -52,7 +59,7 @@ export default function Profile() {
                             </Card>
                         </Grid>
 
-                        <Grid item xs={12} md={6}>
+                        <Grid item xs={12} md={8}>
                             <Grid container spacing={3}>
                                 <Grid item xs={12}>
                                     <Box display="flex" flexDirection="row" alignItems="center">
@@ -71,6 +78,7 @@ export default function Profile() {
                                                 />
                                             </Grid>
                                         ))}
+                                        <ArrowRightIcon style={{ color:'grey', fontSize: '40px' }} mx={1} onClick={() => store.changeToPersonal()} />
                                     </Box>
                                 </Grid>
 
@@ -82,13 +90,14 @@ export default function Profile() {
                                     <Box display="flex" flexDirection="row" alignItems="center">
                                         {Array.from({ length: 3 }, (_, i) => (
                                             <Grid item xs={12} md={6} key={i} sx={{ margin: '8px' }}>
-                                                <MapCard
+                                                <PostCard
                                                     name={`Post ${i + 1}`}
                                                     shared={['Private', 'Public'][1]}
                                                     style={{ width: '600px', height: '300px' }}
                                                 />
                                             </Grid>
                                         ))}
+                                        <ArrowRightIcon style={{ color:'grey', fontSize: '40px' }} mx={1}/>
                                     </Box>
                                 </Grid>
                             </Grid>

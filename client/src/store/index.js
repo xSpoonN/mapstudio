@@ -141,6 +141,15 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
+    store.changeToEditMap = function() {
+        storeReducer({
+            type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
+            payload: {
+                screen: 'editMap'
+            }
+        });
+    }
+
     store.closeModal = function() {
         storeReducer({
             type: GlobalStoreActionType.CLOSE_MODAL
