@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-const url = (route) => { return "http://localhost:4000/" + route };
+const url = (route) => { return "https://mapstudio.azurewebsites.net/" + route };
 
 function Barebones() {
   const [users, setUsers] = useState([]);
