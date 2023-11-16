@@ -6,7 +6,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser')
 
 const app = express();
-const PORT =  process.env.PORT || 4000 ;
+const PORT = 8080/* process.env.PORT || 4000 */;
 
 // Connect to the MongoDB database
 mongoose.connect('mongodb+srv://ktao:z4byPOvyyzZzarCn@ms.1qbqx7r.mongodb.net/?retryWrites=true&w=majority', {
