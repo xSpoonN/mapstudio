@@ -6,7 +6,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser')
 
 const app = express();
-const PORT = 8080/* process.env.PORT || 4000 */;
+const PORT =  process.env.PORT || 4000 ;
 
 // Connect to the MongoDB database
 mongoose.connect('mongodb+srv://ktao:z4byPOvyyzZzarCn@ms.1qbqx7r.mongodb.net/?retryWrites=true&w=majority', {
@@ -19,7 +19,7 @@ app.use(bodyParser.json());
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-  origin: ["https://mapstudio.azurewebsites.net:8080"],
+  origin: ["https://mapstudio-cse416.web.app"],
   credentials: true
 }))
 
