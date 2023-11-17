@@ -19,6 +19,13 @@ export const registerUser = (username, email, password) => {
         password : password
     })
 }
+
+export const forgotPassword = (email, username) => {
+    return api.post(`/forgotPassword/`, {
+        email : email,
+        username : username
+    })
+}
 const apis = {
     getLoggedIn,
     registerUser,

@@ -155,6 +155,18 @@ function AuthContextProvider(props) {
         return initials;
     }
 
+    auth.forgotPassword = async function(email, username) {
+        try {
+            const response = await api.forgotPassword(email, username);
+            if (response.status === 200) {
+                return { success: true, obj: response.data }
+            }
+        } catch(error) {
+            let message = error.response.data.errorMessage;
+            return { success: false, message: message }
+        }
+    }
+
     auth.closeErrorModal = function() {
         authReducer({
             type: AuthActionType.ACCOUNT_ERROR,

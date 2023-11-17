@@ -11,7 +11,7 @@ export const GlobalStoreActionType = {
 
 function GlobalStoreContextProvider(props) {
     const [store, setStore] = useState({
-        currentScreen: 'barebones',
+        currentScreen: 'landing',
         modal: null
     });
 
