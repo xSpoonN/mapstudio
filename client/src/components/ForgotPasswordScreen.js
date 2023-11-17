@@ -1,5 +1,6 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { GlobalStoreContext } from '../store'
+import AuthContext from '../auth'
 import AccountModal from './AccountModal';
 
 import Box from '@mui/material/Box';
@@ -10,8 +11,21 @@ import Typography from '@mui/material/Typography';
 
 export default function ForgotPasswordScreen() {
     const { store } = useContext(GlobalStoreContext);
-    const handleSubmit = (event) => {
+    const { auth } = useContext(AuthContext)
+    const [error, setError] = useState('');
+    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
+
+    const handleSubmit = async (event) => {
         event.preventDefault();
+        // Check if email is valid with regex
+        if (!/\S+@\S+\.\S+/.test(event.target.email.value)) return setError('Invalid email address');
+        setError('');
+        const resp = await auth.forgotPassword(event.target.email.value, event.target.username.value);
+        if (!resp.success) return setError(resp.message);
+        console.log(resp);
+        handleOpenModal();
+
         //const formData = new FormData(event.currentTarget);
     };
 
@@ -75,6 +89,7 @@ export default function ForgotPasswordScreen() {
                             color: '#E3256B'
                         }
                     }}
+                    onChange={(e) => setEmail(e.target.value)}
                 />
                 <TextField
                     margin="normal"
@@ -98,6 +113,7 @@ export default function ForgotPasswordScreen() {
                             color: '#E3256B'
                         }
                     }}
+                    onChange={(e) => setUsername(e.target.value)}
                 />
                 <Button
                     type="submit"
@@ -105,10 +121,14 @@ export default function ForgotPasswordScreen() {
                     sx={{ mt: 3, mb: 2,  color: 'white' }}
                     color='razzmatazz'
                     align='center'
-                    onClick={handleOpenModal}
+                    disabled={email === '' || username === ''}
+                    /* onClick={handleOpenModal} */
                 >
                     Recover
                 </Button>
+                {error && <Typography variant="body2" color='red'>
+                    {error}
+                </Typography>}
                 <Grid container sx={{ my: 24 }}
                     align="center"
                 >

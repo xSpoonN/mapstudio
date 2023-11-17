@@ -1,6 +1,8 @@
+const { forgotPassword } = require('../../client/src/auth/auth-request-api');
 const auth = require('../auth')
 const User = require('../models/User')
 const bcrypt = require('bcryptjs')
+const crypto = require('crypto')
 
 getLoggedIn = async (req, res) => {
     try {
@@ -150,6 +152,51 @@ registerUser = async (req, res) => {
 
         console.log("token sent");
 
+    } catch (err) {
+        console.error(err);
+        res.status(500).send();
+    }
+}
+
+forgotPassword = async (req, res) => {
+    try {
+        const { email, username } = req.body;
+        console.log("forgot password: " + email + " " + username);
+        if (!email || !username) {
+            return res
+                .status(400)
+                .json({ errorMessage: "Please enter all required fields." });
+        }
+        console.log("all fields provided");
+        const existingUser = await User.findOne({ username: username, email: email });
+        console.log("existingUser: " + existingUser);
+        if (!existingUser) {
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    errorMessage: "An account with this username does not exist."
+                })
+        }
+        if (existingUser.email !== email) {
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    errorMessage: "The email provided does not match the username."
+                })
+        }
+        const resetToken = crypto.randomBytes(20).toString('hex');
+        const resetPasswordToken = crypto
+            .createHash('sha256')
+            .update(resetToken)
+            .digest('hex');
+
+        existingUser.resetPasswordToken = resetPasswordToken;
+        existingUser.resetPasswordExpires = Date.now() + 10*60*1000; // 10 minutes
+        await existingUser.save();
+        // Send Email
+        res.json({ success: true, message: "Email sent (not really) " + resetToken });
     } catch (err) {
         console.error(err);
         res.status(500).send();
