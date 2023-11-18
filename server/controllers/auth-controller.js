@@ -185,7 +185,7 @@ forgotPassword = async (req, res) => {
                     errorMessage: "The email provided does not match the username."
                 })
         }
-        const resetToken = crypto.randomBytes(20).toString('hex');
+        const resetToken = crypto.randomBytes(4).toString('hex');
         /* const resetPasswordToken = crypto
             .createHash('sha256')
             .update(resetToken)
