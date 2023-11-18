@@ -37,7 +37,7 @@ export default function RecoverPasswordScreen() {
         >
             <AccountModal/>
             <Typography variant="h2" color='#E3256B'>
-                Forgot Account?
+                New Password
             </Typography>
             <Box component="form" noValidate onSubmit={handleSubmit} width='500px' 
                 sx={{    

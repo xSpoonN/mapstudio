@@ -30,6 +30,9 @@ export default function AccountModal() {
     } else if (store.currentScreen === 'forgot') {
         msg = 'Recovery code sent'
         severity = "success"
+    } else if (store.currentScreen === 'recover') {
+        msg = 'Password Changed'
+        severity = "success"
     }
 
     function handleCloseModal() {
@@ -64,7 +67,7 @@ export default function AccountModal() {
                         label="Token" 
                         type="password"
                         value={password}
-                        sx= {{ marginLeft: 'auto', marginRight: 'auto', width: '80%' }}
+                        sx= {{ marginLeft: 'auto', marginRight: 'auto', width: '100%' }}
                         onChange={(e) => setPassword(e.target.value)} 
                     />}
                 {err && <Typography variant="body2" color='red'>
@@ -94,7 +97,19 @@ export default function AccountModal() {
                         </>
                     }
 
-                    { store.currentScreen !== 'forgot' && 
+                    { store.currentScreen === 'recover' && 
+                        <Button variant="contained"
+                            id="dialog-no-button"
+                            className="modal-button"
+                            onClick={() => { store.changeToLogin(); }}
+                            sx={{ color: 'white' }}
+                            color='razzmatazz'
+                        >
+                            Go to Login
+                        </Button>
+                    }
+
+                    { store.currentScreen !== 'forgot' && store.currentScreen !== 'recover' && 
                         <Button variant="contained"
                             id="dialog-no-button"
                             className="modal-button"
