@@ -3,6 +3,12 @@ const User = require('../models/User')
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
 const nodemailer = require('nodemailer')
+const multer = require('multer');
+const upload = multer({ dest: 'uploads/' });
+const { DefaultAzureCredential } = require('@azure/identity');
+const { BlobServiceClient } = require("@azure/storage-blob");
+
+const blobServiceClient = new BlobServiceClient(`https://mapstudio.blob.core.windows.net`, new DefaultAzureCredential() );
 
 getLoggedIn = async (req, res) => {
     try {
@@ -313,6 +319,33 @@ resetPassword = async (req, res) => {
     }
 }
 
+setProfilePicture = async (req, res) => {
+    try {
+        const containerClient = blobServiceClient.getContainerClient('images');
+        const blockBlobClient = containerClient.getBlockBlobClient(`${req.params.email}.jpeg`);
+        const uploadResp = await blockBlobClient.uploadFile(req.file.path);
+        if (uploadResp == null) return res.status(404).json({ error: 'Failed to upload the image.' });
+        const imgURL = `https://mapstudio.blob.core.windows.net/images/${req.params.email}.jpeg`;
+        await User.findOneAndUpdate({ email: req.params.email }, { pfp: imgURL });
+        res.send({success: true, imgURL: imgURL});
+    } catch (err) {
+        console.error(err);
+        res.status(500).send();
+    }
+}
+
+getUser = async (req, res) => {
+    try {
+        const user = await User.findOne({ email: req.params.email });
+        if (user == null) return res.status(404).json({ error: 'User not found.' });
+        res.send({success: true, user: user});
+    } catch (err) {
+        console.error(err);
+        res.status(500).send();
+    }
+
+}
+
 module.exports = {
     getLoggedIn,
     registerUser,
@@ -320,5 +353,7 @@ module.exports = {
     logoutUser,
     forgotPassword,
     verifyResetToken,
-    resetPassword
+    resetPassword,
+    setProfilePicture,
+    getUser
 }

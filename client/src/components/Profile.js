@@ -5,17 +5,21 @@ import { Container, Card, CardMedia, CardContent} from "@mui/material";
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import MapCard from './MapCard';
 import PostCard from './PostCard';
-import { useContext } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { GlobalStoreContext } from '../store'
+import AuthContext from '../auth';
 
 export default function Profile() {
     const { store } = useContext(GlobalStoreContext);
+    const { auth } = useContext(AuthContext);
+    const [file, setFile] = useState(null);
+    const [user, setUser] = useState(null);
     const styles = { // Shaped by the hands of the gods, the hands of the devil, the hands of the self
         card: {
             maxWidth: 500, // Restricting the infinite, the unbounded, the unending
             borderRadius: 16, // Softening the edges of the world. Though it is a lie, it is a comforting one
             minWidth: 500, // The illusion of freedom, but you're trapped in a cell
-            height: 650, // A fixed stage, unmoving, unchanging for all eternity
+            height: 700, // A fixed stage, unmoving, unchanging for all eternity
             alignItems: 'center', // The center of the universe, the center of the labyrinth
             margin: 'auto', // The center of the maze, the center of the storm
         },
@@ -37,6 +41,20 @@ export default function Profile() {
         }
     }
 
+    useEffect(() => {
+        const fetchUser = async () => {
+            const resp = await auth.getUserData(auth.getUser.email);
+            setUser(resp);
+        }
+        fetchUser();
+    }, [auth])
+
+    const handleUpload = async () => {
+        const formData = new FormData();
+        formData.append('profilePicture', file);
+        await auth.setProfilePicture(formData);
+    }
+
     return (
         // The container is the world, the universe, the multiverse, one that holds all and is held by none
         <Container maxWidth="ml" style={{ paddingTop: '64px' }}>
@@ -47,15 +65,18 @@ export default function Profile() {
                             <Card style={styles.card}>
                                 <CardMedia
                                     style={styles.media}
-                                    image="https://source.unsplash.com/random/500x500"
+                                    image={user.pfp}
                                     title="Profile Picture"
                                 />
                                 <CardContent>
-                                    <Typography variant="h3" align="center" style={styles.profilename}>John Doe</Typography>
+                                    <Typography variant="h3" align="center" style={styles.profilename}>{user.username}</Typography>
                                     <Typography variant="body1" align='center' style={styles.profilebio}>
-                                    They are a creature of duality, capable of both great compassion and terrible cruelty. They are said to be the source of both the greatest blessings and the most devastating curses. 
+                                    {user.bio} 
                                     </Typography>
                                 </CardContent>
+                                
+                                <input type="file" onChange={(e) => setFile(e.target.files[0])} />
+                                <button onClick={handleUpload}>Upload</button> 
                             </Card>
                         </Grid>
 
