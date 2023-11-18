@@ -1,4 +1,3 @@
-const { forgotPassword } = require('../../client/src/auth/auth-request-api');
 const auth = require('../auth')
 const User = require('../models/User')
 const bcrypt = require('bcryptjs')
@@ -207,5 +206,6 @@ module.exports = {
     getLoggedIn,
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    forgotPassword
 }

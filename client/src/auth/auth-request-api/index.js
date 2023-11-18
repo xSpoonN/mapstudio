@@ -30,7 +30,8 @@ const apis = {
     getLoggedIn,
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    forgotPassword
 }
 
 export default apis

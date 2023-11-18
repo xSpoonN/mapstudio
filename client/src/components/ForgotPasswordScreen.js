@@ -22,7 +22,7 @@ export default function ForgotPasswordScreen() {
         if (!/\S+@\S+\.\S+/.test(event.target.email.value)) return setError('Invalid email address');
         setError('');
         const resp = await auth.forgotPassword(event.target.email.value, event.target.username.value);
-        if (!resp.success) return setError(resp.message);
+        if (!resp.success) return /* setError(resp.message); */ console.log(resp);
         console.log(resp);
         handleOpenModal();
 

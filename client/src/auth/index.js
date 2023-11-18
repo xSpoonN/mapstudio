@@ -162,8 +162,7 @@ function AuthContextProvider(props) {
                 return { success: true, obj: response.data }
             }
         } catch(error) {
-            let message = error.response.data.errorMessage;
-            return { success: false, message: message }
+            return { success: false, message: error }
         }
     }
 
