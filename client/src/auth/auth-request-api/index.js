@@ -26,11 +26,29 @@ export const forgotPassword = (email, username) => {
         username : username
     })
 }
+export const verifyResetToken = (email, token) => {
+    return api.post(`/verifyResetToken/`, {
+        email: email,
+        token: token
+    })
+}
+
+export const resetPassword = (email, password) => {
+    return api.post(`/resetPassword/`, {
+        email: email,
+        password: password
+    })
+}
+
+
 const apis = {
     getLoggedIn,
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    forgotPassword,
+    verifyResetToken,
+    resetPassword
 }
 
 export default apis
