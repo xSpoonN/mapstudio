@@ -1,7 +1,7 @@
 name: Frontend Tests
 on: 
   workflow_run:
-    workflows: ["Deploy to Firebase Hosting on merge"]
+    workflows: ["Deploy to Firebase Hosting"]
     branches: [main]
     types:
       - completed
