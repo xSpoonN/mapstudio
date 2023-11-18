@@ -9,6 +9,8 @@ import { useContext, useState, useEffect, useRef } from 'react';
 import { GlobalStoreContext } from '../store'
 import AuthContext from '../auth';
 
+const SASTOKEN = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D';
+
 export default function Profile() {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
@@ -74,7 +76,7 @@ export default function Profile() {
                             <Card style={styles.card}>
                                 <CardMedia
                                     style={styles.media}
-                                    image={user?.pfp ? `${user.pfp}?sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D` : 'https://source.unsplash.com/random/500x500'}
+                                    image={user?.pfp ? `${user.pfp}?${SASTOKEN}` : 'https://source.unsplash.com/random/500x500'}
                                     title="Profile Picture"
                                     onClick={() => fileRef.current.click()}
                                 />
