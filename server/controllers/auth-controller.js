@@ -2,6 +2,7 @@ const auth = require('../auth')
 const User = require('../models/User')
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto')
+const nodemailer = require('nodemailer')
 
 getLoggedIn = async (req, res) => {
     try {
@@ -186,17 +187,39 @@ forgotPassword = async (req, res) => {
                 })
         }
         const resetToken = crypto.randomBytes(4).toString('hex');
-        /* const resetPasswordToken = crypto
-            .createHash('sha256')
-            .update(resetToken)
-            .digest('hex'); */
         const resetPasswordToken = await bcrypt.hash(resetToken, 10);
 
         existingUser.resetPasswordToken = resetPasswordToken;
         existingUser.resetPasswordExpires = Date.now() + 10*60*1000; // 10 minutes
         await existingUser.save();
-        // Send Email
-        res.json({ success: true, message: "Email sent (not really) " + resetToken });
+        let transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                type: 'OAuth2',
+                user: 'mapstudio.cse416@gmail.com',
+                pass: 'oyat swph tqry qxtl',
+                clientId: '869790817840-dr6nvnf91281qpeq8jqgtfecpugm0suv.apps.googleusercontent.com',
+                clientSecret: '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',
+                refreshToken: '1//04VPjCv_y6DX0CgYIARAAGAQSNwF-L9IrfhXsG8_eLp3DLW4jtNrWjzVo5YxA-wz_h30pNiHBI9OHGzMWLiquXAkgsMDCcnLy_ic'
+            }
+        });
+        let message = {
+            from: 'mapstudio.cse416@gmail.com',
+            to: email,
+            subject: 'MapStudio Password Reset',
+            text: 'Your password reset code is: ' + resetToken
+        };
+
+        transporter.sendMail(message, (err, info) => {
+            if (err) {
+                console.log(err);
+                return res.status(500).send();
+            }
+            console.log('Message sent: %s', info.messageId);
+            console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+        });
+
+        res.json({ success: true, message: "Email sent " + resetToken });
     } catch (err) {
         console.error(err);
         res.status(500).send();
