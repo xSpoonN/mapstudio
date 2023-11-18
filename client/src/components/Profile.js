@@ -5,7 +5,7 @@ import { Container, Card, CardMedia, CardContent} from "@mui/material";
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import MapCard from './MapCard';
 import PostCard from './PostCard';
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState, useEffect, useRef } from 'react';
 import { GlobalStoreContext } from '../store'
 import AuthContext from '../auth';
 
@@ -13,6 +13,7 @@ export default function Profile() {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
     const [file, setFile] = useState(null);
+    const fileRef = useRef(null);
     const [user, setUser] = useState(null);
     const styles = { // Shaped by the hands of the gods, the hands of the devil, the hands of the self
         card: {
@@ -43,16 +44,24 @@ export default function Profile() {
 
     useEffect(() => {
         const fetchUser = async () => {
-            const resp = await auth.getUserData(auth.getUser.email);
-            setUser(resp);
+            const resp = await auth.getUserData(auth.getUser().email);
+            console.log(resp);
+            if (resp.success) setUser(resp.user);
         }
         fetchUser();
     }, [auth])
 
     const handleUpload = async () => {
+        console.log(fileRef.current.files[0]);
         const formData = new FormData();
-        formData.append('profilePicture', file);
+        formData.append('profilePicture', fileRef.current.files[0]);
         await auth.setProfilePicture(formData);
+        setUser(null);
+    }
+
+    const handleBio = async (e) => {
+        await auth.setBio(e.target.value);
+        setUser(null);
     }
 
     return (
@@ -65,18 +74,19 @@ export default function Profile() {
                             <Card style={styles.card}>
                                 <CardMedia
                                     style={styles.media}
-                                    image={user.pfp}
+                                    image={user?.pfp ? `${user.pfp}?sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D` : 'https://source.unsplash.com/random/500x500'}
                                     title="Profile Picture"
+                                    onClick={() => fileRef.current.click()}
                                 />
                                 <CardContent>
-                                    <Typography variant="h3" align="center" style={styles.profilename}>{user.username}</Typography>
+                                    <Typography variant="h3" align="center" style={styles.profilename}>{user?.username || ''}</Typography>
                                     <Typography variant="body1" align='center' style={styles.profilebio}>
-                                    {user.bio} 
+                                    {user?.bio || 'No Bio Set.'} 
                                     </Typography>
                                 </CardContent>
                                 
-                                <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-                                <button onClick={handleUpload}>Upload</button> 
+                                <input type="file" id='file' ref={fileRef} style={{display: 'none'}} onChange={(e) => { setFile(e.target.files[0]); handleUpload();}} />
+                                {/* <button onClick={handleUpload}>Upload</button>  */}
                             </Card>
                         </Grid>
 

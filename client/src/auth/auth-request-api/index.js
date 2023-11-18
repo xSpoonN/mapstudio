@@ -40,11 +40,17 @@ export const resetPassword = (email, password) => {
     })
 }
 
-export const setProfilePicture = (formData) => {
-    return api.post('/users/pfp/kt4cty@gmail.com', formData, {
+export const setProfilePicture = (formData, email) => {
+    return api.post(`/users/pfp/${email}`, formData, {
         headers: {
             'Content-Type': 'multipart/form-data'
         }
+    })
+}
+
+export const setBio = (bio, email) => {
+    return api.post(`/users/bio/${email}`, {
+        bio: bio
     })
 }
 
@@ -62,6 +68,7 @@ const apis = {
     verifyResetToken,
     resetPassword,
     setProfilePicture,
+    setBio,
     getUserData
 }
 

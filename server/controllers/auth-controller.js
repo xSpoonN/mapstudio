@@ -334,6 +334,16 @@ setProfilePicture = async (req, res) => {
     }
 }
 
+setBio = async (req, res) => {
+    try {
+        await User.findOneAndUpdate({ email: req.params.email }, { bio: req.body.bio });
+        res.send({success: true});
+    } catch (err) {
+        console.error(err);
+        res.status(500).send();
+    }
+}
+
 getUser = async (req, res) => {
     try {
         const user = await User.findOne({ email: req.params.email });
@@ -355,5 +365,6 @@ module.exports = {
     verifyResetToken,
     resetPassword,
     setProfilePicture,
+    setBio,
     getUser
 }

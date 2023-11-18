@@ -12,6 +12,7 @@ router.post('/forgotPassword', AuthController.forgotPassword)
 router.post('/verifyResetToken', AuthController.verifyResetToken)
 router.post('/resetPassword', AuthController.resetPassword)
 router.post('/users/pfp/:email', upload.single('profilePicture'), AuthController.setProfilePicture)
-router.get('/users/:email', AuthController.getProfilePicture)
+router.get('/users/:email', AuthController.getUser)
+router.post('/users/bio/:email', AuthController.setBio)
 
 module.exports = router
