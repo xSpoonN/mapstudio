@@ -9,14 +9,16 @@ export const AuthActionType = {
     LOGIN_USER: "LOGIN_USER",
     LOGOUT_USER: "LOGOUT_USER",
     REGISTER_USER: "REGISTER_USER",
-    ACCOUNT_ERROR: "ACCOUNT_ERROR"
+    ACCOUNT_ERROR: "ACCOUNT_ERROR",
+    FORGOT_PASSWORD_DATA: "FORGOT_PASSWORD_DATA"
 }
 
 function AuthContextProvider(props) {
     const [auth, setAuth] = useState({
         user: null,
         loggedIn: false,
-        error: null
+        error: null,
+        forgotEmail: null
     });
 
     useEffect(() => {
@@ -28,6 +30,7 @@ function AuthContextProvider(props) {
         switch (type) {
             case AuthActionType.GET_LOGGED_IN: {
                 return setAuth({
+                    ...auth,
                     user: payload.user,
                     loggedIn: payload.loggedIn,
                     error: null
@@ -35,6 +38,7 @@ function AuthContextProvider(props) {
             }
             case AuthActionType.LOGIN_USER: {
                 return setAuth({
+                    ...auth,
                     user: payload.user,
                     loggedIn: true,
                     error: null
@@ -42,6 +46,7 @@ function AuthContextProvider(props) {
             }
             case AuthActionType.LOGOUT_USER: {
                 return setAuth({
+                    ...auth,
                     user: null,
                     loggedIn: false,
                     error: null
@@ -49,6 +54,7 @@ function AuthContextProvider(props) {
             }
             case AuthActionType.REGISTER_USER: {
                 return setAuth({
+                    ...auth,
                     user: payload.user,
                     loggedIn: true,
                     error: null
@@ -56,9 +62,16 @@ function AuthContextProvider(props) {
             }
             case AuthActionType.ACCOUNT_ERROR: {
                 return setAuth({
+                    ...auth,
                     user: null,
                     loggedIn: false,
                     error: payload.error
+                })
+            }
+            case AuthActionType.FORGOT_PASSWORD_DATA: {
+                return setAuth({
+                    ...auth,
+                    forgotEmail: payload.email
                 })
             }
             default:
@@ -158,6 +171,35 @@ function AuthContextProvider(props) {
     auth.forgotPassword = async function(email, username) {
         try {
             const response = await api.forgotPassword(email, username);
+            if (response.status === 200) {
+                authReducer({
+                    type: AuthActionType.FORGOT_PASSWORD_DATA,
+                    payload: {
+                        email: email
+                    }
+                })
+                return { success: true, obj: response.data }
+            }
+        } catch(error) {
+            return { success: false, message: error }
+        }
+    }
+
+    auth.verifyResetToken = async function(token) {
+        try {
+            console.log("verifyResetToken: " + auth.forgotEmail + " " + token);
+            const response = await api.verifyResetToken(auth.forgotEmail, token);
+            if (response.status === 200) {
+                return { success: true, obj: response.data }
+            }
+        } catch(error) {
+            return { success: false, message: error }
+        }
+    }
+
+    auth.resetPassword = async function(password) {
+        try {
+            const response = await api.resetPassword(auth.forgotEmail, password);
             if (response.status === 200) {
                 return { success: true, obj: response.data }
             }

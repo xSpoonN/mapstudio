@@ -1,12 +1,13 @@
-import { useContext } from 'react'
+import { useContext, useState } from 'react'
 import { GlobalStoreContext } from '../store'
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
-import Button from '@mui/material/Button';
-import Alert from '@mui/material/Alert';
+import AuthContext from '../auth'
+import { Box, Button, Modal, Alert, TextField, Typography} from '@mui/material';
 
 export default function AccountModal() {
     const { store } = useContext(GlobalStoreContext);
+    const { auth } = useContext(AuthContext);
+    const [password, setPassword] = useState('');
+    const [err, setErr] = useState('');
 
     const style = {
         position: 'absolute',
@@ -35,6 +36,20 @@ export default function AccountModal() {
         store.closeModal()
     }
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const resp = await auth.verifyResetToken(password);
+            if (!resp.success) {
+                setErr(resp.message);
+                return console.log(resp);
+            }
+            store.changeToRecover();
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     return (
         <Modal open={store.modal !== null}>
             <Box sx={style}>
@@ -44,16 +59,52 @@ export default function AccountModal() {
                         {msg}
                     </Alert>
                 </header>
+                { store.currentScreen === 'forgot' && 
+                    <TextField
+                        label="Token" 
+                        type="password"
+                        value={password}
+                        sx= {{ marginLeft: 'auto', marginRight: 'auto', width: '80%' }}
+                        onChange={(e) => setPassword(e.target.value)} 
+                    />}
+                {err && <Typography variant="body2" color='red'>
+                    {err}
+                </Typography>}
                 <div id="confirm-cancel-container">
-                    <Button variant="contained"
-                        id="dialog-no-button"
-                        className="modal-button"
-                        onClick={handleCloseModal}
-                        sx={{ color: 'white' }}
-                        color='razzmatazz'
-                    >
-                        Close
-                    </Button>
+                    { store.currentScreen === 'forgot' && 
+                        <>
+                            <Button variant="contained"
+                                id="dialog-no-button"
+                                className="modal-button"
+                                onClick={handleCloseModal}
+                                sx={{ color: 'white' }}
+                                color='razzmatazz'
+                            >
+                                Cancel
+                            </Button>
+                            <Button variant="contained"
+                                id="dialog-no-button"
+                                className="modal-button"
+                                onClick={handleSubmit}
+                                sx={{ color: 'white' }}
+                                color='razzmatazz'
+                            >
+                                Submit
+                            </Button>
+                        </>
+                    }
+
+                    { store.currentScreen !== 'forgot' && 
+                        <Button variant="contained"
+                            id="dialog-no-button"
+                            className="modal-button"
+                            onClick={handleCloseModal}
+                            sx={{ color: 'white' }}
+                            color='razzmatazz'
+                        >
+                            Close
+                        </Button>
+                    }
                 </div>
             </div>
             </Box>

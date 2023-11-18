@@ -78,6 +78,15 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
+    store.changeToRecover = function() {
+        storeReducer({
+            type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
+            payload: {
+                screen: 'recover'
+            }
+        });
+    }
+
     store.changeToSearch = function() {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,

@@ -186,10 +186,11 @@ forgotPassword = async (req, res) => {
                 })
         }
         const resetToken = crypto.randomBytes(20).toString('hex');
-        const resetPasswordToken = crypto
+        /* const resetPasswordToken = crypto
             .createHash('sha256')
             .update(resetToken)
-            .digest('hex');
+            .digest('hex'); */
+        const resetPasswordToken = await bcrypt.hash(resetToken, 10);
 
         existingUser.resetPasswordToken = resetPasswordToken;
         existingUser.resetPasswordExpires = Date.now() + 10*60*1000; // 10 minutes
@@ -202,10 +203,99 @@ forgotPassword = async (req, res) => {
     }
 }
 
+verifyResetToken = async (req, res) => {
+    try {
+        const { email, token } = req.body;
+        if (!token) {
+            return res
+                .status(400)
+                .json({ errorMessage: "Please enter all required fields." });
+        }
+        console.log("verify reset token: " + token);
+        console.log("all fields provided");
+        const existingUser = await User.findOne({ email: email });
+        console.log("existingUser: " + existingUser);
+        if (!existingUser) {
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    errorMessage: "Invalid user."
+                })
+        }
+        const passwordCorrect = await bcrypt.compare(token, existingUser.resetPasswordToken);
+        if (!passwordCorrect) {
+            console.log("Incorrect code");
+            return res
+                .status(401)
+                .json({
+                    errorMessage: "Wrong auth code."
+                })
+        }
+        if (existingUser.resetPasswordExpires < Date.now()) {
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    errorMessage: "Token expired."
+                })
+        }
+        res.json({ success: true, message: "Token verified." });
+    } catch (err) {
+        console.error(err);
+        res.status(500).send();
+    }
+}
+
+resetPassword = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        console.log("reset password: " + email + " " + password);
+        if (!email || !password) {
+            return res
+                .status(400)
+                .json({ errorMessage: "Please enter all required fields." });
+        }
+        console.log("all fields provided");
+        const existingUser = await User.findOne({ email: email });
+        console.log("existingUser: " + existingUser);
+        if (!existingUser) {
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    errorMessage: "Invalid user."
+                })
+        }
+        if (existingUser.tokenExpires < Date.now()) {
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    errorMessage: "Token expired."
+                })
+        }
+        const saltRounds = 10;
+        const salt = await bcrypt.genSalt(saltRounds);
+        const passwordHash = await bcrypt.hash(password, salt);
+        console.log("passwordHash: " + passwordHash);
+
+        existingUser.passwordHash = passwordHash;
+        existingUser.tokenExpires = Date.now();
+        await existingUser.save();
+        res.json({ success: true, message: "Password reset." });    
+    } catch (err) {
+        console.error(err);
+        res.status(500).send();
+    }
+}
+
 module.exports = {
     getLoggedIn,
     registerUser,
     loginUser,
     logoutUser,
-    forgotPassword
+    forgotPassword,
+    verifyResetToken,
+    resetPassword
 }

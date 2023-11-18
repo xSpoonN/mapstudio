@@ -7,5 +7,7 @@ router.post('/login', AuthController.loginUser)
 router.get('/logout', AuthController.logoutUser)
 router.get('/loggedIn', AuthController.getLoggedIn)
 router.post('/forgotPassword', AuthController.forgotPassword)
+router.post('/verifyResetToken', AuthController.verifyResetToken)
+router.post('/resetPassword', AuthController.resetPassword)
 
 module.exports = router
