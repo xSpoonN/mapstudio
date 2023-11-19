@@ -14,7 +14,7 @@ const SASTOKEN = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-1
 export default function Profile() {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
-    const [file, setFile] = useState(null);
+    // const [file, setFile] = useState(null);
     const fileRef = useRef(null);
     const [user, setUser] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
