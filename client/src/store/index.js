@@ -11,7 +11,7 @@ export const GlobalStoreActionType = {
 
 function GlobalStoreContextProvider(props) {
     const [store, setStore] = useState({
-        currentScreen: 'barebones',
+        currentScreen: 'landing',
         modal: null
     });
 
@@ -74,6 +74,15 @@ function GlobalStoreContextProvider(props) {
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
                 screen: 'forgot'
+            }
+        });
+    }
+
+    store.changeToRecover = function() {
+        storeReducer({
+            type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
+            payload: {
+                screen: 'recover'
             }
         });
     }

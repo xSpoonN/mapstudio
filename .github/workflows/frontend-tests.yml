@@ -1,0 +1,21 @@
+name: Frontend Tests
+on: 
+  workflow_run:
+    workflows: ["Deploy to Firebase Hosting"]
+    branches: [main]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+
+  cypress-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: cypress-io/github-action@v6
+      with:
+        working-directory: client
+        build: npm run build
+        start: npm run start
+        browser: chrome

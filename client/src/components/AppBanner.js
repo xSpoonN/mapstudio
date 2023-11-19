@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { GlobalStoreContext } from '../store'
 import AuthContext from '../auth'
 
@@ -15,11 +15,23 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import TextField from '@mui/material/TextField';
 import SearchIcon from '@mui/icons-material/Search';
 
+const SASTOKEN = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D';
+
 export default function AppBanner() {
 	const { store } = useContext(GlobalStoreContext);
 	const { auth } = useContext(AuthContext);
 
 	const [anchorElUser, setAnchorElUser] = useState(null);
+	const [user, setUser] = useState(null);
+
+	useEffect(() => {
+		const fetchUser = async () => {
+			const resp = await auth.getUserData(auth.getUser().email);
+			console.log(resp);
+			if (resp.success) setUser(resp.user);
+		}
+		fetchUser();
+	}, [auth])
 
 	const handleOpenUserMenu = (event) => {
 		setAnchorElUser(event.currentTarget);
@@ -63,7 +75,10 @@ export default function AppBanner() {
 	let x = 
 		<Box sx={{ flexGrow: 0 }}>
 			<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }} className='account-circle'>
-				<Avatar alt="Kenna McRichard" src="/static/images/avatar/2.jpg" />
+				<Avatar 
+					alt="Kenna McRichard" 
+					src={user?.pfp ? `${user.pfp}?${SASTOKEN}` : "/static/images/avatar/2.jpg" }
+				/>
 			</IconButton>
 			<Menu
 				id="menu-appbar"

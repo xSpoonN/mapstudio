@@ -5,17 +5,26 @@ import { Container, Card, CardMedia, CardContent} from "@mui/material";
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import MapCard from './MapCard';
 import PostCard from './PostCard';
-import { useContext } from 'react';
+import { useContext, useState, useEffect, useRef } from 'react';
 import { GlobalStoreContext } from '../store'
+import AuthContext from '../auth';
+
+const SASTOKEN = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D';
 
 export default function Profile() {
     const { store } = useContext(GlobalStoreContext);
+    const { auth } = useContext(AuthContext);
+    const [file, setFile] = useState(null);
+    const fileRef = useRef(null);
+    const [user, setUser] = useState(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [bio, setBio] = useState('');
     const styles = { // Shaped by the hands of the gods, the hands of the devil, the hands of the self
         card: {
             maxWidth: 500, // Restricting the infinite, the unbounded, the unending
             borderRadius: 16, // Softening the edges of the world. Though it is a lie, it is a comforting one
             minWidth: 500, // The illusion of freedom, but you're trapped in a cell
-            height: 650, // A fixed stage, unmoving, unchanging for all eternity
+            height: 700, // A fixed stage, unmoving, unchanging for all eternity
             alignItems: 'center', // The center of the universe, the center of the labyrinth
             margin: 'auto', // The center of the maze, the center of the storm
         },
@@ -27,7 +36,12 @@ export default function Profile() {
             alignItems: 'center', // The center of the universe, the center of the labyrinth
             margin: 'auto', // The center of the maze, the center of the storm
             marginTop: '64px', // The eye of the storm, the eye of the beholder
-            marginBottom: '64px' // The beholder, the observer, the self
+            marginBottom: '64px', // The beholder, the observer, the self
+            filter: 'blur(0)', // Initial blur value
+            transition: 'filter 0.3s ease-in-out', // Transition effect
+            '&:hover': {
+                filter: 'blur(5px)', // Blur value on hover
+            },
         },
         profilename: { // What is a name, but a mask for the soul?
             marginBottom: '32px' 
@@ -35,6 +49,30 @@ export default function Profile() {
         profilebio: { // What is a bio, but a lie for the heart?
             margin: '32px'
         }
+    }
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const resp = await auth.getUserData(auth.getUser().email);
+            console.log(resp);
+            if (resp.success) setUser(resp.user);
+        }
+        fetchUser();
+    }, [auth])
+
+    const handleUpload = async () => {
+        console.log(fileRef.current.files[0]);
+        const formData = new FormData();
+        formData.append('profilePicture', fileRef.current.files[0]);
+        store.openModal();
+        await auth.setProfilePicture(formData);
+        setUser(null);
+    }
+
+    const handleBio = async (e) => {
+        setIsEditing(false);
+        await auth.setBio(bio);
+        setUser(null);
     }
 
     return (
@@ -47,15 +85,24 @@ export default function Profile() {
                             <Card style={styles.card}>
                                 <CardMedia
                                     style={styles.media}
-                                    image="https://source.unsplash.com/random/500x500"
+                                    image={user?.pfp ? `${user.pfp}?${SASTOKEN}` : 'https://source.unsplash.com/random/500x500'}
                                     title="Profile Picture"
+                                    onClick={() => fileRef.current.click()}
                                 />
                                 <CardContent>
-                                    <Typography variant="h3" align="center" style={styles.profilename}>John Doe</Typography>
+                                    <Typography variant="h3" align="center" style={styles.profilename}>{user?.username || ''}</Typography>
                                     <Typography variant="body1" align='center' style={styles.profilebio}>
-                                    They are a creature of duality, capable of both great compassion and terrible cruelty. They are said to be the source of both the greatest blessings and the most devastating curses. 
+                                    {isEditing ? (
+                                        <input type="text" value={bio} onChange={(e) => setBio(e.target.value)} onBlur={handleBio}/>
+                                    ) : (<div onDoubleClick={()=>setIsEditing(true)}>
+                                            {bio || user?.bio || 'No Bio Set.'}
+                                        </div>
+                                    )}
                                     </Typography>
                                 </CardContent>
+                                
+                                <input type="file" id='file' ref={fileRef} style={{display: 'none'}} onChange={(e) => { setFile(e.target.files[0]); handleUpload();}} />
+                                {/* <button onClick={handleUpload}>Upload</button>  */}
                             </Card>
                         </Grid>
 
