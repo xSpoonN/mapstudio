@@ -33,6 +33,9 @@ export default function AccountModal() {
     } else if (store.currentScreen === 'recover') {
         msg = 'Password Changed'
         severity = "success"
+    } else if (store.currentScreen === 'profile') {
+        msg = 'Profile picture updated! It may take a few minutes to update'
+        severity = "success"
     }
 
     function handleCloseModal() {
