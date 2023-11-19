@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const Person = require('../models/Person');
+const User = require('../models/User');
+const { v1: uuidv1 } = require("uuid");
 
 // Create a new person
 router.post('/people', async (req, res) => {

@@ -217,6 +217,46 @@ function AuthContextProvider(props) {
         })
     }
 
+    auth.setProfilePicture = async function(formData) {
+        try {
+            const response = await api.setProfilePicture(formData, auth.user.email);
+            if (response.status === 200) {
+                return true;
+            }
+        } catch(error) {
+            /* let message = error.response.data.errorMessage; */
+            return false;
+        }
+    }
+
+    auth.setBio = async function(bio) {
+        try {
+            const response = await api.setBio(bio, auth.user.email);
+            if (response.status === 200) {
+                return true;
+            }
+        } catch(error) {
+            /* let message = error.response.data.errorMessage; */
+            return false;
+        }
+    }
+
+    auth.getUser = function() {
+        console.log("getUser: " + auth.user)
+        return auth.user;
+    }
+
+    auth.getUserData = async function(email) {
+        try {
+            const response = await api.getUserData(email);
+            if (response.status === 200) {
+                return response.data;
+            }
+        } catch(error) {
+            return null;
+        }
+    }
+
     return (
         <AuthContext.Provider value={{
             auth
