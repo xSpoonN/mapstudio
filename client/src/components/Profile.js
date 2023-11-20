@@ -53,20 +53,21 @@ export default function Profile() {
 
     useEffect(() => {
         const fetchUser = async () => {
+            /* if (user) return; */
             const resp = await auth.getUserData(auth.getUser().email);
             console.log(resp);
             if (resp.success) setUser(resp.user);
         }
-        fetchUser();
-    }, [auth])
+        /* if (user === null)  */fetchUser();
+    }, [auth/* , user */])
 
     const handleUpload = async () => {
         console.log(fileRef.current.files[0]);
         const formData = new FormData();
         formData.append('profilePicture', fileRef.current.files[0]);
-        store.openModal();
         await auth.setProfilePicture(formData);
         setUser(null);
+        store.openModal();
     }
 
     const handleBio = async (e) => {

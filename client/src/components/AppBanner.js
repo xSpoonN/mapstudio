@@ -26,9 +26,9 @@ export default function AppBanner() {
 
 	useEffect(() => {
 		const fetchUser = async () => {
-			const resp = await auth.getUserData(auth.getUser().email);
+			const resp = await auth.getUserData(auth.getUser()?.email);
 			console.log(resp);
-			if (resp.success) setUser(resp.user);
+			if (resp?.success) setUser(resp.user);
 		}
 		fetchUser();
 	}, [auth])
