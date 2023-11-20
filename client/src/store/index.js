@@ -157,6 +157,8 @@ function GlobalStoreContextProvider(props) {
                 screen: 'editMap'
             }
         });
+
+        
     }
 
     store.closeModal = function() {
@@ -170,6 +172,8 @@ function GlobalStoreContextProvider(props) {
             type: GlobalStoreActionType.OPEN_MODAL
         });
     }
+
+
 
     return (
         <GlobalStoreContext.Provider value={{
