@@ -322,10 +322,23 @@ resetPassword = async (req, res) => {
 setProfilePicture = async (req, res) => {
     try {
         const containerClient = blobServiceClient.getContainerClient('images');
-        const blockBlobClient = containerClient.getBlockBlobClient(`${req.params.email}.jpeg`);
+
+        // Get existing image URL if any
+        const user = await User.findOne({ email: req.params.email });
+        const existingImg = user?.pfp;
+        
+        // Delete existing image
+        if (existingImg) {
+            const blobName = existingImg.split('/').pop(); 
+            const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+            await blockBlobClient.delete();
+        }
+
+        const randomSrc = crypto.randomBytes(6).toString('hex'); // This random string is necessary to prevent image caching by the front-end
+        const blockBlobClient = containerClient.getBlockBlobClient(`${req.params.email}${randomSrc}.jpeg`);
         const uploadResp = await blockBlobClient.uploadFile(req.file.path);
         if (uploadResp == null) return res.status(404).json({ error: 'Failed to upload the image.' });
-        const imgURL = `https://mapstudio.blob.core.windows.net/images/${req.params.email}.jpeg`;
+        const imgURL = `https://mapstudio.blob.core.windows.net/images/${req.params.email}${randomSrc}.jpeg`;
         await User.findOneAndUpdate({ email: req.params.email }, { pfp: imgURL });
         res.send({success: true, imgURL: imgURL});
     } catch (err) {
@@ -337,7 +350,7 @@ setProfilePicture = async (req, res) => {
 setBio = async (req, res) => {
     try {
         await User.findOneAndUpdate({ email: req.params.email }, { bio: req.body.bio });
-        res.send({success: true});
+        res.send({success: true, bio: req.body.bio});
     } catch (err) {
         console.error(err);
         res.status(500).send();

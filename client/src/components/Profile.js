@@ -14,7 +14,7 @@ const SASTOKEN = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-1
 export default function Profile() {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
-    const [file, setFile] = useState(null);
+    const [file, setFile] = useState(null); // eslint-disable-line
     const fileRef = useRef(null);
     const [user, setUser] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
@@ -53,20 +53,21 @@ export default function Profile() {
 
     useEffect(() => {
         const fetchUser = async () => {
+            /* if (user) return; */
             const resp = await auth.getUserData(auth.getUser().email);
             console.log(resp);
             if (resp.success) setUser(resp.user);
         }
-        fetchUser();
-    }, [auth])
+        /* if (user === null)  */fetchUser();
+    }, [auth/* , user */])
 
     const handleUpload = async () => {
         console.log(fileRef.current.files[0]);
         const formData = new FormData();
         formData.append('profilePicture', fileRef.current.files[0]);
-        store.openModal();
         await auth.setProfilePicture(formData);
         setUser(null);
+        store.openModal();
     }
 
     const handleBio = async (e) => {
