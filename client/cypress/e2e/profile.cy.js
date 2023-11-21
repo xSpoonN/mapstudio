@@ -9,7 +9,7 @@ describe('Profile Page', () => {
     cy.get('#username').clear();
     cy.get('#username').type('Kevin');
     cy.get('#password').clear();
-    cy.get('#password').type('Admin123');
+    cy.get('#password').type('Admin456');
     cy.get('.css-p2ochh > .MuiBox-root > .MuiButtonBase-root').click();
     cy.get('.MuiAvatar-img').click();
     cy.get('[tabindex="0"] > .MuiTypography-root').click();
