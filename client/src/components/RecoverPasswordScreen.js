@@ -55,6 +55,7 @@ export default function RecoverPasswordScreen() {
                     id="pass"
                     label="New Password"
                     name="pass"
+                    type="password"
                     autoComplete="pass"
                     autoFocus
                     variant="outlined" 
@@ -79,6 +80,7 @@ export default function RecoverPasswordScreen() {
                     fullWidth
                     id="confirmPass"
                     label="Confirm Password"
+                    type="password"
                     name="confirmPass"
                     autoComplete="confirmPass"
                     variant="outlined" 
