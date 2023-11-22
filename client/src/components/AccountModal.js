@@ -22,20 +22,13 @@ export default function AccountModal() {
     };
 
     let msg
-    let severity = "error"
-    if (store.currentScreen === 'login') {
-        msg = 'Incorrect account details'
-    } else if (store.currentScreen === 'register') {
-        msg = 'Email or username already in use'
-    } else if (store.currentScreen === 'forgot') {
+    let severity = "success"
+    if (store.currentScreen === 'forgot') {
         msg = 'Recovery code sent'
-        severity = "success"
     } else if (store.currentScreen === 'recover') {
         msg = 'Password Changed'
-        severity = "success"
     } else if (store.currentScreen === 'profile') {
         msg = 'Profile picture updated! It may take a few minutes to update'
-        severity = "success"
     }
 
     function handleCloseModal() {
