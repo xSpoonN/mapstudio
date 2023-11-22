@@ -4,6 +4,7 @@ import AppBanner from './AppBanner';
 import LandingWrapper from './LandingWrapper';
 import RegisterScreen from './RegisterScreen';
 import ForgotPasswordScreen from './ForgotPasswordScreen';
+import RecoverPasswordScreen from './RecoverPasswordScreen';
 import LoginScreen from './LoginScreen';
 import SearchScreen from './SearchScreen';
 import PersonalMapsScreen from './PersonalMapsScreen';
@@ -37,6 +38,9 @@ export default function MainScreen() {
             break;
         case 'forgot':
             Content = <ForgotPasswordScreen />
+            break;
+        case 'recover':
+            Content = <RecoverPasswordScreen />
             break;
         case 'search':
             Content = <SearchScreen />

@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const Person = require('../models/Person');
+const User = require('../models/User');
+const Map = require('../models/Map');
+const { v1: uuidv1 } = require("uuid");
 
 // Create a new person
 router.post('/people', async (req, res) => {
@@ -67,5 +70,8 @@ router.delete('/people/:id', async (req, res) => {
     res.status(400).json({ error: 'Failed to delete the person.' });
   }
 });
+
+// Create a new map
+
 
 module.exports = router;
