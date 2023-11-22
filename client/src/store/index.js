@@ -1,4 +1,6 @@
-import { createContext, useState } from 'react'
+import { createContext, useState, useContext } from 'react'
+import post from './store-request-api/post-api'
+import AuthContext from '../auth'
 
 export const GlobalStoreContext = createContext({});
 console.log("create GlobalStoreContext");
@@ -10,9 +12,12 @@ export const GlobalStoreActionType = {
 }
 
 function GlobalStoreContextProvider(props) {
+    const { auth } = useContext(AuthContext);
     const [store, setStore] = useState({
         currentScreen: 'landing',
-        modal: null
+        modal: null,
+        discussionPosts: null,
+        currentPost: null
     });
 
     const storeReducer = (action) => {
@@ -22,19 +27,25 @@ function GlobalStoreContextProvider(props) {
             case GlobalStoreActionType.CHANGE_CURRENT_SCREEN: {
                 return setStore({
                     currentScreen : payload.screen,
-                    modal: null
+                    modal: null,
+                    discussionPosts : payload.discussionPosts,
+                    currentPost : payload.currentPost || null
                 });
             }
             case GlobalStoreActionType.CLOSE_MODAL: {
                 return setStore({
                     currentScreen : store.currentScreen,
                     modal : null,
+                    discussionPosts : store.discussionPosts,
+                    currentPost : store.currentPost 
                 });
             }
             case GlobalStoreActionType.OPEN_MODAL: {
                 return setStore({
                     currentScreen : store.currentScreen,
                     modal : 1,
+                    discussionPosts : store.discussionPosts,
+                    currentPost : store.currentPost 
                 });
             }
             default:
@@ -46,7 +57,8 @@ function GlobalStoreContextProvider(props) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'landing'
+                screen: 'landing',
+                discussionPosts: store.discussionPosts
             }
         });
     }
@@ -55,7 +67,8 @@ function GlobalStoreContextProvider(props) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'login'
+                screen: 'login',
+                discussionPosts: store.discussionPosts
             }
         });
     }
@@ -64,7 +77,8 @@ function GlobalStoreContextProvider(props) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'register'
+                screen: 'register',
+                discussionPosts: store.discussionPosts
             }
         });
     }
@@ -73,7 +87,8 @@ function GlobalStoreContextProvider(props) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'forgot'
+                screen: 'forgot',
+                discussionPosts: store.discussionPosts
             }
         });
     }
@@ -82,7 +97,8 @@ function GlobalStoreContextProvider(props) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'recover'
+                screen: 'recover',
+                discussionPosts: store.discussionPosts
             }
         });
     }
@@ -91,7 +107,8 @@ function GlobalStoreContextProvider(props) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'search'
+                screen: 'search',
+                discussionPosts: store.discussionPosts
             }
         });
     }
@@ -100,7 +117,8 @@ function GlobalStoreContextProvider(props) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'personal'
+                screen: 'personal',
+                discussionPosts: store.discussionPosts
             }
         });
     }
@@ -109,16 +127,20 @@ function GlobalStoreContextProvider(props) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'profile'
+                screen: 'profile',
+                discussionPosts: store.discussionPosts
             }
         });
     }
 
-    store.changeToDiscussionHome = function() {
+    store.changeToDiscussionHome = async function() {
+        let res = await store.getAllPosts()
+        console.log(res.data.posts)
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'discussionHome'
+                screen: 'discussionHome',
+                discussionPosts: res.data.posts
             }
         });
     }
@@ -132,11 +154,12 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
-    store.changeToDiscussionPost = function() {
+    store.changeToDiscussionPost = function(post) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'discussionPost'
+                screen: 'discussionPost',
+                currentPost: post
             }
         });
     }
@@ -173,6 +196,30 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
+    //Community Post Actions
+
+    store.createNewPost = async function(title, content) {
+        try {
+            let response = await post.createPost(auth.user.username, title, content);
+            console.log("createNewPost response: " + response);
+            if (response.status === 201) {
+                store.changeToDiscussionPost()
+            }
+        } catch (error) {
+            if(error.response.data.error === "Blank") {
+                console.log("Blank")
+            }
+        }
+    }
+
+    store.getAllPosts = async function() {
+        try {
+            let posts = await post.getPosts();
+            return posts
+        } catch (error) {
+            console.log("Failed getting posts")
+        }
+    }
 
 
     return (

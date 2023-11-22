@@ -49,13 +49,13 @@ export default function MainScreen() {
             Content = <PersonalMapsScreen />
             break;
         case 'discussionHome':
-            Content = <DiscussionHomeScreen />
+            Content = <DiscussionHomeScreen posts={store.discussionPosts} />
             break;
         case 'discussionPostNew':
             Content = <DiscussionPostNew />
             break;
         case 'discussionPost':
-            Content = <DiscussionPost />
+            Content = <DiscussionPost post={store.currentPost} />
             break;
         case 'mapView':
             Content = <MapView />
