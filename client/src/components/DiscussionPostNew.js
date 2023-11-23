@@ -1,9 +1,26 @@
+import { useState, useContext } from 'react';
+import { GlobalStoreContext } from '../store'
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 
 export default function DiscussionPostNew() {
+    const { store } = useContext(GlobalStoreContext);
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
+
+    function handleUpdateTitle(event) {
+        setTitle(event.target.value);
+    }
+
+    function handleUpdateContent(event) {
+        setContent(event.target.value);
+    }
+
+    function handlePost() {
+        store.createNewPost(title, content);
+    }
 
     return (
         <Box display="flex" flexDirection="column">
@@ -37,6 +54,8 @@ export default function DiscussionPostNew() {
                         }}
                         style = {{ width: '75%' }}
                         inputProps={{style: {fontSize: 24}}}
+                        value={title}
+                        onChange={handleUpdateTitle}
                     />
                 </Box>
                 <Box display="flex" flexDirection="row" sx={{ my: 4}}>
@@ -64,6 +83,8 @@ export default function DiscussionPostNew() {
                         }}
                         style = {{ width: '100%' }}
                         inputProps={{style: {fontSize: 24}}}
+                        value={content}
+                        onChange={handleUpdateContent}
                     />
                 </Box>
                 <Box display='flex' justifyContent='flex-end'>
@@ -73,6 +94,7 @@ export default function DiscussionPostNew() {
                         style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px'}} 
                         disableRipple
                         color='razzmatazz'
+                        onClick={handlePost}
                     >
                         Create +
                     </Button>

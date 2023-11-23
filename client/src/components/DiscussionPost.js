@@ -1,3 +1,7 @@
+import { useContext } from 'react';
+import { GlobalStoreContext } from '../store'
+import AuthContext from '../auth'
+
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -19,7 +23,76 @@ const styles = {
     }
 }
 
-export default function DiscussionPost() {
+export default function DiscussionPost(props) {
+    const { store } = useContext(GlobalStoreContext);
+    const { auth } = useContext(AuthContext);
+    const post = props.post
+
+    const date = new Date(post.publishedDate);
+    const year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date);
+    const month = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(date);
+    const day = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date);
+    const hour = new Intl.DateTimeFormat('en', { hour: '2-digit', hour12: false }).format(date);
+    const minute = new Intl.DateTimeFormat('en', { minute: '2-digit' }).format(date);
+    const formattedDate = `${year}-${month}-${day} ${hour}:${minute}`;
+
+
+    function handleLike(event) {
+        if(auth.user !== null) {
+            store.likePost();
+        }
+    }
+
+    function handleDislike(event) {
+        if(auth.user !== null) {
+            store.dislikePost();
+        }
+    }
+
+    function handleLikeCounter() {
+        if(auth.user && post.likeUsers.includes(auth.user.username)) {
+            return (
+                <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
+                    <ThumbUpIcon sx={{ mx: 1 }} style={{ color:'#81c784' }} onClick={handleLike} />
+                    <Typography>
+                        {post.likes}
+                    </Typography>
+                </Box>
+            )
+        } else {
+            return (
+                <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
+                    <ThumbUpIcon sx={{ mx: 1 }} onClick={handleLike} />
+                    <Typography>
+                        {post.likes}
+                    </Typography>
+                </Box>
+            )
+        }
+    }
+
+    function handleDislikeCounter() {
+        if(auth.user && post.dislikeUsers.includes(auth.user.username)) {
+            return (
+                <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
+                    <ThumbDownIcon sx={{ mx: 1 }} style={{ color:'#e57373' }} onClick={handleDislike} />
+                    <Typography>
+                        {post.dislikes}
+                    </Typography>
+                </Box>
+            )
+        } else {
+            return (
+                <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
+                    <ThumbDownIcon sx={{ mx: 1 }} onClick={handleDislike} />
+                    <Typography>
+                        {post.dislikes}
+                    </Typography>
+                </Box>
+            )
+        }
+    }
+
     return(
         <Box display="flex" flexDirection="column">
             <Box 
@@ -39,10 +112,10 @@ export default function DiscussionPost() {
                 >
                     <Avatar alt="Kenna McRichard" src="/static/images/avatar/2.jpg" sx={{ bgcolor: "#E3256B", width: '35%', height: '35%' }} />
                     <Typography variant="h4" sx={{ mt: 4 }} style={{ textAlign: 'center' }} color='#E3256B'>
-                        Kenna McRichard
+                        {post.author}
                     </Typography>
                     <Typography variant="h6" flexGrow={1} color='#E3256B'>
-                        Today 12:41
+                        {formattedDate}
                     </Typography>
                     <Box 
                         sx={{ display: 'flex' }}
@@ -51,21 +124,11 @@ export default function DiscussionPost() {
                         <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
                             <CommentIcon sx={{ mx: 1 }}/>
                             <Typography>
-                                10
+                                {post.comments.length}
                             </Typography>
                         </Box>
-                        <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
-                            <ThumbUpIcon sx={{ mx: 1 }}/>
-                            <Typography>
-                                1000
-                            </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
-                            <ThumbDownIcon sx={{ mx: 1 }} />
-                            <Typography>
-                                100
-                            </Typography>
-                        </Box>
+                        {handleLikeCounter()}
+                        {handleDislikeCounter()}
                     </Box>
                 </Box>
                 <Box display="flex" flexDirection="column" sx={{ mx: 4 }} height="100%">
@@ -73,7 +136,7 @@ export default function DiscussionPost() {
                         variant="h4" 
                         sx={{ mb: 2, wordBreak: "break-word" }}
                     >
-                        Anyone have any maps regarding the Ming Dynasty of China???????????????????????????????
+                        {post.title}
                     </Typography>
                     <Typography 
                         style={{
@@ -82,22 +145,7 @@ export default function DiscussionPost() {
                         }}
                         sx={{ mb: 2 }}
                     >
-                        Hello fellow cartography enthusiasts! I hope you're all doing well. I've been working on a research project focused on the Ming Dynasty of China, and I'm currently on the lookout for some detailed maps that can help me gain a 
-                        deeper understanding of the Ming Dynasty's territorial extent, administrative divisions, and cultural heritage sites. Since this forum has been an incredible resource for map enthusiasts like myself, I thought I'd reach out and 
-                        see if anyone here might have or know where I can find some valuable maps related to the Ming Dynasty. Specifically, I'm interested in maps that showcase:
-                        Ming Dynasty Borders: I'd love to explore maps that depict the Ming Dynasty's boundaries during different periods of its rule, including any notable territorial changes.
-                        Administrative Divisions: Detailed maps showcasing the Ming Dynasty's administrative regions, provinces, and capitals would be incredibly helpful for my research.
-                        Cultural and Historical Sites: If there are maps highlighting important cultural and historical sites from the Ming Dynasty era, such as the Great Wall, the Forbidden City, or famous temples and cities, those would be fantastic to study.
-                        Trade Routes: Maps illustrating the trade routes, both overland and maritime, that were significant during the Ming Dynasty would add depth to my project.
-                        Cartography of the Time: I'm also interested in seeing how cartography itself evolved during the Ming Dynasty, so any maps created during that era would be a treasure.
-                        Hello fellow cartography enthusiasts! I hope you're all doing well. I've been working on a research project focused on the Ming Dynasty of China, and I'm currently on the lookout for some detailed maps that can help me gain a 
-                        deeper understanding of the Ming Dynasty's territorial extent, administrative divisions, and cultural heritage sites. Since this forum has been an incredible resource for map enthusiasts like myself, I thought I'd reach out and 
-                        see if anyone here might have or know where I can find some valuable maps related to the Ming Dynasty. Specifically, I'm interested in maps that showcase:
-                        Ming Dynasty Borders: I'd love to explore maps that depict the Ming Dynasty's boundaries during different periods of its rule, including any notable territorial changes.
-                        Administrative Divisions: Detailed maps showcasing the Ming Dynasty's administrative regions, provinces, and capitals would be incredibly helpful for my research.
-                        Cultural and Historical Sites: If there are maps highlighting important cultural and historical sites from the Ming Dynasty era, such as the Great Wall, the Forbidden City, or famous temples and cities, those would be fantastic to study.
-                        Trade Routes: Maps illustrating the trade routes, both overland and maritime, that were significant during the Ming Dynasty would add depth to my project.
-                        Cartography of the Time: I'm also interested in seeing how cartography itself evolved during the Ming Dynasty, so any maps created during that era would be a treasure.
+                        {post.content}
                     </Typography>
                     
                 </Box>

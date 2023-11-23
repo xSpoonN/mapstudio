@@ -15,22 +15,16 @@ import SearchIcon from '@mui/icons-material/Search';
 
 import DiscussionPostListCard from './DiscussionPostListCard';
 
-const posts = Array.from({ length: 10 }, (_, i) => `Discussion Post ${i + 1}`);
-
 const styles = {
     scroll: {
         scrollbarWidth: 'thin'
     }
 }
 
-export default function DiscussionHomeScreen() {
+export default function DiscussionHomeScreen(props) {
     const { store } = useContext(GlobalStoreContext);
-    const [filter, setFilter] = useState('None');
     const [sort, setSort] = useState('Newest');
-
-    const handleSetFilter = (event) => {
-        setFilter(event.target.value);
-    };
+    const [filter, setFilter] = useState('')
 
     const handleSetSort = (event) => {
         setSort(event.target.value);
@@ -40,6 +34,24 @@ export default function DiscussionHomeScreen() {
         store.changeToDiscussionPostNew();
     }
 
+    function handleSortAndFilter(posts) {
+        let sorted
+        if(sort === "Newest") {
+            sorted = posts.sort((a, b) => new Date(b.publishedDate) - new Date(a.publishedDate));
+        } else if(sort === "Most Liked") {
+            sorted = posts.sort((a, b) => b.likes - a.likes);
+        } else if(sort === "Most Commented") {
+            sorted = posts.sort((a, b) => b.comments.length - a.comments.length);
+        }
+        return sorted.filter(post =>
+            post.title.includes(filter) || post.author.includes(filter)
+        );
+    }
+
+    function handleUpdateFilter(event) {
+        setFilter(event.target.value);
+    }
+
     return (
         <Box display="flex" flexDirection="column">
             <Box display="flex" flexDirection="row" alignItems="flex-end">
@@ -47,7 +59,7 @@ export default function DiscussionHomeScreen() {
                     Discuss!
                 </Typography>
                 <Typography variant="h3" align="left" sx={{ mx: 6, my: 6 }} color='#000000' flexGrow={1}>
-                    10
+                    {props.posts.length}
                 </Typography>
                 <Box justifyContent="center" sx={{ flexGrow: 2, mx: 6, my: 6 }}>
 					<TextField
@@ -75,6 +87,8 @@ export default function DiscussionHomeScreen() {
 							}
 						}}
 						style = {{ width: '75%' }}
+                        value={filter}
+                        onChange={handleUpdateFilter}
 					/>
 				</Box>
                 <Button 
@@ -87,7 +101,7 @@ export default function DiscussionHomeScreen() {
                 >
                     Create +
                 </Button>
-                <FormControl sx={{ mx: 1, my: 6, minWidth: 200 }}>
+                <FormControl sx={{ ml: 1, mr: 6, my: 6, minWidth: 200 }}>
                 <InputLabel>Sort</InputLabel>
                     <Select
                         id="demo-select-small"
@@ -104,41 +118,16 @@ export default function DiscussionHomeScreen() {
                         }}
                     >
                         <MenuItem value="Newest">Newest</MenuItem>
-                        <MenuItem value="Most Liked">Most liked</MenuItem>
-                        <MenuItem value="Most Viewed">Most viewed</MenuItem>
-                    </Select>
-                </FormControl>
-
-                <FormControl sx={{ ml: 1, mr: 6, my: 6, minWidth: 200 }}>
-                <InputLabel>Filter</InputLabel>
-                    <Select
-                        id="demo-select-small"
-                        value={filter}
-                        label="Filter"
-                        onChange={handleSetFilter}
-                        displayEmpty
-                        sx={{
-                            background: 'white',
-                            borderRadius: '16px',
-                            "& label.Mui-focused": {
-                                color: '#E3256B'
-                            }
-                        }}
-                    >
-                        <MenuItem value="None">None</MenuItem>
-                        <MenuItem value="Bin Map">Bin Map</MenuItem>
-                        <MenuItem value="Gradient Map">Gradient Map</MenuItem>
-                        <MenuItem value="Heat Map">Heat Map</MenuItem>
-                        <MenuItem value="Point Map">Point Map</MenuItem>
-                        <MenuItem value="Satellite Map">Satellite Map</MenuItem>
+                        <MenuItem value="Most Liked">Most Liked</MenuItem>
+                        <MenuItem value="Most Commented">Most Commented</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
             <Box className="discussion-cards" display="flex" style={styles.scroll} >
                 <List sx={{ width: '90%', left: '5%' }}>
-                    {posts.map((post) => (
+                    {handleSortAndFilter(props.posts).map((post) => (
                             <DiscussionPostListCard 
-                                title={post}
+                                post={post}
                             />
                         ))
                     }

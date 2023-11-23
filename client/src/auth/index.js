@@ -105,6 +105,7 @@ function AuthContextProvider(props) {
                     }
                 })
             }
+            return response.status
         } catch(error) {
             let message = error.response.data.errorMessage;
             authReducer({
@@ -113,6 +114,7 @@ function AuthContextProvider(props) {
                     error: message
                 }
             })
+            return 0
         }
     }
 
@@ -127,6 +129,7 @@ function AuthContextProvider(props) {
                     }
                 })
             }
+            return response.status
         } catch(error) {
             let message = error.response.data.errorMessage;
             authReducer({
@@ -135,6 +138,7 @@ function AuthContextProvider(props) {
                     error: message
                 }
             })
+            return 0
         }
     }
 

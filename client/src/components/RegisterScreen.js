@@ -1,7 +1,7 @@
 import { useContext } from 'react';
 import { GlobalStoreContext } from '../store'
 import AuthContext from '../auth'
-import AccountModal from './AccountModal';
+import AccountErrorModal from './AccountErrorModal';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -12,15 +12,17 @@ import Typography from '@mui/material/Typography';
 export default function RegisterScreen() {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
-        auth.registerUser(
+        let res = await auth.registerUser(
             formData.get('username'),
             formData.get('email'),
             formData.get('password'),
         );
-        store.changeToHome()
+        if (res === 200) {
+            store.changeToHome();
+        }
     };
 
     function handleLoginScreen() {
@@ -47,7 +49,7 @@ export default function RegisterScreen() {
             }}
             flex={1}
         >
-            <AccountModal/>
+            <AccountErrorModal/>
             <Typography variant="h2" color='#E3256B'>
                 Create Account
             </Typography>
