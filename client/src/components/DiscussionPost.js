@@ -1,3 +1,7 @@
+import { useContext } from 'react';
+import { GlobalStoreContext } from '../store'
+import AuthContext from '../auth'
+
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -20,6 +24,8 @@ const styles = {
 }
 
 export default function DiscussionPost(props) {
+    const { store } = useContext(GlobalStoreContext);
+    const { auth } = useContext(AuthContext);
     const post = props.post
 
     const date = new Date(post.publishedDate);
@@ -29,6 +35,63 @@ export default function DiscussionPost(props) {
     const hour = new Intl.DateTimeFormat('en', { hour: '2-digit', hour12: false }).format(date);
     const minute = new Intl.DateTimeFormat('en', { minute: '2-digit' }).format(date);
     const formattedDate = `${year}-${month}-${day} ${hour}:${minute}`;
+
+
+    function handleLike(event) {
+        if(auth.user !== null) {
+            store.likePost();
+        }
+    }
+
+    function handleDislike(event) {
+        if(auth.user !== null) {
+            store.dislikePost();
+        }
+    }
+
+    function handleLikeCounter() {
+        if(auth.user && post.likeUsers.includes(auth.user.username)) {
+            return (
+                <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
+                    <ThumbUpIcon sx={{ mx: 1 }} style={{ color:'#81c784' }} onClick={handleLike} />
+                    <Typography>
+                        {post.likes}
+                    </Typography>
+                </Box>
+            )
+        } else {
+            return (
+                <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
+                    <ThumbUpIcon sx={{ mx: 1 }} onClick={handleLike} />
+                    <Typography>
+                        {post.likes}
+                    </Typography>
+                </Box>
+            )
+        }
+    }
+
+    function handleDislikeCounter() {
+        if(auth.user && post.dislikeUsers.includes(auth.user.username)) {
+            return (
+                <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
+                    <ThumbDownIcon sx={{ mx: 1 }} style={{ color:'#e57373' }} onClick={handleDislike} />
+                    <Typography>
+                        {post.dislikes}
+                    </Typography>
+                </Box>
+            )
+        } else {
+            return (
+                <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
+                    <ThumbDownIcon sx={{ mx: 1 }} onClick={handleDislike} />
+                    <Typography>
+                        {post.dislikes}
+                    </Typography>
+                </Box>
+            )
+        }
+    }
 
     return(
         <Box display="flex" flexDirection="column">
@@ -64,18 +127,8 @@ export default function DiscussionPost(props) {
                                 {post.comments.length}
                             </Typography>
                         </Box>
-                        <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
-                            <ThumbUpIcon sx={{ mx: 1 }}/>
-                            <Typography>
-                                {post.likes}
-                            </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
-                            <ThumbDownIcon sx={{ mx: 1 }} />
-                            <Typography>
-                                {post.dislikes}
-                            </Typography>
-                        </Box>
+                        {handleLikeCounter()}
+                        {handleDislikeCounter()}
                     </Box>
                 </Box>
                 <Box display="flex" flexDirection="column" sx={{ mx: 4 }} height="100%">

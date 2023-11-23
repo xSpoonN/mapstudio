@@ -62,7 +62,45 @@ getPosts = async (req, res) => {
         });
 }
 
+updatePost = async (req, res) => {
+    const body = req.body
+    console.log("updatePlaylist: " + JSON.stringify(body));
+    console.log("req.body.name: " + req.body.name);
+
+    if (!body) {
+        return res.status(400).json({
+            success: false,
+            error: 'You must provide a body to update',
+        })
+    }
+
+    DiscussionPost.findOne({ _id: req.params.id })
+        .then(post => {
+            post.likes = body.post.likes
+            post.dislikes = body.post.dislikes
+            post.comments = body.post.comments
+            post.likeUsers = body.post.likeUsers
+            post.dislikeUsers = body.post.dislikeUsers
+            post.save().then(() => {
+                console.log("Post updated");
+                return res.status(200).json({
+                    success: true,
+                    post: post,
+                    message: 'Post updated!'
+                })
+            })
+                .catch(error => {
+                    console.log("FAILURE: " + JSON.stringify(error));
+                    return res.status(404).json({
+                        error,
+                        message: 'Post not updated!',
+                    })
+                })
+        })
+}
+
 module.exports = {
     createPost,
-    getPosts
+    getPosts,
+    updatePost
 }

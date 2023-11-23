@@ -1,7 +1,7 @@
 import axios from 'axios'
 axios.defaults.withCredentials = true;
 const api = axios.create({
-    baseURL: 'https://mapstudio.azurewebsites.net/discussion',
+    baseURL: 'http://localhost:4000/discussion',
 })
 
 export const createPost = (username, title, content) => {
@@ -15,10 +15,16 @@ export const createPost = (username, title, content) => {
     })
 }
 export const getPosts = () => api.get(`/allposts`)
+export const updatePostById = (id, post) => {
+    return api.put(`/post/${id}`, {
+        post : post
+    })
+}
 
 const apis = {
     createPost,
-    getPosts
+    getPosts,
+    updatePostById
 }
 
 export default apis

@@ -9,6 +9,8 @@ const discussionPostSchema = new mongoose.Schema({
     likes: { type: Number, required: true },
     dislikes: { type: Number, required: true },
     comments: [{ type: ObjectId, ref: 'Comment' }],
+    likeUsers: [{ type: String }],
+	  dislikeUsers: [{ type: String }],
     publishedDate: { type: Date, required: true, default: Date.now  }
 });
 

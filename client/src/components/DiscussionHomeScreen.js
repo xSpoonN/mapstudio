@@ -24,6 +24,7 @@ const styles = {
 export default function DiscussionHomeScreen(props) {
     const { store } = useContext(GlobalStoreContext);
     const [sort, setSort] = useState('Newest');
+    const [filter, setFilter] = useState('')
 
     const handleSetSort = (event) => {
         setSort(event.target.value);
@@ -31,6 +32,24 @@ export default function DiscussionHomeScreen(props) {
 
     function handleCreate() {
         store.changeToDiscussionPostNew();
+    }
+
+    function handleSortAndFilter(posts) {
+        let sorted
+        if(sort === "Newest") {
+            sorted = posts.sort((a, b) => new Date(b.publishedDate) - new Date(a.publishedDate));
+        } else if(sort === "Most Liked") {
+            sorted = posts.sort((a, b) => b.likes - a.likes);
+        } else if(sort === "Most Commented") {
+            sorted = posts.sort((a, b) => b.comments.length - a.comments.length);
+        }
+        return sorted.filter(post =>
+            post.title.includes(filter) || post.author.includes(filter)
+        );
+    }
+
+    function handleUpdateFilter(event) {
+        setFilter(event.target.value);
     }
 
     return (
@@ -68,6 +87,8 @@ export default function DiscussionHomeScreen(props) {
 							}
 						}}
 						style = {{ width: '75%' }}
+                        value={filter}
+                        onChange={handleUpdateFilter}
 					/>
 				</Box>
                 <Button 
@@ -97,14 +118,14 @@ export default function DiscussionHomeScreen(props) {
                         }}
                     >
                         <MenuItem value="Newest">Newest</MenuItem>
-                        <MenuItem value="Most Liked">Most liked</MenuItem>
-                        <MenuItem value="Most Viewed">Most viewed</MenuItem>
+                        <MenuItem value="Most Liked">Most Liked</MenuItem>
+                        <MenuItem value="Most Commented">Most Commented</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
             <Box className="discussion-cards" display="flex" style={styles.scroll} >
                 <List sx={{ width: '90%', left: '5%' }}>
-                    {props.posts.map((post) => (
+                    {handleSortAndFilter(props.posts).map((post) => (
                             <DiscussionPostListCard 
                                 post={post}
                             />

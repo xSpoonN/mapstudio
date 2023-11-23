@@ -20,9 +20,6 @@ export default function DiscussionPostNew() {
 
     function handlePost() {
         store.createNewPost(title, content);
-        setTitle("");
-        setContent("");
-        store.changeToDiscussionHome();
     }
 
     return (

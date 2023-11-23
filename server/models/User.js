@@ -14,8 +14,6 @@ const userSchema = new mongoose.Schema({
 	dislikedMaps: [{ type: ObjectId, ref: 'Map' }],
 	likedComments: [{ type: ObjectId, ref: 'Comment' }],
 	dislikedComments: [{ type: ObjectId, ref: 'Comment' }],
-	likedPosts: [{ type: ObjectId, ref: 'Post' }],
-	dislikedPosts: [{ type: ObjectId, ref: 'Post' }],
 	resetPasswordToken: { type: String },
 	resetPasswordExpires: { type: Date }
 },
