@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useState, useRef, useEffect } from 'react';
 import { GlobalStoreContext } from '../store'
 import AuthContext from '../auth'
 
@@ -15,8 +15,6 @@ import IconButton from '@mui/material/IconButton';
 
 import Comment from './Comment';
 
-const posts = Array.from({ length: 10 }, (_, i) => `Comment ${i + 1}`);
-
 const styles = {
     scroll: {
         scrollbarWidth: 'thin'
@@ -26,7 +24,10 @@ const styles = {
 export default function DiscussionPost(props) {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
+    const [comment, setComment] = useState('');
     const post = props.post
+    const comments = props.comments
+    const divRef = useRef(null);
 
     const date = new Date(post.publishedDate);
     const year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date);
@@ -35,6 +36,10 @@ export default function DiscussionPost(props) {
     const hour = new Intl.DateTimeFormat('en', { hour: '2-digit', hour12: false }).format(date);
     const minute = new Intl.DateTimeFormat('en', { minute: '2-digit' }).format(date);
     const formattedDate = `${year}-${month}-${day} ${hour}:${minute}`;
+
+    useEffect(() => {
+        divRef.current.scrollIntoView({ behavior: 'smooth' });
+    }, [post.comments.length]);
 
 
     function handleLike(event) {
@@ -91,6 +96,18 @@ export default function DiscussionPost(props) {
                 </Box>
             )
         }
+    }
+
+    function handleUpdateComment(event) {
+        setComment(event.target.value);
+    }
+
+    function handleComment() {
+        if(auth.user) {
+            store.createNewComment(comment);
+            divRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+        setComment('');
     }
 
     return(
@@ -152,12 +169,13 @@ export default function DiscussionPost(props) {
             </Box>
             <Box className="post-comments" display="flex" style={styles.scroll} sx={{ mb: 2 }}>
                 <List sx={{ width: '90%', left: '5%' }}>
-                    {posts.map((post) => (
+                    {comments.map((comment) => (
                             <Comment
-                                title={post}
+                                comment={comment}
                             />
                         ))
                     }
+                    <div ref={divRef} />
                 </List>
             </Box> 
             <TextField
@@ -167,7 +185,7 @@ export default function DiscussionPost(props) {
                 rows={2}
                 InputProps={{
                     endAdornment: (
-                        <IconButton position="end">
+                        <IconButton position="end" onClick={handleComment}>
                             <ArrowRightIcon/>
                         </IconButton>
                     ),
@@ -187,6 +205,8 @@ export default function DiscussionPost(props) {
                     }
                 }}
                 style = {{ width: '90%', left: '5%' }}
+                value={comment}
+                onChange={handleUpdateComment}
 			/>
         </Box>
     )

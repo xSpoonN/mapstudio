@@ -28,6 +28,8 @@ const authRoutes = require('./routes/auth-router');
 app.use('/auth', authRoutes);
 const postRoutes = require('./routes/post-router');
 app.use('/discussion', postRoutes);
+const commentRoutes = require('./routes/comment-router');
+app.use('/comment', commentRoutes);
 const routes = require('./routes/router');
 app.use('/api', routes);
 

@@ -1,5 +1,6 @@
 import { createContext, useState, useContext } from 'react'
-import post from './store-request-api/post-api'
+import postAPI from './store-request-api/post-api'
+import commentAPI from './store-request-api/comment-api'
 import AuthContext from '../auth'
 
 export const GlobalStoreContext = createContext({});
@@ -9,7 +10,8 @@ export const GlobalStoreActionType = {
     CHANGE_CURRENT_SCREEN: "CHANGE_CURRENT_SCREEN",
     CLOSE_MODAL: "CLOSE_MODAL",
     OPEN_MODAL: "OPEN_MODAL",
-    SET_CURRENT_POST: "SET_CURRENT_POST"
+    SET_CURRENT_POST: "SET_CURRENT_POST",
+    SET_CURRENT_COMMENTS: "SET_CURRENT_COMMENTS"
 }
 
 function GlobalStoreContextProvider(props) {
@@ -18,7 +20,8 @@ function GlobalStoreContextProvider(props) {
         currentScreen: 'landing',
         modal: null,
         discussionPosts: null,
-        currentPost: null
+        currentPost: null,
+        currentComments: []
     });
 
     const storeReducer = (action) => {
@@ -30,7 +33,8 @@ function GlobalStoreContextProvider(props) {
                     currentScreen : payload.screen,
                     modal: null,
                     discussionPosts : payload.discussionPosts,
-                    currentPost : payload.currentPost || null
+                    currentPost : payload.currentPost || null,
+                    currentComments : payload.currentComments || []
                 });
             }
             case GlobalStoreActionType.CLOSE_MODAL: {
@@ -38,7 +42,8 @@ function GlobalStoreContextProvider(props) {
                     currentScreen : store.currentScreen,
                     modal : null,
                     discussionPosts : store.discussionPosts,
-                    currentPost : store.currentPost 
+                    currentPost : store.currentPost,
+                    currentComments : store.currentComments
                 });
             }
             case GlobalStoreActionType.OPEN_MODAL: {
@@ -46,7 +51,8 @@ function GlobalStoreContextProvider(props) {
                     currentScreen : store.currentScreen,
                     modal : 1,
                     discussionPosts : store.discussionPosts,
-                    currentPost : store.currentPost 
+                    currentPost : store.currentPost,
+                    currentComments : store.currentComments
                 });
             }
             case GlobalStoreActionType.SET_CURRENT_POST: {
@@ -54,7 +60,17 @@ function GlobalStoreContextProvider(props) {
                     currentScreen : store.currentScreen,
                     modal : null,
                     discussionPosts : store.discussionPosts,
-                    currentPost : payload.currentPost 
+                    currentPost : payload.currentPost,
+                    currentComments : store.currentComments
+                });
+            }
+            case GlobalStoreActionType.SET_CURRENT_COMMENTS: {
+                return setStore({
+                    currentScreen : store.currentScreen,
+                    modal : null,
+                    discussionPosts : store.discussionPosts,
+                    currentPost : store.currentPost,
+                    currentComments : payload.currentComments
                 });
             }
             default:
@@ -163,12 +179,15 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
-    store.changeToDiscussionPost = function(post) {
+    store.changeToDiscussionPost = async function(post) {
+        let res = await store.getAllComments(post)
+        console.log(res.data.comments)
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
                 screen: 'discussionPost',
-                currentPost: post
+                currentPost: post,
+                currentComments : res.data.comments
             }
         });
     }
@@ -209,7 +228,7 @@ function GlobalStoreContextProvider(props) {
 
     store.createNewPost = async function(title, content) {
         try {
-            let response = await post.createPost(auth.user.username, title, content);
+            let response = await postAPI.createPost(auth.user.username, title, content);
             console.log("createNewPost response: " + response);
             if (response.status === 201) {
                 store.changeToDiscussionPost(response.data.post);
@@ -223,7 +242,7 @@ function GlobalStoreContextProvider(props) {
 
     store.getAllPosts = async function() {
         try {
-            let posts = await post.getPosts();
+            let posts = await postAPI.getPosts();
             return posts
         } catch (error) {
             console.log("Failed getting posts")
@@ -234,7 +253,7 @@ function GlobalStoreContextProvider(props) {
         let newPost = store.currentPost
         if(!newPost.likeUsers.includes(auth.user.username)) {
             newPost.likes++;
-            newPost.likeUsers.push(auth.user.email)
+            newPost.likeUsers.push(auth.user.username)
             if(newPost.dislikeUsers.includes(auth.user.username)) {
                 newPost.dislikes--;
                 newPost.dislikeUsers.splice(newPost.dislikeUsers.indexOf(auth.user.username),1)
@@ -250,7 +269,7 @@ function GlobalStoreContextProvider(props) {
         let newPost = store.currentPost
         if(!newPost.dislikeUsers.includes(auth.user.username)) {
             newPost.dislikes++;
-            newPost.dislikeUsers.push(auth.user.email)
+            newPost.dislikeUsers.push(auth.user.username)
             if(newPost.likeUsers.includes(auth.user.username)) {
                 newPost.likes--;
                 newPost.likeUsers.splice(newPost.likeUsers.indexOf(auth.user.username),1)
@@ -264,7 +283,7 @@ function GlobalStoreContextProvider(props) {
     
     store.updatePost = async function(newPost) {
         try{
-            const response = await post.updatePostById(newPost._id, newPost);
+            const response = await postAPI.updatePostById(newPost._id, newPost);
             if (response.data.success) {
                 storeReducer({
                     type: GlobalStoreActionType.SET_CURRENT_POST,
@@ -276,6 +295,113 @@ function GlobalStoreContextProvider(props) {
         } catch (error) {
             console.log("Failed updating post")
         }
+    }
+
+    store.getPost = async function(id) {
+        try{
+            const response = await postAPI.getPostById(id);
+            if (response.data.success) {
+                storeReducer({
+                    type: GlobalStoreActionType.SET_CURRENT_POST,
+                    payload: {
+                        currentPost : response.data.post
+                    }
+                });
+            }
+        } catch (error) {
+            console.log("Failed getting post")
+        }
+    }
+
+    //Comment actions
+    store.createNewComment = async function(content) {
+        try {
+            let response = await commentAPI.createComment(store.currentPost._id, auth.user.username, content);
+            console.log("createNewComment response: " + response);
+            if (response.status === 200) {
+                response = await postAPI.getPostById(store.currentPost._id);
+                if (response.data.success) {
+                    storeReducer({
+                        type: GlobalStoreActionType.SET_CURRENT_POST,
+                        payload: {
+                            currentPost : response.data.post
+                        }
+                    });
+                    response = await store.getAllComments(response.data.post)
+                    if (response.data.success) {
+                        storeReducer({
+                            type: GlobalStoreActionType.SET_CURRENT_COMMENTS,
+                            payload: {
+                                currentComments : response.data.comments
+                            }
+                        });
+                    }
+                }
+            }
+        } catch (error) {
+            console.log("Create New Comment error")
+        }
+    }
+
+    store.getAllComments = async function(post) {
+        try {
+            let comments = await commentAPI.getComments(post.comments);
+            return comments
+        } catch (error) {
+            console.log("Failed getting comments")
+        }
+    }
+    
+    store.updateComment = async function(newComment) {
+        try{
+            const response = await commentAPI.updateCommentById(newComment._id, newComment);
+            if (response.data.success) {
+                let updatedComments = store.currentComments
+                updatedComments = updatedComments.map(comment =>
+                    comment._id === newComment._id ? response.data.comment : comment
+                );
+                storeReducer({
+                    type: GlobalStoreActionType.SET_CURRENT_COMMENTS,
+                    payload: {
+                        currentComments : updatedComments
+                    }
+                });
+            }
+        } catch (error) {
+            console.log("Failed updating post")
+        }
+    }
+
+    store.likeComment = function(comment) {
+        let newComment = comment
+        if(!newComment.likeUsers.includes(auth.user.username)) {
+            newComment.likes++;
+            newComment.likeUsers.push(auth.user.username)
+            if(newComment.dislikeUsers.includes(auth.user.username)) {
+                newComment.dislikes--;
+                newComment.dislikeUsers.splice(newComment.dislikeUsers.indexOf(auth.user.username),1)
+            }
+        } else {
+            newComment.likes--;
+            newComment.likeUsers.splice(newComment.likeUsers.indexOf(auth.user.username),1)
+        }
+        store.updateComment(newComment);
+    }
+
+    store.dislikeComment = function(comment) {
+        let newComment = comment
+        if(!newComment.dislikeUsers.includes(auth.user.username)) {
+            newComment.dislikes++;
+            newComment.dislikeUsers.push(auth.user.username)
+            if(newComment.likeUsers.includes(auth.user.username)) {
+                newComment.likes--;
+                newComment.likeUsers.splice(newComment.likeUsers.indexOf(auth.user.username),1)
+            }
+        } else {
+            newComment.dislikes--;
+            newComment.dislikeUsers.splice(newComment.dislikeUsers.indexOf(auth.user.username),1)
+        }
+        store.updateComment(newComment);
     }
 
 

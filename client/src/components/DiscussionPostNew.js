@@ -9,6 +9,7 @@ export default function DiscussionPostNew() {
     const { store } = useContext(GlobalStoreContext);
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
+    const [error, setError] = useState(false);
 
     function handleUpdateTitle(event) {
         setTitle(event.target.value);
@@ -19,7 +20,17 @@ export default function DiscussionPostNew() {
     }
 
     function handlePost() {
-        store.createNewPost(title, content);
+        if(title !== "" && content !== "") {
+            store.createNewPost(title, content);
+            setError(false)
+        } else {
+            setError(true)
+        }
+    }
+
+    let errorMsg = <></>
+    if(error) {
+        errorMsg = <Typography variant="h4" color='#FF0000'>Please fill out all fields</Typography>
     }
 
     return (
@@ -87,7 +98,8 @@ export default function DiscussionPostNew() {
                         onChange={handleUpdateContent}
                     />
                 </Box>
-                <Box display='flex' justifyContent='flex-end'>
+                <Box alignItems="center" display='flex' justifyContent='flex-end'>
+                    {errorMsg}
                     <Button 
                         variant="contained"
                         sx={{ color: 'white', mx: 4 }} 

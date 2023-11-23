@@ -20,11 +20,15 @@ export const updatePostById = (id, post) => {
         post : post
     })
 }
+export const getPostById = (id, post) => {
+    return api.get(`/post/${id}`)
+}
 
 const apis = {
     createPost,
     getPosts,
-    updatePostById
+    updatePostById,
+    getPostById
 }
 
 export default apis
