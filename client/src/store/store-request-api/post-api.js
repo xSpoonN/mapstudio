@@ -1,7 +1,7 @@
 import axios from 'axios'
 axios.defaults.withCredentials = true;
 const api = axios.create({
-    baseURL: 'http://localhost:4000/discussion',
+    baseURL: 'https://mapstudio.azurewebsites.net/discussion',
 })
 
 export const createPost = (username, title, content) => {
