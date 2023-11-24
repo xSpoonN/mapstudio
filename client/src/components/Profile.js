@@ -86,7 +86,7 @@ export default function Profile() {
                             <Card style={styles.card}>
                                 <CardMedia
                                     style={styles.media}
-                                    image={user?.pfp ? `${user.pfp}?${SASTOKEN}` : 'https://source.unsplash.com/random/500x500'}
+                                    image={user?.pfp ? `${user.pfp}?${SASTOKEN}` : "/static/images/avatar/2.jpg"}
                                     title="Profile Picture"
                                     onClick={() => fileRef.current.click()}
                                 />

@@ -58,6 +58,9 @@ export const getUserData = (email) => {
     return api.get(`/users/${email}`)
 }
 
+export const getUserById = (id) => {
+    return api.get(`/users/id/${id}`)
+}
 
 const apis = {
     getLoggedIn,
@@ -69,7 +72,8 @@ const apis = {
     resetPassword,
     setProfilePicture,
     setBio,
-    getUserData
+    getUserData,
+    getUserById
 }
 
 export default apis
