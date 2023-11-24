@@ -13,7 +13,7 @@ export default function Comment(props) {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
     let comment = props.comment
-    let date = formatDate(comment.publishedDate)
+    let date = formatDate(comment?.publishedDate)
 
     function formatDate(dateString) {
         const currentDate = new Date();
@@ -66,12 +66,12 @@ export default function Comment(props) {
     }
 
     function handleLikeCounter() {
-        if(auth.user && comment.likeUsers.includes(auth.user.username)) {
+        if(auth.user && comment?.likeUsers.includes(auth.user.username)) {
             return (
                 <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
                     <ThumbUpIcon sx={{ mx: 1 }} style={{ color:'#81c784' }} onClick={handleLike} />
                     <Typography>
-                        {comment.likes}
+                        {comment?.likes}
                     </Typography>
                 </Box>
             )
@@ -80,7 +80,7 @@ export default function Comment(props) {
                 <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
                     <ThumbUpIcon sx={{ mx: 1 }} onClick={handleLike} />
                     <Typography>
-                        {comment.likes}
+                        {comment?.likes}
                     </Typography>
                 </Box>
             )
@@ -88,12 +88,12 @@ export default function Comment(props) {
     }
 
     function handleDislikeCounter() {
-        if(auth.user && comment.dislikeUsers.includes(auth.user.username)) {
+        if(auth.user && comment?.dislikeUsers.includes(auth.user.username)) {
             return (
                 <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
                     <ThumbDownIcon style={{ color:'#e57373' }} sx={{ mx: 1 }} onClick={handleDislike} />
                         <Typography color='#e57373'>
-                            {comment.dislikes}
+                            {comment?.dislikes}
                         </Typography>
                     </Box>
             )
@@ -102,7 +102,7 @@ export default function Comment(props) {
                 <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
                     <ThumbDownIcon sx={{ mx: 1 }} onClick={handleDislike} />
                     <Typography>
-                        {comment.dislikes}
+                        {comment?.dislikes}
                     </Typography>
                 </Box>
             )
@@ -120,7 +120,7 @@ export default function Comment(props) {
             >
                 <Box sx={{ p: 1, flexGrow: 1, textOverflow: "ellipsis", overflow: "hidden" }} display="flex" alignItems="center">
                     <Typography variant="h6" >
-                        {comment.content}
+                        {comment?.content}
                     </Typography>
                 </Box>
             </Box>
@@ -131,7 +131,7 @@ export default function Comment(props) {
                     <Box sx={{ display: 'flex', p: 1, flexGrow: 1 }} alignItems="center">
                         <Avatar alt="Kenna McRichard" src="/static/images/avatar/2.jpg" sx={{ bgcolor: "#E3256B", width: '32px', height: '32px', mr: 2 }} /> 
                         <Typography color='#e3256b'>
-                            {comment.author}
+                            {comment?.author}
                         </Typography>
                     </Box>
                     {handleLikeCounter()}
