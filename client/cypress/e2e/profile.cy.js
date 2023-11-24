@@ -3,7 +3,7 @@ describe('Profile Page', () => {
   /* ==== Test Created with Cypress Studio ==== */
   it('profile', function() {
     /* ==== Generated with Cypress Studio ==== */
-    cy.visit('https://localhost:3000')
+    cy.visit('http://localhost:3000')
     cy.get('.css-2uchni > .MuiButtonBase-root').click();
     cy.get('[tabindex="0"] > .MuiTypography-root').click();
     cy.get('#username').clear();

@@ -3,7 +3,7 @@
 describe('Map View', () => {
 
     beforeEach(() => {
-      cy.visit('https://localhost:3000')
+      cy.visit('http://localhost:3000')
       cy.get('img.logo').click(); // Click on logo to go to home page
       cy.viewport(1920, 1080);
       cy.get('div.map-card').first().click();
