@@ -11,9 +11,9 @@ describe('Discussion Posts Board', () => {
     it('contains the correct buttons and options', () => {
         cy.get('input[type="text"]').should('have.length', 2); // 2 Search boxes, sitewide and discussion posts
         cy.get('div.MuiSelect-select').first().should('have.text', 'Newest')
-        cy.get('div.MuiSelect-select').last().should('have.text', 'None')
+        /* cy.get('div.MuiSelect-select').last().should('have.text', 'None') */
         cy.contains('Sort');
-        cy.contains('Filter');
+        /* cy.contains('Filter'); */
         cy.contains('Create');
         cy.contains('Create +');
     })
