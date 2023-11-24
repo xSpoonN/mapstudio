@@ -19,12 +19,12 @@ export default function Comment(props) {
 
     useEffect(() => {
         const fetchUser = async () => {
-            const resp = await auth.getUserById(comment.authorId);
+            const resp = await auth.getUserById(comment?.authorId);
             console.log(resp);
-            if (resp.success) setUser(resp.user);
+            if (resp?.success) setUser(resp.user);
         }
         fetchUser();
-    }, [auth, comment.authorId]);
+    }, [auth, comment?.authorId]);
 
     function formatDate(dateString) {
         const currentDate = new Date();
