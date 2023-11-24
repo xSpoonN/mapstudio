@@ -26,7 +26,7 @@ export default function DiscussionPost(props) {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
     const [comment, setComment] = useState('');
-    const [user, setUser] = useState(null); // eslint-disable-line
+    const [user, setUser] = useState(null);
     const post = props.post
     const comments = props.comments
     const divRef = useRef(null);
