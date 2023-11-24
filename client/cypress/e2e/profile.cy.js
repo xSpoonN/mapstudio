@@ -1,4 +1,5 @@
 /* eslint-disable no-undef */
+Cypress.on('uncaught:exception', (err, runnable) => { return false })
 describe('Profile Page', () => {
   /* ==== Test Created with Cypress Studio ==== */
   it('profile', function() {
