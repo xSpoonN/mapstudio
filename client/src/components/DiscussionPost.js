@@ -15,6 +15,7 @@ import IconButton from '@mui/material/IconButton';
 
 import Comment from './Comment';
 
+const SASTOKEN = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D';
 const styles = {
     scroll: {
         scrollbarWidth: 'thin'
@@ -25,6 +26,7 @@ export default function DiscussionPost(props) {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
     const [comment, setComment] = useState('');
+    const [user, setUser] = useState(null); // eslint-disable-line
     const post = props.post
     const comments = props.comments
     const divRef = useRef(null);
@@ -41,6 +43,14 @@ export default function DiscussionPost(props) {
         divRef.current.scrollIntoView({ behavior: 'smooth' });
     }, [post.comments.length]);
 
+    useEffect(() => {
+        const fetchUser = async () => {
+            const resp = await auth.getUserById(post.authorId);
+            console.log(resp);
+            if (resp.success) setUser(resp.user);
+        }
+        fetchUser();
+    }, [auth, post.authorId]);
 
     function handleLike(event) {
         if(auth.user !== null) {
@@ -127,7 +137,11 @@ export default function DiscussionPost(props) {
                     display="flex" 
                     flexDirection="column"
                 >
-                    <Avatar alt="Kenna McRichard" src="/static/images/avatar/2.jpg" sx={{ bgcolor: "#E3256B", width: '35%', height: '35%' }} />
+                    <Avatar 
+                        alt="Kenna McRichard" 
+                        src={user?.pfp ? `${user.pfp}?${SASTOKEN}` : "/static/images/avatar/2.jpg" }
+                        sx={{ bgcolor: "#E3256B", width: '35%', height: '35%' }} 
+                    />
                     <Typography variant="h4" sx={{ mt: 4 }} style={{ textAlign: 'center' }} color='#E3256B'>
                         {post.author}
                     </Typography>

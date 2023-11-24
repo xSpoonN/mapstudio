@@ -250,6 +250,17 @@ function AuthContextProvider(props) {
         return auth.user;
     }
 
+    auth.getUserById = async function(id) {
+        try {
+            const response = await api.getUserById(id);
+            if (response.status === 200) {
+                return response.data;
+            }
+        } catch(error) {
+            return null;
+        }
+    }
+
     auth.getUserData = async function(email) {
         try {
             const response = await api.getUserData(email);
