@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { GlobalStoreContext } from '../store'
 import AuthContext from '../auth'
 
@@ -9,11 +9,22 @@ import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import Avatar from '@mui/material/Avatar';
 
+const SASTOKEN = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D';
 export default function Comment(props) {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
+    const [user, setUser] = useState(null);
     let comment = props.comment
-    let date = formatDate(comment.publishedDate)
+    let date = formatDate(comment?.publishedDate)
+
+    useEffect(() => {
+        const fetchUser = async () => {
+            const resp = await auth.getUserById(comment?.authorId);
+            console.log(resp);
+            if (resp?.success) setUser(resp.user);
+        }
+        fetchUser();
+    }, [auth, comment?.authorId]);
 
     function formatDate(dateString) {
         const currentDate = new Date();
@@ -66,12 +77,12 @@ export default function Comment(props) {
     }
 
     function handleLikeCounter() {
-        if(auth.user && comment.likeUsers.includes(auth.user.username)) {
+        if(auth.user && comment?.likeUsers.includes(auth.user.username)) {
             return (
                 <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
                     <ThumbUpIcon sx={{ mx: 1 }} style={{ color:'#81c784' }} onClick={handleLike} />
                     <Typography>
-                        {comment.likes}
+                        {comment?.likes}
                     </Typography>
                 </Box>
             )
@@ -80,7 +91,7 @@ export default function Comment(props) {
                 <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
                     <ThumbUpIcon sx={{ mx: 1 }} onClick={handleLike} />
                     <Typography>
-                        {comment.likes}
+                        {comment?.likes}
                     </Typography>
                 </Box>
             )
@@ -88,12 +99,12 @@ export default function Comment(props) {
     }
 
     function handleDislikeCounter() {
-        if(auth.user && comment.dislikeUsers.includes(auth.user.username)) {
+        if(auth.user && comment?.dislikeUsers.includes(auth.user.username)) {
             return (
                 <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
                     <ThumbDownIcon style={{ color:'#e57373' }} sx={{ mx: 1 }} onClick={handleDislike} />
                         <Typography color='#e57373'>
-                            {comment.dislikes}
+                            {comment?.dislikes}
                         </Typography>
                     </Box>
             )
@@ -102,7 +113,7 @@ export default function Comment(props) {
                 <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
                     <ThumbDownIcon sx={{ mx: 1 }} onClick={handleDislike} />
                     <Typography>
-                        {comment.dislikes}
+                        {comment?.dislikes}
                     </Typography>
                 </Box>
             )
@@ -120,7 +131,7 @@ export default function Comment(props) {
             >
                 <Box sx={{ p: 1, flexGrow: 1, textOverflow: "ellipsis", overflow: "hidden" }} display="flex" alignItems="center">
                     <Typography variant="h6" >
-                        {comment.content}
+                        {comment?.content}
                     </Typography>
                 </Box>
             </Box>
@@ -129,9 +140,13 @@ export default function Comment(props) {
                 style={{ width: '100%', fontSize: '12pt', alignItems: 'center'}}
             >
                     <Box sx={{ display: 'flex', p: 1, flexGrow: 1 }} alignItems="center">
-                        <Avatar alt="Kenna McRichard" src="/static/images/avatar/2.jpg" sx={{ bgcolor: "#E3256B", width: '32px', height: '32px', mr: 2 }} /> 
+                        <Avatar 
+                            alt="Kenna McRichard" 
+                            src={user?.pfp ? `${user.pfp}?${SASTOKEN}` : "/static/images/avatar/2.jpg" }
+                            sx={{ bgcolor: "#E3256B", width: '32px', height: '32px', mr: 2 }} 
+                        /> 
                         <Typography color='#e3256b'>
-                            {comment.author}
+                            {comment?.author}
                         </Typography>
                     </Box>
                     {handleLikeCounter()}

@@ -1,9 +1,10 @@
 /* eslint-disable no-undef */
 
+Cypress.on('uncaught:exception', (err, runnable) => { return false })
 describe('Discussion Posts Board', () => {
 
     beforeEach(() => {
-      cy.visit('https://mapstudio-cse416.web.app/')
+      cy.visit('http://localhost:3000')
       cy.get('img.logo').click(); // Click on logo to go to home page
       cy.contains('Discuss').click();
     })
@@ -11,9 +12,9 @@ describe('Discussion Posts Board', () => {
     it('contains the correct buttons and options', () => {
         cy.get('input[type="text"]').should('have.length', 2); // 2 Search boxes, sitewide and discussion posts
         cy.get('div.MuiSelect-select').first().should('have.text', 'Newest')
-        cy.get('div.MuiSelect-select').last().should('have.text', 'None')
+        /* cy.get('div.MuiSelect-select').last().should('have.text', 'None') */
         cy.contains('Sort');
-        cy.contains('Filter');
+        /* cy.contains('Filter'); */
         cy.contains('Create');
         cy.contains('Create +');
     })

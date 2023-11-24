@@ -104,12 +104,12 @@ getPost = async (req, res) => {
 
     DiscussionPost.findOne({ _id: req.params.id })
         .then(post => {
-            console.log("Post updated");
-                return res.status(200).json({
-                    success: true,
-                    post: post,
-                    message: 'Post retrieved!'
-                })
+            console.log("Post retrieved");
+            return res.status(200).json({
+                success: true,
+                post: post,
+                message: 'Post retrieved!'
+            })
         }).catch(error => {
             console.log("FAILURE: " + JSON.stringify(error));
             return res.status(404).json({
