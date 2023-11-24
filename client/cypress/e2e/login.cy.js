@@ -3,7 +3,7 @@
 describe('Login Page', () => {
 
     beforeEach(() => {
-      cy.visit('https://mapstudio-cse416.web.app/')
+      cy.visit('https://localhost:3000')
       cy.get('img.logo').click(); // Click on logo to go to home page
       
       cy.get('button:contains(Log In)').last().click();
