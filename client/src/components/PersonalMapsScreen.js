@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import MapCard from './MapCard';
+import { GlobalStoreContext } from '../store';
+import AuthContext from '../auth'
 
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -17,6 +19,9 @@ const maps = Array.from({ length: 8 }, (_, i) => `Your Map ${i + 1}`);
 const share = Array.from({ length: 8 }, () => ['Private', 'Public'][Math.floor(Math.random() * 2)]);
 
 export default function PersonalMapsScreen() {
+    const { store } = useContext(GlobalStoreContext);
+    const { auth } = useContext(AuthContext);
+
     const [filter, setFilter] = useState('None');
     const [sort, setSort] = useState('Newest');
 
@@ -26,6 +31,13 @@ export default function PersonalMapsScreen() {
 
     const handleSetSort = (event) => {
         setSort(event.target.value);
+    };
+
+    const handleCreateNewMap = async () => {
+        console.log("Recv create new map request");
+        const authReq = await auth.getUserData(auth.user.email);
+        console.log(authReq);
+        store.createNewMap(authReq.user._id, 'New Map', 'Description');
     };
 
     return (
@@ -71,6 +83,7 @@ export default function PersonalMapsScreen() {
                     style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px'}} 
                     disableRipple
                     color='razzmatazz'
+                    onClick={handleCreateNewMap}
                 >
                     Create +
                 </Button>

@@ -251,6 +251,19 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
+    // Map Actions
+    store.createNewMap = async function(author, title, description) {
+        try {
+            let response = await mapAPI.createMap(author, title, description);
+            console.log("createNewMap response: " + response);
+            if (response.status === 201) {
+                store.changeToMapView();
+            }
+        } catch (error) {
+            console.log("Create New Map error")
+        }
+    }
+
     //Community Post Actions
 
     store.createNewPost = async function(title, content) {
@@ -370,17 +383,17 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
-    store.createMapComment = async function(content) {
+    store.createMapComment = async function(content, mapid) {
         try {
-            let response = await commentAPI.createComment(store.currentMap, auth.user.username, content);
+            let response = await commentAPI.createComment(mapid, auth.user.username, content);
             console.log("createNewComment response: " + response);
             if (response.status === 200) {
-                response = await mapAPI.getMapById(store.currentMap);
+                response = await mapAPI.getMapById(mapid);
                 if (response.data.success) {
                     storeReducer({
                         type: GlobalStoreActionType.SET_CURRENT_MAP,
                         payload: {
-                            currentMap : response.data.map
+                            currentMap : response.data.map._id
                         }
                     });
                 }
