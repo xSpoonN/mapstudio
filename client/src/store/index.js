@@ -1,6 +1,7 @@
 import { createContext, useState, useContext } from 'react'
 import postAPI from './store-request-api/post-api'
 import commentAPI from './store-request-api/comment-api'
+import mapAPI from './store-request-api/map-api'
 import AuthContext from '../auth'
 
 export const GlobalStoreContext = createContext({});
@@ -229,6 +230,19 @@ function GlobalStoreContextProvider(props) {
         storeReducer({
             type: GlobalStoreActionType.OPEN_MODAL
         });
+    }
+
+    // Map Actions
+    store.createNewMap = async function(author, title, description, mapFile) {
+        try {
+            let response = await mapAPI.createMap(author, title, description, mapFile);
+            console.log("createNewMap response: " + response);
+            if (response.status === 201) {
+                store.changeToMapView();
+            }
+        } catch (error) {
+            console.log("Create New Map error")
+        }
     }
 
     //Community Post Actions

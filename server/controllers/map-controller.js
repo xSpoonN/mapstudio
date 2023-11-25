@@ -1,26 +1,54 @@
 
 const Map = require('../models/Map')
+const User = require('../models/User');
 
-const { DefaultAzureCredential } = require('@azure/identity');
-const { BlobServiceClient } = require("@azure/storage-blob");
-const { create } = require('domain');
-const { get } = require('http');
+createMap = (req, res) => {
+    const body = req.body;
+    body.authorId = req.userId;
+    console.log("createPost body: " + JSON.stringify(body));
 
-const blobServiceClient = new BlobServiceClient(`https://mapstudio.blob.core.windows.net`, new DefaultAzureCredential() );
+    if (!body) {
+        return res.status(400).json({
+            success: false,
+            error: 'You must provide a Post',
+        })
+    } else if (body.title === '' || body.content === '') {
+        return res.status(400).json({
+            success: false,
+            error: 'Blank',
+        })
+    } 
 
-//create a new map  "models/Map.js"
-createMap = async (req, res) => {
-    try {
-        const { title, description, author, comments, likes, dislikes, mapFile } = req.body;
-        const newMap = new Map({ title, description, author, comments, likes, dislikes, mapFile });
-        await newMap.save();
-        res.status(201).json(newMap);
-
-    } catch (err) {
-        res.status(400).json({ error: 'Failed to create a map.' });
-        
+    return;
+    const post = new Map(body);
+    console.log("post: " + post.toString());
+    if (!post) {
+        return res.status(400).json({ success: false, error: err })
     }
 
+    User.findOne({ _id: req.userId })
+        .then(user => {
+            if (!user) {
+                return res.status(404).json({
+                    errorMessage: 'User not found'
+                }); 
+            }
+            console.log("User found: " + JSON.stringify(user));
+            user.posts.push(post._id);
+            return user.save();
+        })
+        .then(() => post.save())
+        .then(() => {
+            return res.status(201).json({
+                post: post
+            });
+        })
+        .catch(error => {
+            console.error(error);
+            return res.status(400).json({
+                errorMessage: 'Post Not Created!'
+            });
+        });
 }
 
 deleteMapById = async (req, res) => {
