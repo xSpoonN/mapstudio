@@ -67,6 +67,7 @@ export default function MapView({ mapid }) {
                 const user = await auth.getUserById(resp.author);
                 if (user?.success) setUser(user.user);
                 const comments = await store.getMapComments(resp.comments);
+                console.log(comments);
                 if (comments?.success) setMapComments(comments.comments);
             }
         }
@@ -143,9 +144,11 @@ export default function MapView({ mapid }) {
 
     async function handleComment() {
         if(auth.user) {
-            await store.createMapComment(comment);
+            console.log(map);
+            await store.createMapComment(comment, map._id);
             const comments = await store.getMapComments(map.comments);
-            if (comments?.success) setMapComments(comments.comments);
+            console.log(comments);
+            if (comments?.data.success) setMapComments(comments.data.comments);
 
             divRef.current.scrollIntoView({ behavior: 'smooth' });
         }
