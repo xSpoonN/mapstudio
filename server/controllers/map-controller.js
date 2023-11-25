@@ -3,9 +3,7 @@ const Map = require('../models/Map')
 const User = require('../models/User');
 
 createMap = (req, res) => {
-    const body = req.body;
-    body.authorId = req.userId;
-    console.log("createPost body: " + JSON.stringify(body));
+    console.log(req);
 
     if (!body) {
         return res.status(400).json({
@@ -19,13 +17,13 @@ createMap = (req, res) => {
         })
     } 
 
-    return;
     const post = new Map(body);
     console.log("post: " + post.toString());
     if (!post) {
         return res.status(400).json({ success: false, error: err })
     }
 
+    return;
     User.findOne({ _id: req.userId })
         .then(user => {
             if (!user) {

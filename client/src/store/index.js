@@ -252,9 +252,9 @@ function GlobalStoreContextProvider(props) {
     }
 
     // Map Actions
-    store.createNewMap = async function(author, title, description, mapFile) {
+    store.createNewMap = async function(author, title, description) {
         try {
-            let response = await mapAPI.createMap(author, title, description, mapFile);
+            let response = await mapAPI.createMap(author, title, description);
             console.log("createNewMap response: " + response);
             if (response.status === 201) {
                 store.changeToMapView();

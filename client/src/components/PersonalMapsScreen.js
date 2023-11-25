@@ -33,9 +33,11 @@ export default function PersonalMapsScreen() {
         setSort(event.target.value);
     };
 
-    const handleCreateNewMap = () => {
-        console.log(auth.user);
-        store.createNewMap(auth.user.username, 'New Map', 'Description');
+    const handleCreateNewMap = async () => {
+        console.log("Recv create new map request");
+        const authReq = await auth.getUserData(auth.user.email);
+        console.log(authReq);
+        store.createNewMap(authReq.user._id, 'New Map', 'Description');
     };
 
     return (
