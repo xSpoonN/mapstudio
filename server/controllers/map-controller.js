@@ -37,11 +37,12 @@ deleteMapById = async (req, res) => {
 
 getMapById = async (req, res) => {
     try {
+        console.log('Finding map with id ' + req.params.id);
         const map = await Map.findById(req.params.id);
         if (!map) {
             return res.status(404).json({ error: 'Map not found.' });
         }
-        res.status(200).json(map);
+        res.status(200).json({ success: true, map: map });
     } catch (err) {
         res.status(400).json({ error: 'Failed to fetch the map.' });
     }
@@ -83,4 +84,12 @@ updateMapFile = async (req, res) => {
     } catch (err) {
         res.status(400).json({ error: 'Failed to update the map.' });
     }
+}
+
+module.exports = {
+    createMap,
+    deleteMapById,
+    getMapById,
+    updateMapInfoById,
+    updateMapFile
 }

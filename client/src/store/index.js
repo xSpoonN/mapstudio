@@ -1,6 +1,7 @@
 import { createContext, useState, useContext } from 'react'
 import postAPI from './store-request-api/post-api'
 import commentAPI from './store-request-api/comment-api'
+import mapAPI from './store-request-api/map-api'
 import AuthContext from '../auth'
 
 export const GlobalStoreContext = createContext({});
@@ -420,6 +421,18 @@ function GlobalStoreContextProvider(props) {
             }
         } catch (error) {
             console.log("Failed getting posts")
+        }
+    }
+
+    //Map Actions
+    store.getMap = async function(id) {
+        try{
+            const response = await mapAPI.getMapById(id);
+            if (response.data.success) {
+                return response.data.map
+            }
+        } catch (error) {
+            console.log("Failed getting map")
         }
     }
 
