@@ -5,7 +5,7 @@ const api = axios.create({
 })
 
 export const createMap = (author, title, description) => {
-    return api.post(`/${author}`, {
+    return api.post(`/maps`, {
         author: author,
         title: title,
         description: description
@@ -13,7 +13,7 @@ export const createMap = (author, title, description) => {
 }
 export const getMaps = () => api.get(`/allmaps`)
 export const updateMapById = (id, map) => {
-    return api.put(`/${id}`, {
+    return api.put(`/maps/${id}`, {
         map : map
     })
 }
