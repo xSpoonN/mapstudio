@@ -21,7 +21,8 @@ function GlobalStoreContextProvider(props) {
         modal: null,
         discussionPosts: null,
         currentPost: null,
-        currentComments: []
+        currentComments: [],
+        currentFilter: ''
     });
 
     const storeReducer = (action) => {
@@ -34,7 +35,8 @@ function GlobalStoreContextProvider(props) {
                     modal: null,
                     discussionPosts : payload.discussionPosts,
                     currentPost : payload.currentPost || null,
-                    currentComments : payload.currentComments || []
+                    currentComments : payload.currentComments || [],
+                    currentFilter : payload.filter || ''
                 });
             }
             case GlobalStoreActionType.CLOSE_MODAL: {
@@ -43,7 +45,8 @@ function GlobalStoreContextProvider(props) {
                     modal : null,
                     discussionPosts : store.discussionPosts,
                     currentPost : store.currentPost,
-                    currentComments : store.currentComments
+                    currentComments : store.currentComments,
+                    currentFilter : store.currentFilter
                 });
             }
             case GlobalStoreActionType.OPEN_MODAL: {
@@ -52,7 +55,8 @@ function GlobalStoreContextProvider(props) {
                     modal : 1,
                     discussionPosts : store.discussionPosts,
                     currentPost : store.currentPost,
-                    currentComments : store.currentComments
+                    currentComments : store.currentComments,
+                    currentFilter : store.currentFilter
                 });
             }
             case GlobalStoreActionType.SET_CURRENT_POST: {
@@ -61,7 +65,8 @@ function GlobalStoreContextProvider(props) {
                     modal : null,
                     discussionPosts : store.discussionPosts,
                     currentPost : payload.currentPost,
-                    currentComments : store.currentComments
+                    currentComments : store.currentComments,
+                    currentFilter : store.currentFilter
                 });
             }
             case GlobalStoreActionType.SET_CURRENT_COMMENTS: {
@@ -70,7 +75,8 @@ function GlobalStoreContextProvider(props) {
                     modal : null,
                     discussionPosts : store.discussionPosts,
                     currentPost : store.currentPost,
-                    currentComments : payload.currentComments
+                    currentComments : payload.currentComments,
+                    currentFilter : store.currentFilter
                 });
             }
             default:
@@ -158,14 +164,15 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
-    store.changeToDiscussionHome = async function() {
+    store.changeToDiscussionHome = async function(filter) {
         let res = await store.getAllPosts()
         console.log(res.data.posts)
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
                 screen: 'discussionHome',
-                discussionPosts: res.data.posts
+                discussionPosts: res.data.posts,
+                filter: filter
             }
         });
     }
@@ -402,6 +409,18 @@ function GlobalStoreContextProvider(props) {
             newComment.dislikeUsers.splice(newComment.dislikeUsers.indexOf(auth.user.username),1)
         }
         store.updateComment(newComment);
+    }
+
+    //Profile Actions
+    store.getPostsData = async function(user) {
+        try{
+            const response = await postAPI.getPostsByUser(user._id);
+            if (response.data.success) {
+                return response.data.posts
+            }
+        } catch (error) {
+            console.log("Failed getting posts")
+        }
     }
 
 

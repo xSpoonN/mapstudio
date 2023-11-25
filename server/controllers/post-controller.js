@@ -119,9 +119,31 @@ getPost = async (req, res) => {
         })
 }
 
+getPostsByUser = async (req, res) => {
+    DiscussionPost.find({ authorId: req.params.id })
+        .then(posts => {
+            posts.sort((a, b) => new Date(b.publishedDate) - new Date(a.publishedDate));
+            if (posts.length > 3) {
+                posts = posts.slice(0, 3);
+            }
+            return res.status(200).json({
+                success: true,
+                posts: posts,
+                message: 'Posts retrieved!'
+            })
+        }).catch(error => {
+            console.log("FAILURE: " + JSON.stringify(error));
+            return res.status(404).json({
+                error,
+                message: 'Posts not found',
+            })
+        })
+}
+
 module.exports = {
     createPost,
     getPosts,
     updatePost,
-    getPost
+    getPost,
+    getPostsByUser
 }
