@@ -49,7 +49,7 @@ export default function MainScreen() {
             Content = <PersonalMapsScreen />
             break;
         case 'discussionHome':
-            Content = <DiscussionHomeScreen posts={store.discussionPosts} />
+            Content = <DiscussionHomeScreen posts={store.discussionPosts} filter={store.currentFilter} />
             break;
         case 'discussionPostNew':
             Content = <DiscussionPostNew />

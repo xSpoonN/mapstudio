@@ -50,13 +50,6 @@ export default function Comment(props) {
             return `Yesterday ${inputDate.getHours()}:${String(inputDate.getMinutes()).padStart(2, '0')}`;
         }
 
-        // Check if the input date is within the past week
-        const millisecondsPerDay = 24 * 60 * 60 * 1000;
-        const daysAgo = Math.floor((currentDate - inputDate) / millisecondsPerDay);
-        if (daysAgo <= 6) {
-            return `${daysAgo} days ago ${inputDate.getHours()}:${String(inputDate.getMinutes()).padStart(2, '0')}`;
-        }
-
         // If none of the above conditions match, return YYYY-MM-DD format
         const year = inputDate.getFullYear();
         const month = String(inputDate.getMonth() + 1).padStart(2, '0');

@@ -24,7 +24,7 @@ const styles = {
 export default function DiscussionHomeScreen(props) {
     const { store } = useContext(GlobalStoreContext);
     const [sort, setSort] = useState('Newest');
-    const [filter, setFilter] = useState('')
+    const [filter, setFilter] = useState(props.filter || '')
 
     const handleSetSort = (event) => {
         setSort(event.target.value);
@@ -43,9 +43,16 @@ export default function DiscussionHomeScreen(props) {
         } else if(sort === "Most Commented") {
             sorted = posts.sort((a, b) => b.comments.length - a.comments.length);
         }
-        return sorted.filter(post =>
-            post.title.includes(filter) || post.author.includes(filter)
-        );
+        return sorted.filter(post => {
+            const tags = filter.split(' ');
+            if(tags[0]?.startsWith('author:')) {
+                let author = tags[0].slice('author:'.length)
+                tags.shift()
+                let title = tags.join(" ")
+                return post.title.includes(title) && post.author === author
+            }
+            return post.title.includes(filter) || post.author.includes(filter)
+        });
     }
 
     function handleUpdateFilter(event) {

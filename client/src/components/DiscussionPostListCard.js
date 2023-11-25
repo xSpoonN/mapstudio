@@ -14,13 +14,11 @@ export default function DiscussionPostListCard(props) {
     const { store } = useContext(GlobalStoreContext);
     const post = props.post
 
-    const date = new Date(post.publishedDate);
-    const year = new Intl.DateTimeFormat('en', { year: 'numeric' }).format(date);
-    const month = new Intl.DateTimeFormat('en', { month: '2-digit' }).format(date);
-    const day = new Intl.DateTimeFormat('en', { day: '2-digit' }).format(date);
-    const hour = new Intl.DateTimeFormat('en', { hour: '2-digit', hour12: false }).format(date);
-    const minute = new Intl.DateTimeFormat('en', { minute: '2-digit' }).format(date);
-    const formattedDate = `${year}-${month}-${day} ${hour}:${minute}`;
+    const inputDate = new Date(post.publishedDate);
+    const year = inputDate.getFullYear();
+    const month = String(inputDate.getMonth() + 1).padStart(2, '0');
+    const day = String(inputDate.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${day} ${inputDate.getHours()}:${String(inputDate.getMinutes()).padStart(2, '0')}`;
 
     function handleDiscussionPost() {
         store.changeToDiscussionPost(post);
