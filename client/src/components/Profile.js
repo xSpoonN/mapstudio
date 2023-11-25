@@ -19,6 +19,7 @@ export default function Profile() {
     const [user, setUser] = useState(null);
     const [isEditing, setIsEditing] = useState(false);
     const [bio, setBio] = useState('');
+    const [posts, setPosts] = useState(null);
     const styles = { // Shaped by the hands of the gods, the hands of the devil, the hands of the self
         card: {
             maxWidth: 500, // Restricting the infinite, the unbounded, the unending
@@ -57,9 +58,12 @@ export default function Profile() {
             const resp = await auth.getUserData(auth.getUser().email);
             console.log(resp);
             if (resp.success) setUser(resp.user);
+            const posts = await store.getPostsData(resp.user);
+            console.log(posts);
+            setPosts(posts);
         }
         /* if (user === null)  */fetchUser();
-    }, [auth/* , user */])
+    }, [auth, store])
 
     const handleUpload = async () => {
         console.log(fileRef.current.files[0]);
@@ -76,6 +80,22 @@ export default function Profile() {
         setUser(null);
     }
 
+    function handleMorePosts() {
+        store.changeToDiscussionHome("author:" + user.username)
+    }
+
+    function moreButton(){
+        if(posts?.length >= 3) {
+            return (
+                <Box display="flex" alignItems="center">
+                    <ArrowRightIcon style={{ color:'grey', fontSize: '40px' }} mx={1} onClick={handleMorePosts} />
+                </Box>
+            )
+        } else {
+            return <></>
+        }
+    }
+
     return (
         // The container is the world, the universe, the multiverse, one that holds all and is held by none
         <Container maxWidth="ml" style={{ paddingTop: '64px' }}>
@@ -86,7 +106,7 @@ export default function Profile() {
                             <Card style={styles.card}>
                                 <CardMedia
                                     style={styles.media}
-                                    image={user?.pfp ? `${user.pfp}?${SASTOKEN}` : 'https://source.unsplash.com/random/500x500'}
+                                    image={user?.pfp ? `${user.pfp}?${SASTOKEN}` : "/static/images/avatar/2.jpg"}
                                     title="Profile Picture"
                                     onClick={() => fileRef.current.click()}
                                 />
@@ -133,19 +153,17 @@ export default function Profile() {
                                 <Grid item xs={12}>
                                     <Box display="flex" alignItems="flex-end">
                                         <Typography variant="h4" align="left" color='#E3256B'>Discussion Posts</Typography>
-                                        <Typography variant="h5" align="left" sx={{ ml: 2 }} color='#000000' flexGrow={1}>14</Typography>
+                                        <Typography variant="h5" align="left" sx={{ ml: 2 }} color='#000000' flexGrow={1}>{user?.posts?.length}</Typography>
                                     </Box>
-                                    <Box display="flex" flexDirection="row" alignItems="center">
-                                        {Array.from({ length: 3 }, (_, i) => (
+                                    <Box display="flex" flexDirection="row" >
+                                        {Array.from({ length: posts?.length }, (_, i) => (
                                             <Grid item xs={12} md={6} key={i} sx={{ margin: '8px' }}>
                                                 <PostCard
-                                                    name={`Post ${i + 1}`}
-                                                    shared={['Private', 'Public'][1]}
-                                                    style={{ width: '600px', height: '300px' }}
+                                                    post={posts[i]}
                                                 />
                                             </Grid>
                                         ))}
-                                        <ArrowRightIcon style={{ color:'grey', fontSize: '40px' }} mx={1}/>
+                                        {moreButton()}
                                     </Box>
                                 </Grid>
                             </Grid>

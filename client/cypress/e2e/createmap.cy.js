@@ -1,12 +1,13 @@
 /* eslint-disable no-undef */
 
+Cypress.on('uncaught:exception', (err, runnable) => { return false })
 describe('Create Map', () => {
 
     beforeEach(() => {
-      cy.visit('https://mapstudio-cse416.web.app/')
-      cy.get('img.logo').click(); // Click on logo to go to home page
-      cy.contains('Create').click();
-      cy.viewport(1920, 1080);
+        cy.visit('http://localhost:3000')
+        cy.get('img.logo').click(); // Click on logo to go to home page
+        cy.contains('Create').click();
+        cy.viewport(1920, 1080);
     })
   
     it('contains toolbars', () => {

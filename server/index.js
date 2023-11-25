@@ -19,13 +19,17 @@ app.use(bodyParser.json());
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-  origin: ["https://mapstudio-cse416.web.app"],
+  origin: ["http://localhost:3000"],
   credentials: true
 }))
 
 // Routes
 const authRoutes = require('./routes/auth-router');
 app.use('/auth', authRoutes);
+const postRoutes = require('./routes/post-router');
+app.use('/discussion', postRoutes);
+const commentRoutes = require('./routes/comment-router');
+app.use('/comment', commentRoutes);
 const routes = require('./routes/router');
 app.use('/api', routes);
 

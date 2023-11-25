@@ -1,9 +1,37 @@
+import { useState, useContext } from 'react';
+import { GlobalStoreContext } from '../store'
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 
 export default function DiscussionPostNew() {
+    const { store } = useContext(GlobalStoreContext);
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
+    const [error, setError] = useState(false);
+
+    function handleUpdateTitle(event) {
+        setTitle(event.target.value);
+    }
+
+    function handleUpdateContent(event) {
+        setContent(event.target.value);
+    }
+
+    function handlePost() {
+        if(title !== "" && content !== "") {
+            store.createNewPost(title, content);
+            setError(false)
+        } else {
+            setError(true)
+        }
+    }
+
+    let errorMsg = <></>
+    if(error) {
+        errorMsg = <Typography variant="h4" color='#FF0000'>Please fill out all fields</Typography>
+    }
 
     return (
         <Box display="flex" flexDirection="column">
@@ -37,6 +65,8 @@ export default function DiscussionPostNew() {
                         }}
                         style = {{ width: '75%' }}
                         inputProps={{style: {fontSize: 24}}}
+                        value={title}
+                        onChange={handleUpdateTitle}
                     />
                 </Box>
                 <Box display="flex" flexDirection="row" sx={{ my: 4}}>
@@ -64,15 +94,19 @@ export default function DiscussionPostNew() {
                         }}
                         style = {{ width: '100%' }}
                         inputProps={{style: {fontSize: 24}}}
+                        value={content}
+                        onChange={handleUpdateContent}
                     />
                 </Box>
-                <Box display='flex' justifyContent='flex-end'>
+                <Box alignItems="center" display='flex' justifyContent='flex-end'>
+                    {errorMsg}
                     <Button 
                         variant="contained"
                         sx={{ color: 'white', mx: 4 }} 
                         style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px'}} 
                         disableRipple
                         color='razzmatazz'
+                        onClick={handlePost}
                     >
                         Create +
                     </Button>

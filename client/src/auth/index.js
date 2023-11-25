@@ -105,6 +105,7 @@ function AuthContextProvider(props) {
                     }
                 })
             }
+            return response.status
         } catch(error) {
             let message = error.response.data.errorMessage;
             authReducer({
@@ -113,6 +114,7 @@ function AuthContextProvider(props) {
                     error: message
                 }
             })
+            return 0
         }
     }
 
@@ -127,6 +129,7 @@ function AuthContextProvider(props) {
                     }
                 })
             }
+            return response.status
         } catch(error) {
             let message = error.response.data.errorMessage;
             authReducer({
@@ -135,6 +138,7 @@ function AuthContextProvider(props) {
                     error: message
                 }
             })
+            return 0
         }
     }
 
@@ -244,6 +248,17 @@ function AuthContextProvider(props) {
     auth.getUser = function() {
         console.log("getUser: " + auth.user)
         return auth.user;
+    }
+
+    auth.getUserById = async function(id) {
+        try {
+            const response = await api.getUserById(id);
+            if (response.status === 200) {
+                return response.data;
+            }
+        } catch(error) {
+            return null;
+        }
     }
 
     auth.getUserData = async function(email) {

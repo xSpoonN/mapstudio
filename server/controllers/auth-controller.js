@@ -369,6 +369,18 @@ getUser = async (req, res) => {
 
 }
 
+getUserById = async (req, res) => {
+    try {
+        const user = await User.findOne({ _id: req.params.id });
+        if (user == null) return res.status(404).json({ error: 'User not found.' });
+        res.send({success: true, user: user});
+    } catch (err) {
+        console.error(err);
+        res.status(500).send();
+    }
+
+}
+
 module.exports = {
     getLoggedIn,
     registerUser,
@@ -379,5 +391,6 @@ module.exports = {
     resetPassword,
     setProfilePicture,
     setBio,
-    getUser
+    getUser,
+    getUserById
 }
