@@ -18,7 +18,7 @@ export const updateMapById = (id, map) => {
     })
 }
 export const getMapById = (id) => {
-    return api.get(`/${id}`)
+    return api.get(`/maps/${id}`)
 }
 export const getMapsByUser = (id) => {
     return api.get(`/user/${id}`)

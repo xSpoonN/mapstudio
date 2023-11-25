@@ -12,6 +12,7 @@ export const GlobalStoreActionType = {
     CLOSE_MODAL: "CLOSE_MODAL",
     OPEN_MODAL: "OPEN_MODAL",
     SET_CURRENT_POST: "SET_CURRENT_POST",
+    SET_CURRENT_MAP: "SET_CURRENT_MAP",
     SET_CURRENT_COMMENTS: "SET_CURRENT_COMMENTS"
 }
 
@@ -22,6 +23,7 @@ function GlobalStoreContextProvider(props) {
         modal: null,
         discussionPosts: null,
         currentPost: null,
+        currentMap: null,
         currentComments: [],
         currentFilter: ''
     });
@@ -37,6 +39,7 @@ function GlobalStoreContextProvider(props) {
                     discussionPosts : payload.discussionPosts,
                     currentPost : payload.currentPost || null,
                     currentComments : payload.currentComments || [],
+                    currentMap : store.currentMap || null,
                     currentFilter : payload.filter || ''
                 });
             }
@@ -47,6 +50,7 @@ function GlobalStoreContextProvider(props) {
                     discussionPosts : store.discussionPosts,
                     currentPost : store.currentPost,
                     currentComments : store.currentComments,
+                    currentMap : store.currentMap,
                     currentFilter : store.currentFilter
                 });
             }
@@ -57,6 +61,7 @@ function GlobalStoreContextProvider(props) {
                     discussionPosts : store.discussionPosts,
                     currentPost : store.currentPost,
                     currentComments : store.currentComments,
+                    currentMap : store.currentMap,
                     currentFilter : store.currentFilter
                 });
             }
@@ -67,6 +72,18 @@ function GlobalStoreContextProvider(props) {
                     discussionPosts : store.discussionPosts,
                     currentPost : payload.currentPost,
                     currentComments : store.currentComments,
+                    currentMap : store.currentMap,
+                    currentFilter : store.currentFilter
+                });
+            }
+            case GlobalStoreActionType.SET_CURRENT_MAP: {
+                return setStore({
+                    currentScreen : store.currentScreen,
+                    modal : null,
+                    discussionPosts : store.discussionPosts,
+                    currentPost : store.currentPost,
+                    currentComments : store.currentComments,
+                    currentMap : payload.currentMapId,
                     currentFilter : store.currentFilter
                 });
             }
@@ -77,6 +94,7 @@ function GlobalStoreContextProvider(props) {
                     discussionPosts : store.discussionPosts,
                     currentPost : store.currentPost,
                     currentComments : payload.currentComments,
+                    currentMap : store.currentMap,
                     currentFilter : store.currentFilter
                 });
             }
@@ -200,11 +218,12 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
-    store.changeToMapView = function() {
+    store.changeToMapView = async function(mapID) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'mapView'
+                screen: 'mapView',
+                currentMapId: mapID
             }
         });
     }
@@ -364,9 +383,38 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
+    store.createMapComment = async function(content) {
+        try {
+            let response = await commentAPI.createComment(store.currentMap, auth.user.username, content);
+            console.log("createNewComment response: " + response);
+            if (response.status === 200) {
+                response = await mapAPI.getMapById(store.currentMap);
+                if (response.data.success) {
+                    storeReducer({
+                        type: GlobalStoreActionType.SET_CURRENT_MAP,
+                        payload: {
+                            currentMap : response.data.map
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.log("Create New Comment error")
+        }
+    }
+
     store.getAllComments = async function(post) {
         try {
             let comments = await commentAPI.getComments(post.comments);
+            return comments
+        } catch (error) {
+            console.log("Failed getting comments")
+        }
+    }
+
+    store.getMapComments = async function(map) {
+        try {
+            let comments = await commentAPI.getComments(map.comments);
             return comments
         } catch (error) {
             console.log("Failed getting comments")
@@ -434,6 +482,18 @@ function GlobalStoreContextProvider(props) {
             }
         } catch (error) {
             console.log("Failed getting posts")
+        }
+    }
+
+    //Map Actions
+    store.getMap = async function(id) {
+        try{
+            const response = await mapAPI.getMapById(id);
+            if (response.data.success) {
+                return response.data.map
+            }
+        } catch (error) {
+            console.log("Failed getting map")
         }
     }
 
