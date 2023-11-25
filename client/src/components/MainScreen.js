@@ -58,7 +58,7 @@ export default function MainScreen() {
             Content = <DiscussionPost post={store.currentPost} comments={store.currentComments} />
             break;
         case 'mapView':
-            Content = <MapView />
+            Content = <MapView mapid={store.currentMap}/>
             break;
         case 'profile':
             Content = <Profile />

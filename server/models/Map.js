@@ -8,6 +8,8 @@ const mapSchema = new mongoose.Schema({
     description: { type: String, default: '' },
     likes: { type: Number, required: true },
     dislikes: { type: Number, required: true },
+    likeUsers: [{ type: String }],
+    dislikeUsers: [{ type: String }],
     comments: [{ type: ObjectId, ref: 'Comment' }],
     mapFile: { type: Buffer },
     creationDate: { type: Date, required: true, default: Date.now },

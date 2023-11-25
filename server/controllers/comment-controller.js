@@ -1,5 +1,6 @@
 const Comment = require('../models/Comment')
 const DiscussionPost = require('../models/DiscussionPost')
+const Map = require('../models/Map')
 const User = require('../models/User');
 
 createComment = (req, res) => {
@@ -42,14 +43,28 @@ createComment = (req, res) => {
                             message: 'Post updated!'
                         })
                     })
+                .catch(error => {
+                    Map.findOne({ _id: req.params.id })
+                        .then(map => {
+                            map.comments.push(comment._id)
+                            map.save().then(() => {
+                                console.log("Map updated");
+                                return res.status(200).json({
+                                    success: true,
+                                    map: map,
+                                    message: 'Map updated!'
+                                })
+                            })
                         .catch(error => {
                             console.log("FAILURE: " + JSON.stringify(error));
                             return res.status(404).json({
                                 error,
-                                message: 'Post not updated!',
+                                message: 'Not updated!',
                             })
                         })
+                    })
                 })
+            })
         })
         .catch(error => {
             console.error(error);
