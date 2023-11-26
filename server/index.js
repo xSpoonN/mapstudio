@@ -36,8 +36,10 @@ const routes = require('./routes/router');
 app.use('/api', routes);
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') { // don't listen when running tests
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
 
 module.exports = app; // for running tests

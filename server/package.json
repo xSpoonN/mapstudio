@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --forceExit --runInBand --detectOpenHandles  --watchAll"
+    "test": "jest --forceExit --runInBand --detectOpenHandles"
   },
   "keywords": [],
   "author": "",
