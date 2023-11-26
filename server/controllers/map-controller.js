@@ -119,10 +119,32 @@ updateMapFile = async (req, res) => {
     }
 }
 
+getMapsByUser = async (req, res) => {
+    Map.find({ author: req.params.id })
+        .then(maps => {
+            maps.sort((a, b) => new Date(b.publishedDate) - new Date(a.publishedDate));
+            if (maps.length > 3) {
+                maps = maps.slice(0, 3);
+            }
+            return res.status(200).json({
+                success: true,
+                maps: maps,
+                message: 'Maps retrieved!'
+            })
+        }).catch(error => {
+            console.log("FAILURE: " + JSON.stringify(error));
+            return res.status(404).json({
+                error,
+                message: 'Maps not found',
+            })
+        })
+}
+
 module.exports = {
     createMap,
     deleteMapById,
     getMapById,
     updateMapInfoById,
-    updateMapFile
+    updateMapFile,
+    getMapsByUser
 }

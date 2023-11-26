@@ -44,6 +44,37 @@ export default function MapCard(props) {
         },
     };
 
+    function formatDate(dateString) {
+        const currentDate = new Date();
+        const inputDate = new Date(dateString);
+
+        // Check if the input date is today
+        if (
+            inputDate.getDate() === currentDate.getDate() &&
+            inputDate.getMonth() === currentDate.getMonth() &&
+            inputDate.getFullYear() === currentDate.getFullYear()
+        ) {
+            return `Today ${inputDate.getHours()}:${String(inputDate.getMinutes()).padStart(2, '0')}`;
+        }
+
+        // Check if the input date is yesterday
+        const yesterday = new Date(currentDate);
+        yesterday.setDate(currentDate.getDate() - 1);
+        if (
+            inputDate.getDate() === yesterday.getDate() &&
+            inputDate.getMonth() === yesterday.getMonth() &&
+            inputDate.getFullYear() === yesterday.getFullYear()
+        ) {
+            return `Yesterday ${inputDate.getHours()}:${String(inputDate.getMinutes()).padStart(2, '0')}`;
+        }
+
+        // If none of the above conditions match, return YYYY-MM-DD format
+        const year = inputDate.getFullYear();
+        const month = String(inputDate.getMonth() + 1).padStart(2, '0');
+        const day = String(inputDate.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day} ${inputDate.getHours()}:${String(inputDate.getMinutes()).padStart(2, '0')}`;
+    }
+
     let x = 
         <div style={styles.counters}>
             <Box style={styles.item}>
@@ -72,7 +103,7 @@ export default function MapCard(props) {
                 <Box style={styles.item}>
                     <EditIcon style={{ color:'grey' }} mx={1}/>
                     <Typography variant="caption" color="grey" mx={1}>
-                        Yesterday at 10:58
+                        {formatDate(props.lastEdited)}
                     </Typography>
                 </Box>
             </div>

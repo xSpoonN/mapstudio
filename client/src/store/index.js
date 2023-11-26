@@ -539,6 +539,17 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
+    store.getMapsData = async function(user) {
+        try{
+            const response = await mapAPI.getMapsByUser(user._id);
+            if (response.data.success) {
+                return response.data.maps
+            }
+        } catch (error) {
+            console.log("Failed getting maps")
+        }
+    }
+
     //Map Actions
     store.getMap = async function(id) {
         try{
