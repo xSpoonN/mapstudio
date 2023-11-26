@@ -7,7 +7,11 @@ createMap = async (req, res) => {
 
     const author = await User.findOne({ _id: req.body.author });
 
-    const map = new Map(author, req.body.title, req.body.description);
+    const map = new Map({
+        author: author,
+        title: req.body.title,
+        description: req.body.description
+    });
     if (!map) {
         return res.status(400).json({ success: false, error: err })
     }
