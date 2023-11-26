@@ -2,10 +2,12 @@
 const Map = require('../models/Map')
 const User = require('../models/User');
 
-createMap = (req, res) => {
+createMap = async (req, res) => {
     console.log(req);
 
-    const map = new Map(req.body.author, req.body.title, req.body.description);
+    const author = await User.findOne({ _id: req.body.author })
+
+    const map = new Map(author, req.body.title, req.body.description);
     if (!map) {
         return res.status(400).json({ success: false, error: err })
     }
