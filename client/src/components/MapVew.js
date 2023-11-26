@@ -66,9 +66,10 @@ export default function MapView({ mapid }) {
                 setMap(resp);
                 const user = await auth.getUserById(resp.author);
                 if (user?.success) setUser(user.user);
-                const comments = await store.getMapComments(resp.comments);
+                const comments = await store.getMapComments(resp);
                 console.log(comments);
-                if (comments?.success) setMapComments(comments.comments);
+                if (comments?.data.success) setMapComments(comments.data.comments);
+                console.log(comments?.data.comments);
             }
         }
         fetchMap();
@@ -146,9 +147,10 @@ export default function MapView({ mapid }) {
         if(auth.user) {
             console.log(map);
             await store.createMapComment(comment, map._id);
-            const comments = await store.getMapComments(map.comments);
+            const comments = await store.getMapComments(map);
             console.log(comments);
             if (comments?.data.success) setMapComments(comments.data.comments);
+            console.log(comments?.data.comments);
 
             divRef.current.scrollIntoView({ behavior: 'smooth' });
         }
@@ -271,7 +273,7 @@ export default function MapView({ mapid }) {
                 </Box>
                 <Box className="map-comments" height="85%" style={styles.scroll} sx={{ mb: 2 }}>
                     <List sx={{ width: '90%', left: '5%' }}>
-                        {mapComments?.map(async (cmt) => (
+                        {mapComments?.map((cmt) => (
                                 <Comment
                                     comment = {cmt}
                                 />
