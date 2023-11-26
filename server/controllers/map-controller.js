@@ -5,37 +5,28 @@ const User = require('../models/User');
 createMap = async (req, res) => {
     console.log(req);
 
-    const author = await User.findOne({ _id: req.body.author })
+    const author = await User.findOne({ _id: req.body.author });
 
     const map = new Map(author, req.body.title, req.body.description);
     if (!map) {
         return res.status(400).json({ success: false, error: err })
     }
 
-    return;  // todo: add map to user schema
-    User.findOne({ _id: req.userId })
-        .then(user => {
-            if (!user) {
-                return res.status(404).json({
-                    errorMessage: 'User not found'
-                }); 
-            }
-            console.log("User found: " + JSON.stringify(user));
-            user.posts.push(post._id);
-            return user.save();
+    map.save().then(() => {
+        author.maps.push(map._id);
+        author.save();
+        return res.status(201).json({
+            success: true,
+            id: map._id,
+            message: 'Map created!',
         })
-        .then(() => post.save())
-        .then(() => {
-            return res.status(201).json({
-                post: post
-            });
+    }).catch(error => {
+        console.log(error);
+        return res.status(400).json({
+            error,
+            message: 'Map not created!',
         })
-        .catch(error => {
-            console.error(error);
-            return res.status(400).json({
-                errorMessage: 'Post Not Created!'
-            });
-        });
+    });
 }
 
 deleteMapById = async (req, res) => {
