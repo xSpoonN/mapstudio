@@ -9,6 +9,7 @@ router.delete('/maps/:id', MapController.deleteMapById)
 router.get('/maps/:id', MapController.getMapById)
 router.put('/maps/:id', MapController.updateMapInfoById)
 router.put('/maps/:id/file', upload.single('mapFile'), MapController.updateMapFile)
+router.get('/user/:id', MapController.getMapsByUser)
 
 
 module.exports = router

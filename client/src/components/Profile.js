@@ -20,6 +20,7 @@ export default function Profile() {
     const [isEditing, setIsEditing] = useState(false);
     const [bio, setBio] = useState('');
     const [posts, setPosts] = useState(null);
+    const [maps, setMaps] = useState(null);
     const styles = { // Shaped by the hands of the gods, the hands of the devil, the hands of the self
         card: {
             maxWidth: 500, // Restricting the infinite, the unbounded, the unending
@@ -56,17 +57,20 @@ export default function Profile() {
         const fetchUser = async () => {
             /* if (user) return; */
             const resp = await auth.getUserData(auth.getUser().email);
-            console.log(resp);
+            /* console.log(resp); */
             if (resp.success) setUser(resp.user);
             const posts = await store.getPostsData(resp.user);
-            console.log(posts);
+            /* console.log(posts); */
             setPosts(posts);
+            const maps = await store.getMapsData(resp.user);
+            /* console.log(maps); */
+            setMaps(maps);
         }
         /* if (user === null)  */fetchUser();
     }, [auth, store])
 
     const handleUpload = async () => {
-        console.log(fileRef.current.files[0]);
+        /* console.log(fileRef.current.files[0]); */
         const formData = new FormData();
         formData.append('profilePicture', fileRef.current.files[0]);
         await auth.setProfilePicture(formData);
@@ -77,7 +81,6 @@ export default function Profile() {
     const handleBio = async (e) => {
         setIsEditing(false);
         await auth.setBio(bio);
-        setUser(null);
     }
 
     function handleMorePosts() {
@@ -89,6 +92,18 @@ export default function Profile() {
             return (
                 <Box display="flex" alignItems="center">
                     <ArrowRightIcon style={{ color:'grey', fontSize: '40px' }} mx={1} onClick={handleMorePosts} />
+                </Box>
+            )
+        } else {
+            return <></>
+        }
+    }
+
+    function MOREbUTTON(){
+        if(maps?.length >= 3) {
+            return (
+                <Box display="flex" alignItems="center">
+                    <ArrowRightIcon style={{ color:'grey', fontSize: '40px' }} mx={1} onClick={() => store.changeToPersonal()} />
                 </Box>
             )
         } else {
@@ -137,16 +152,17 @@ export default function Profile() {
                                         </Box>
                                     </Box>
                                     <Box display="flex" flexDirection="row" alignItems="center">
-                                        {Array.from({ length: 3 }, (_, i) => (
+                                        {Array.from({ length: maps?.length }, (_, i) => (
                                             <Grid item xs={12} md={6} key={i} sx={{ margin: '8px' }}>
                                                 <MapCard
-                                                    name={`Your Map ${i + 1}`}
-                                                    shared={['Private', 'Public'][1]}
+                                                    name={maps[i].title}
+                                                    shared={['Private', 'Public'][maps[i].isPublished ? 1 : 0]}
+                                                    lastEdited={maps[i].updateDate}
                                                     style={{ width: '600px', height: '300px' }}
                                                 />
                                             </Grid>
                                         ))}
-                                        <ArrowRightIcon style={{ color:'grey', fontSize: '40px' }} mx={1} onClick={() => store.changeToPersonal()} />
+                                        {MOREbUTTON()}
                                     </Box>
                                 </Grid>
 
