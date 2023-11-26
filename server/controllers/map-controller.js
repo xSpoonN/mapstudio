@@ -5,25 +5,12 @@ const User = require('../models/User');
 createMap = (req, res) => {
     console.log(req);
 
-    if (!body) {
-        return res.status(400).json({
-            success: false,
-            error: 'You must provide a Post',
-        })
-    } else if (body.title === '' || body.content === '') {
-        return res.status(400).json({
-            success: false,
-            error: 'Blank',
-        })
-    } 
-
-    const post = new Map(body);
-    console.log("post: " + post.toString());
-    if (!post) {
+    const map = new Map(req.body.author, req.body.title, req.body.description);
+    if (!map) {
         return res.status(400).json({ success: false, error: err })
     }
 
-    return;
+    return;  // todo: add map to user schema
     User.findOne({ _id: req.userId })
         .then(user => {
             if (!user) {

@@ -4,7 +4,7 @@ const MapController = require('../controllers/map-controller')
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
 
-router.post('/maps', upload.single('mapFile'), MapController.createMap)
+router.post('/maps', MapController.createMap)
 router.delete('/maps/:id', MapController.deleteMapById)
 router.get('/maps/:id', MapController.getMapById)
 router.put('/maps/:id', MapController.updateMapInfoById)
