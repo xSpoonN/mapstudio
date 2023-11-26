@@ -60,29 +60,34 @@ export default function MapView({ mapid }) {
     }, []);
     useEffect(() => {
         const fetchMap = async () => {
-            const resp = await store.getMap('656258501ff509764ff362a8');
+            const resp = await store.getMap('656258501ff509764ff362a8'); ////////////////////////// Replace with mapid when map creation is done //////////////////////////
             if (resp) {
-                console.log(resp);
+                /* console.log(resp); */
                 setMap(resp);
                 const user = await auth.getUserById(resp.author);
                 if (user?.success) setUser(user.user);
-                const comments = await store.getMapComments(resp.comments);
-                console.log(comments);
-                if (comments?.success) setMapComments(comments.comments);
+                const comments = await store.getMapComments(resp);
+                /* console.log(comments); */
+                if (comments?.data.success) setMapComments(comments.data.comments);
+                /* console.log(comments?.data.comments); */
             }
         }
         fetchMap();
     }, [store, auth, mapid]);
 
-    function handleLike() {
+    async function handleLike() {
         if(auth.user !== null) {
-            store.likeMap(map);
+            const newMap = await store.likeMap(map);
+            /* console.log(newMap); */
+            setMap(newMap);
         }
     }
 
-    function handleDislike() {
+    async function handleDislike() {
         if(auth.user !== null) {
-            store.dislikeMap(map);
+            const newMap = await store.dislikeMap(map);
+            /* console.log(newMap); */
+            setMap(newMap);
         }
     }
 
@@ -144,11 +149,12 @@ export default function MapView({ mapid }) {
 
     async function handleComment() {
         if(auth.user) {
-            console.log(map);
+            /* console.log(map); */
             await store.createMapComment(comment, map._id);
-            const comments = await store.getMapComments(map.comments);
-            console.log(comments);
+            const comments = await store.getMapComments(map);
+            /* console.log(comments); */
             if (comments?.data.success) setMapComments(comments.data.comments);
+            /* console.log(comments?.data.comments); */
 
             divRef.current.scrollIntoView({ behavior: 'smooth' });
         }
@@ -271,7 +277,7 @@ export default function MapView({ mapid }) {
                 </Box>
                 <Box className="map-comments" height="85%" style={styles.scroll} sx={{ mb: 2 }}>
                     <List sx={{ width: '90%', left: '5%' }}>
-                        {mapComments?.map(async (cmt) => (
+                        {mapComments?.map((cmt) => (
                                 <Comment
                                     comment = {cmt}
                                 />
