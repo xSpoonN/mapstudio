@@ -403,6 +403,60 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
+    store.likeMap = async function(map) {
+        let newMap = map
+        if(!newMap.likeUsers.includes(auth.user.username)) {
+            newMap.likes++;
+            newMap.likeUsers.push(auth.user.username)
+            if(newMap.dislikeUsers.includes(auth.user.username)) {
+                newMap.dislikes--;
+                newMap.dislikeUsers.splice(newMap.dislikeUsers.indexOf(auth.user.username),1)
+            }
+        } else {
+            newMap.likes--;
+            newMap.likeUsers.splice(newMap.likeUsers.indexOf(auth.user.username),1)
+        }
+        const resp = await store.updateMap(newMap);
+        /* console.log(resp); */
+        return resp;
+    }
+
+    store.dislikeMap = async function(map) {
+        let newMap = map
+        if(!newMap.dislikeUsers.includes(auth.user.username)) {
+            newMap.dislikes++;
+            newMap.dislikeUsers.push(auth.user.username)
+            if(newMap.likeUsers.includes(auth.user.username)) {
+                newMap.likes--;
+                newMap.likeUsers.splice(newMap.likeUsers.indexOf(auth.user.username),1)
+            }
+        } else {
+            newMap.dislikes--;
+            newMap.dislikeUsers.splice(newMap.dislikeUsers.indexOf(auth.user.username),1)
+        }
+        const resp = await store.updateMap(newMap);
+        /* console.log(resp); */
+        return resp;
+    }
+
+    store.updateMap = async function(newMap) {
+        try{
+            const response = await mapAPI.updateMapById(newMap._id, newMap);
+            /* console.log(response) */
+            if (response.data.success) {
+                storeReducer({
+                    type: GlobalStoreActionType.SET_CURRENT_MAP,
+                    payload: {
+                        currentMap : response.data.map
+                    }
+                });
+                return response.data.map;
+            }
+        } catch (error) {
+            console.log("Failed updating map: " + error)
+        }
+    }
+
     store.getAllComments = async function(post) {
         try {
             let comments = await commentAPI.getComments(post.comments);

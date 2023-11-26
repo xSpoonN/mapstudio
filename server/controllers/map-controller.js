@@ -81,7 +81,7 @@ updateMapInfoById = async (req, res) => {
         if (!map) {
             return res.status(404).json({ error: 'Map not found.' });
         }
-        const { title, description, author, comments, likes, dislikes, mapFile } = req.body;
+        const { title, description, author, comments, likes, dislikes, mapFile, likeUsers, dislikeUsers } = req.body.map;
         map.title = title;
         map.description = description;
         map.author = author;
@@ -89,10 +89,17 @@ updateMapInfoById = async (req, res) => {
         map.likes = likes;
         map.dislikes = dislikes;
         map.mapFile = mapFile;
+        map.likeUsers = likeUsers;
+        map.dislikeUsers = dislikeUsers;
         await map.save();
-        res.status(200).json(map);
+        return res.status(200).json({
+            success: true,
+            map: map,
+            message: 'Map updated!'
+        })
     } catch (err) {
-        res.status(400).json({ error: 'Failed to update the map.' });
+        console.log(err);
+        res.status(404);
     }
 }
 
