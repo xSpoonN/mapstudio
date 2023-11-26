@@ -3,15 +3,15 @@ const ObjectId = mongoose.Schema.Types.ObjectId;
 
 const mapSchema = new mongoose.Schema({
     author: { type: ObjectId, ref: 'User', required: true },
-    isPublished: { type: Boolean, required: true },
-    title: { type: String, required: true },
+    isPublished: { type: Boolean, required: true, default: false },
+    title: { type: String, required: true, default: 'My Map' },
     description: { type: String, default: '' },
-    likes: { type: Number, required: true },
-    dislikes: { type: Number, required: true },
-    likeUsers: [{ type: String }],
-    dislikeUsers: [{ type: String }],
-    comments: [{ type: ObjectId, ref: 'Comment' }],
-    mapFile: { type: Buffer },
+    likes: { type: Number, required: true, default: 0 },
+    dislikes: { type: Number, required: true, default: 0 },
+    likeUsers: [{ type: String, required: true, default: [] }],
+    dislikeUsers: [{ type: String, required: true, default: [] }],
+    comments: [{ type: ObjectId, ref: 'Comment', required: true, default: [] }],
+    mapFile: { type: Buffer, default: null },
     creationDate: { type: Date, required: true, default: Date.now },
     updateDate: { type: Date, required: true, default: Date.now }
 });
