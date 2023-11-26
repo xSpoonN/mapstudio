@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest --forceExit --maxWorkers=1"
+    "test": "jest --forceExit --runInBand --detectOpenHandles  --watchAll"
   },
   "keywords": [],
   "author": "",
