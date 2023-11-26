@@ -56,17 +56,17 @@ export default function Profile() {
         const fetchUser = async () => {
             /* if (user) return; */
             const resp = await auth.getUserData(auth.getUser().email);
-            console.log(resp);
+            /* console.log(resp); */
             if (resp.success) setUser(resp.user);
             const posts = await store.getPostsData(resp.user);
-            console.log(posts);
+            /* console.log(posts); */
             setPosts(posts);
         }
         /* if (user === null)  */fetchUser();
     }, [auth, store])
 
     const handleUpload = async () => {
-        console.log(fileRef.current.files[0]);
+        /* console.log(fileRef.current.files[0]); */
         const formData = new FormData();
         formData.append('profilePicture', fileRef.current.files[0]);
         await auth.setProfilePicture(formData);
@@ -77,7 +77,6 @@ export default function Profile() {
     const handleBio = async (e) => {
         setIsEditing(false);
         await auth.setBio(bio);
-        setUser(null);
     }
 
     function handleMorePosts() {
