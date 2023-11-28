@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import MapCard from './MapCard';
 import { GlobalStoreContext } from '../store';
 import AuthContext from '../auth'
@@ -15,15 +15,26 @@ import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 
-const maps = Array.from({ length: 8 }, (_, i) => `Your Map ${i + 1}`);
-const share = Array.from({ length: 8 }, () => ['Private', 'Public'][Math.floor(Math.random() * 2)]);
-
 export default function PersonalMapsScreen() {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
 
     const [filter, setFilter] = useState('None');
     const [sort, setSort] = useState('Newest');
+    const [maps, setMaps] = useState([]);
+
+    useEffect(() => {
+        const fetchMaps = async () => {
+            const resp = await auth.getUserData(auth.getUser().email);
+            console.log(resp);
+            if (resp.success) {
+                const maps = await store.getMapsData(resp.user);
+                console.log(maps);
+                setMaps(maps);
+            }
+        }
+        fetchMaps();
+    }, [auth, store]);
 
     const handleSetFilter = (event) => {
         setFilter(event.target.value);
@@ -47,7 +58,7 @@ export default function PersonalMapsScreen() {
                     Your Maps
                 </Typography>
                 <Typography variant="h3" align="left" sx={{ mx: 6, my: 6 }} color='#000000' flexGrow={1}>
-                    8
+                    {maps?.length}
                 </Typography>
                 <Box justifyContent="center" sx={{ flexGrow: 2, mx: 6, my: 6 }}>
 					<TextField
@@ -143,7 +154,7 @@ export default function PersonalMapsScreen() {
             >
                 {maps.map((map, index) => (
                     <Grid item lg={3} md={4} sm={6} xs={12} align="center" sx={{ my: 4 }}>
-                        <MapCard name={map} shared={share[index]}/>
+                        <MapCard name={map.title} shared={map.isPublished}/>
                     </Grid>   
                 ))}
             </Grid>
