@@ -155,6 +155,7 @@ export default function Profile() {
                                         {Array.from({ length: Math.min(maps?.length, 3)}, (_, i) => (
                                             <Grid item xs={12} md={6} key={i} sx={{ margin: '8px' }}>
                                                 <MapCard
+                                                    mapID={maps[i]._id}
                                                     name={maps[i].title}
                                                     shared={maps[i].isPublished ? 'Public' : 'Private'}
                                                     // shared={['Private', 'Public'][maps[i].isPublished ? 1 : 0]}

@@ -113,7 +113,8 @@ export default function MapCard(props) {
         if(props.redirect === "edit") {
             store.changeToEditMap();
         } else {
-            store.changeToMapView();
+            console.log('handleCardClick: ' + props.mapID)
+            store.changeToMapView(props.mapID);
         }
     }
 

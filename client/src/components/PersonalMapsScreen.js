@@ -155,6 +155,7 @@ export default function PersonalMapsScreen() {
                 {maps.map((map, index) => (
                     <Grid item lg={3} md={4} sm={6} xs={12} align="center" sx={{ my: 4 }}>
                         <MapCard 
+                        mapID={map._id}
                         name={map.title}
                         lastEdited={map.updateDate} 
                         shared={map.isPublished ? "Public" : "Private"}
