@@ -60,7 +60,7 @@ export default function MapView({ mapid }) {
     }, []);
     useEffect(() => {
         const fetchMap = async () => {
-            const resp = await store.getMap('656258501ff509764ff362a8'); ////////////////////////// Replace with mapid when map creation is done //////////////////////////
+            const resp = await store.getMap(mapid);
             if (resp) {
                 /* console.log(resp); */
                 setMap(resp);
