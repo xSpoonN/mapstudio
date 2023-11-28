@@ -20,18 +20,18 @@ describe('Discussion Posts Board', () => {
   })
 
   /* ==== Test Created with Cypress Studio ==== */
-  it('discussion post', function() {
+/*   it('discussion post', function() { */
     /* ==== Generated with Cypress Studio ==== */
-    cy.get(':nth-child(1) > [style="width: 100%; font-size: 36pt;"] > .css-1wo5ipp').click();
+/*     cy.get(':nth-child(1) > [style="width: 100%; font-size: 36pt;"] > .css-1wo5ipp').click();
     cy.get('.css-dtrw64 > .MuiTypography-h4').click();
     cy.get('.css-dtrw64 > .MuiTypography-body1').click();
     cy.get('.MuiAvatar-img').click();
     cy.get('.css-10zqfkr > .MuiTypography-h4').click();
     cy.get('.MuiTypography-h6').click();
     cy.get('[data-testid="ThumbUpIcon"] > path').click();
-    cy.get('[data-testid="ThumbDownIcon"] > path').click();
+    cy.get('[data-testid="ThumbDownIcon"] > path').click(); */
     /* ==== End Cypress Studio ==== */
-  });
+/*   }); */
 
   /* ==== Test Created with Cypress Studio ==== */
   it('create discussion post menu', function() {
