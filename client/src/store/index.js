@@ -39,7 +39,7 @@ function GlobalStoreContextProvider(props) {
                     discussionPosts : payload.discussionPosts,
                     currentPost : payload.currentPost || null,
                     currentComments : payload.currentComments || [],
-                    currentMap : store.currentMap || null,
+                    currentMap : payload.currentMapId,
                     currentFilter : payload.filter || ''
                 });
             }
