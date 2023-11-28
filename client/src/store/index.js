@@ -39,7 +39,7 @@ function GlobalStoreContextProvider(props) {
                     discussionPosts : payload.discussionPosts,
                     currentPost : payload.currentPost || null,
                     currentComments : payload.currentComments || [],
-                    currentMap : store.currentMap || null,
+                    currentMap : payload.currentMapId,
                     currentFilter : payload.filter || ''
                 });
             }
@@ -219,16 +219,6 @@ function GlobalStoreContextProvider(props) {
     }
 
     store.changeToMapView = async function(mapID) {
-        console.log('changeToMapView: ' + mapID)
-        if (mapID) {
-            storeReducer({
-                type: GlobalStoreActionType.SET_CURRENT_MAP,
-                payload: {
-                    currentMapId : mapID
-                }
-            });
-        }
-        console.log('changeToMapView store value: ' + store.currentMap)
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
