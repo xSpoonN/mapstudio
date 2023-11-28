@@ -255,9 +255,18 @@ function GlobalStoreContextProvider(props) {
     store.createNewMap = async function(author, title, description) {
         try {
             let response = await mapAPI.createMap(author, title, description);
-            console.log("createNewMap response: " + response);
+            console.log("createNewMap response: " + JSON.stringify(response));
             if (response.status === 201) {
-                store.changeToMapView();
+                if (response.data.success) {
+                    console.log("createNewMap response: " + response.data.id);
+                    storeReducer({
+                        type: GlobalStoreActionType.SET_CURRENT_MAP,
+                        payload: {
+                            currentMapId : response.data.id
+                        }
+                    });
+                }
+                store.changeToEditMap();
             }
         } catch (error) {
             console.log("Create New Map error")
@@ -558,7 +567,7 @@ function GlobalStoreContextProvider(props) {
                 return response.data.map
             }
         } catch (error) {
-            console.log("Failed getting map")
+            console.log("Failed getting map" + JSON.stringify(error))
         }
     }
 

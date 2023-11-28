@@ -100,7 +100,7 @@ export default function Profile() {
     }
 
     function MOREbUTTON(){
-        if(maps?.length >= 3) {
+        if(maps?.length > 3) {
             return (
                 <Box display="flex" alignItems="center">
                     <ArrowRightIcon style={{ color:'grey', fontSize: '40px' }} mx={1} onClick={() => store.changeToPersonal()} />
@@ -148,11 +148,11 @@ export default function Profile() {
                                     <Box display="flex" flexDirection="row" alignItems="center">
                                         <Box display="flex" alignItems="flex-end">
                                             <Typography variant="h4" align="left" color='#E3256B'>Created Maps</Typography>
-                                            <Typography variant="h5" align="left" sx={{ ml: 2 }} color='#000000' flexGrow={1}>8</Typography>
+                                            <Typography variant="h5" align="left" sx={{ ml: 2 }} color='#000000' flexGrow={1}>{maps?.length}</Typography>
                                         </Box>
                                     </Box>
                                     <Box display="flex" flexDirection="row" alignItems="center">
-                                        {Array.from({ length: maps?.length }, (_, i) => (
+                                        {Array.from({ length: Math.min(maps?.length, 3)}, (_, i) => (
                                             <Grid item xs={12} md={6} key={i} sx={{ margin: '8px' }}>
                                                 <MapCard
                                                     name={maps[i].title}

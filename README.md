@@ -1,2 +1,4 @@
 # map-studio
-https://mapstudio-cse416.web.app/
+Standard link: https://mapstudio-cse416.web.app/
+
+SBU-compatible link: https://mapstudio-cse416.firebaseapp.com/
