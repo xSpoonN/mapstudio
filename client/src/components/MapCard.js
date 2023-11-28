@@ -79,19 +79,19 @@ export default function MapCard(props) {
         <div style={styles.counters}>
             <Box style={styles.item}>
                 <Typography variant="caption" color="grey" mx={1}>
-                    {Math.floor(Math.random() * 1000)}
+                    {props.views}
                 </Typography>
                 <VisibilityIcon style={{ color:'grey' }} mx={1}/>
             </Box>
             <Box style={styles.item}>
                 <Typography variant="caption" color="grey" mx={1}>
-                    {Math.floor(Math.random() * 500)}
+                    {props.likes}
                 </Typography>
                 <ThumbUpIcon style={{ color:'grey' }} mx={1}/>
             </Box>
             <Box style={styles.item}>
                 <Typography variant="caption" color="grey" mx={1}>
-                    {Math.floor(Math.random() * 100)}
+                    {props.dislikes}
                 </Typography>
                 <ThumbDownIcon style={{ color:'grey' }} mx={1}/>
             </Box>

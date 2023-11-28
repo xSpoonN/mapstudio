@@ -156,9 +156,13 @@ export default function Profile() {
                                             <Grid item xs={12} md={6} key={i} sx={{ margin: '8px' }}>
                                                 <MapCard
                                                     name={maps[i].title}
-                                                    shared={['Private', 'Public'][maps[i].isPublished ? 1 : 0]}
+                                                    shared={maps[i].isPublished ? 'Public' : 'Private'}
+                                                    // shared={['Private', 'Public'][maps[i].isPublished ? 1 : 0]}
                                                     lastEdited={maps[i].updateDate}
                                                     style={{ width: '600px', height: '300px' }}
+                                                    views={maps[i].__v}
+                                                    likes={maps[i].likes}
+                                                    dislikes={maps[i].dislikes}
                                                 />
                                             </Grid>
                                         ))}
