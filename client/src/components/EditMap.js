@@ -92,7 +92,6 @@ export default function EditMap() {
             // Parse GeoJSON file
             geojsonData = JSON.parse(await file.text());
         }
-
         // Render the uploaded data on the map
         if (geojsonData) {
             updateMapWithGeoJSON(geojsonData);
