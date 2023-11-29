@@ -76,19 +76,15 @@ export default function MapView({ mapid }) {
         fetchMap();
     }, [store, auth, mapid]);
 
-    async function handleLike() {
+    function handleLike() {
         if(auth.user !== null) {
-            const newMap = await store.likeMap(map);
-            /* console.log(newMap); */
-            setMap(newMap);
+            store.likeMap(map);
         }
     }
 
-    async function handleDislike() {
+    function handleDislike() {
         if(auth.user !== null) {
-            const newMap = await store.dislikeMap(map);
-            /* console.log(newMap); */
-            setMap(newMap);
+            store.dislikeMap(map);
         }
     }
 
@@ -273,7 +269,7 @@ export default function MapView({ mapid }) {
                         Comments
                     </Typography>
                     <Typography variant="h6" sx={{ ml: 2, mb: 2 }} >
-                        {map?.comments.length}
+                        {map?.comments?.length}
                     </Typography>
                 </Box>
                 <Box className="map-comments" height="85%" style={styles.scroll} sx={{ mb: 2 }}>

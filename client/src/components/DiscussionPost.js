@@ -153,7 +153,7 @@ export default function DiscussionPost(props) {
                         <Box sx={{ display: 'flex', p: 1, textOverflow: "ellipsis", overflow: "hidden" }}>
                             <CommentIcon sx={{ mx: 1 }}/>
                             <Typography>
-                                {post.comments.length}
+                                {comments.length}
                             </Typography>
                         </Box>
                         {handleLikeCounter()}
