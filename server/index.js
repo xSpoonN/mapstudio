@@ -30,12 +30,16 @@ const postRoutes = require('./routes/post-router');
 app.use('/discussion', postRoutes);
 const commentRoutes = require('./routes/comment-router');
 app.use('/comment', commentRoutes);
+const mapRoutes = require('./routes/map-router');
+app.use('/map', mapRoutes);
 const routes = require('./routes/router');
 app.use('/api', routes);
 
 // Start the server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') { // don't listen when running tests
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
 
 module.exports = app; // for running tests

@@ -1,6 +1,7 @@
 import { createContext, useState, useContext } from 'react'
 import postAPI from './store-request-api/post-api'
 import commentAPI from './store-request-api/comment-api'
+import mapAPI from './store-request-api/map-api'
 import AuthContext from '../auth'
 
 export const GlobalStoreContext = createContext({});
@@ -11,6 +12,7 @@ export const GlobalStoreActionType = {
     CLOSE_MODAL: "CLOSE_MODAL",
     OPEN_MODAL: "OPEN_MODAL",
     SET_CURRENT_POST: "SET_CURRENT_POST",
+    SET_CURRENT_MAP: "SET_CURRENT_MAP",
     SET_CURRENT_COMMENTS: "SET_CURRENT_COMMENTS"
 }
 
@@ -21,6 +23,7 @@ function GlobalStoreContextProvider(props) {
         modal: null,
         discussionPosts: null,
         currentPost: null,
+        currentMap: null,
         currentComments: [],
         currentFilter: ''
     });
@@ -36,6 +39,7 @@ function GlobalStoreContextProvider(props) {
                     discussionPosts : payload.discussionPosts,
                     currentPost : payload.currentPost || null,
                     currentComments : payload.currentComments || [],
+                    currentMap : payload.currentMapId,
                     currentFilter : payload.filter || ''
                 });
             }
@@ -46,6 +50,7 @@ function GlobalStoreContextProvider(props) {
                     discussionPosts : store.discussionPosts,
                     currentPost : store.currentPost,
                     currentComments : store.currentComments,
+                    currentMap : store.currentMap,
                     currentFilter : store.currentFilter
                 });
             }
@@ -56,6 +61,7 @@ function GlobalStoreContextProvider(props) {
                     discussionPosts : store.discussionPosts,
                     currentPost : store.currentPost,
                     currentComments : store.currentComments,
+                    currentMap : store.currentMap,
                     currentFilter : store.currentFilter
                 });
             }
@@ -66,6 +72,18 @@ function GlobalStoreContextProvider(props) {
                     discussionPosts : store.discussionPosts,
                     currentPost : payload.currentPost,
                     currentComments : store.currentComments,
+                    currentMap : store.currentMap,
+                    currentFilter : store.currentFilter
+                });
+            }
+            case GlobalStoreActionType.SET_CURRENT_MAP: {
+                return setStore({
+                    currentScreen : store.currentScreen,
+                    modal : null,
+                    discussionPosts : store.discussionPosts,
+                    currentPost : store.currentPost,
+                    currentComments : store.currentComments,
+                    currentMap : payload.currentMapId,
                     currentFilter : store.currentFilter
                 });
             }
@@ -76,6 +94,7 @@ function GlobalStoreContextProvider(props) {
                     discussionPosts : store.discussionPosts,
                     currentPost : store.currentPost,
                     currentComments : payload.currentComments,
+                    currentMap : store.currentMap,
                     currentFilter : store.currentFilter
                 });
             }
@@ -199,11 +218,12 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
-    store.changeToMapView = function() {
+    store.changeToMapView = async function(mapID) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'mapView'
+                screen: 'mapView',
+                currentMapId: mapID
             }
         });
     }
@@ -229,6 +249,28 @@ function GlobalStoreContextProvider(props) {
         storeReducer({
             type: GlobalStoreActionType.OPEN_MODAL
         });
+    }
+
+    // Map Actions
+    store.createNewMap = async function(author, title, description) {
+        try {
+            let response = await mapAPI.createMap(author, title, description);
+            console.log("createNewMap response: " + JSON.stringify(response));
+            if (response.status === 201) {
+                if (response.data.success) {
+                    console.log("createNewMap response: " + response.data.id);
+                    storeReducer({
+                        type: GlobalStoreActionType.SET_CURRENT_MAP,
+                        payload: {
+                            currentMapId : response.data.id
+                        }
+                    });
+                }
+                store.changeToEditMap();
+            }
+        } catch (error) {
+            console.log("Create New Map error")
+        }
     }
 
     //Community Post Actions
@@ -350,9 +392,92 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
+    store.createMapComment = async function(content, mapid) {
+        try {
+            let response = await commentAPI.createComment(mapid, auth.user.username, content);
+            console.log("createNewComment response: " + response);
+            if (response.status === 200) {
+                response = await mapAPI.getMapById(mapid);
+                if (response.data.success) {
+                    storeReducer({
+                        type: GlobalStoreActionType.SET_CURRENT_MAP,
+                        payload: {
+                            currentMap : response.data.map._id
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.log("Create New Comment error")
+        }
+    }
+
+    store.likeMap = async function(map) {
+        let newMap = map
+        if(!newMap.likeUsers.includes(auth.user.username)) {
+            newMap.likes++;
+            newMap.likeUsers.push(auth.user.username)
+            if(newMap.dislikeUsers.includes(auth.user.username)) {
+                newMap.dislikes--;
+                newMap.dislikeUsers.splice(newMap.dislikeUsers.indexOf(auth.user.username),1)
+            }
+        } else {
+            newMap.likes--;
+            newMap.likeUsers.splice(newMap.likeUsers.indexOf(auth.user.username),1)
+        }
+        const resp = await store.updateMap(newMap);
+        /* console.log(resp); */
+        return resp;
+    }
+
+    store.dislikeMap = async function(map) {
+        let newMap = map
+        if(!newMap.dislikeUsers.includes(auth.user.username)) {
+            newMap.dislikes++;
+            newMap.dislikeUsers.push(auth.user.username)
+            if(newMap.likeUsers.includes(auth.user.username)) {
+                newMap.likes--;
+                newMap.likeUsers.splice(newMap.likeUsers.indexOf(auth.user.username),1)
+            }
+        } else {
+            newMap.dislikes--;
+            newMap.dislikeUsers.splice(newMap.dislikeUsers.indexOf(auth.user.username),1)
+        }
+        const resp = await store.updateMap(newMap);
+        /* console.log(resp); */
+        return resp;
+    }
+
+    store.updateMap = async function(newMap) {
+        try{
+            const response = await mapAPI.updateMapById(newMap._id, newMap);
+            /* console.log(response) */
+            if (response.data.success) {
+                storeReducer({
+                    type: GlobalStoreActionType.SET_CURRENT_MAP,
+                    payload: {
+                        currentMap : response.data.map
+                    }
+                });
+                return response.data.map;
+            }
+        } catch (error) {
+            console.log("Failed updating map: " + error)
+        }
+    }
+
     store.getAllComments = async function(post) {
         try {
             let comments = await commentAPI.getComments(post.comments);
+            return comments
+        } catch (error) {
+            console.log("Failed getting comments")
+        }
+    }
+
+    store.getMapComments = async function(map) {
+        try {
+            let comments = await commentAPI.getComments(map.comments);
             return comments
         } catch (error) {
             console.log("Failed getting comments")
@@ -420,6 +545,29 @@ function GlobalStoreContextProvider(props) {
             }
         } catch (error) {
             console.log("Failed getting posts")
+        }
+    }
+
+    store.getMapsData = async function(user) {
+        try{
+            const response = await mapAPI.getMapsByUser(user._id);
+            if (response.data.success) {
+                return response.data.maps
+            }
+        } catch (error) {
+            console.log("Failed getting maps")
+        }
+    }
+
+    //Map Actions
+    store.getMap = async function(id) {
+        try{
+            const response = await mapAPI.getMapById(id);
+            if (response.data.success) {
+                return response.data.map
+            }
+        } catch (error) {
+            console.log("Failed getting map" + JSON.stringify(error))
         }
     }
 

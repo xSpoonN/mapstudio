@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import MapCard from './MapCard';
+import { GlobalStoreContext } from '../store';
+import AuthContext from '../auth'
 
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -13,12 +15,26 @@ import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 
-const maps = Array.from({ length: 8 }, (_, i) => `Your Map ${i + 1}`);
-const share = Array.from({ length: 8 }, () => ['Private', 'Public'][Math.floor(Math.random() * 2)]);
-
 export default function PersonalMapsScreen() {
+    const { store } = useContext(GlobalStoreContext);
+    const { auth } = useContext(AuthContext);
+
     const [filter, setFilter] = useState('None');
     const [sort, setSort] = useState('Newest');
+    const [maps, setMaps] = useState([]);
+
+    useEffect(() => {
+        const fetchMaps = async () => {
+            const resp = await auth.getUserData(auth.getUser().email);
+            console.log(resp);
+            if (resp.success) {
+                const maps = await store.getMapsData(resp.user);
+                console.log(maps);
+                setMaps(maps);
+            }
+        }
+        fetchMaps();
+    }, [auth, store]);
 
     const handleSetFilter = (event) => {
         setFilter(event.target.value);
@@ -28,6 +44,13 @@ export default function PersonalMapsScreen() {
         setSort(event.target.value);
     };
 
+    const handleCreateNewMap = async () => {
+        console.log("Recv create new map request");
+        const authReq = await auth.getUserData(auth.user.email);
+        console.log(authReq);
+        store.createNewMap(authReq.user._id, 'New Map', 'Description');
+    };
+
     return (
         <Box>
             <Box display="flex" flexDirection="row" alignItems="flex-end">
@@ -35,7 +58,7 @@ export default function PersonalMapsScreen() {
                     Your Maps
                 </Typography>
                 <Typography variant="h3" align="left" sx={{ mx: 6, my: 6 }} color='#000000' flexGrow={1}>
-                    8
+                    {maps?.length}
                 </Typography>
                 <Box justifyContent="center" sx={{ flexGrow: 2, mx: 6, my: 6 }}>
 					<TextField
@@ -71,6 +94,7 @@ export default function PersonalMapsScreen() {
                     style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px'}} 
                     disableRipple
                     color='razzmatazz'
+                    onClick={handleCreateNewMap}
                 >
                     Create +
                 </Button>
@@ -130,7 +154,15 @@ export default function PersonalMapsScreen() {
             >
                 {maps.map((map, index) => (
                     <Grid item lg={3} md={4} sm={6} xs={12} align="center" sx={{ my: 4 }}>
-                        <MapCard name={map} shared={share[index]}/>
+                        <MapCard 
+                        mapID={map._id}
+                        name={map.title}
+                        lastEdited={map.updateDate} 
+                        shared={map.isPublished ? "Public" : "Private"}
+                        views={map.__v}
+                        likes={map.likes}
+                        dislikes={map.dislikes}
+                        />
                     </Grid>   
                 ))}
             </Grid>

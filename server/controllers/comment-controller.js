@@ -1,5 +1,6 @@
 const Comment = require('../models/Comment')
 const DiscussionPost = require('../models/DiscussionPost')
+const Map = require('../models/Map')
 const User = require('../models/User');
 
 createComment = (req, res) => {
@@ -33,6 +34,29 @@ createComment = (req, res) => {
         .then(() => {
             DiscussionPost.findOne({ _id: req.params.id })
                 .then(post => {
+                    console.log('DISCUSSION POST' + post);
+                    if (!post) {
+                        Map.findOne({ _id: req.params.id })
+                            .then(map => {
+                                console.log('MAPMAPMPA'+map);
+                                map.comments.push(comment._id)
+                                map.save().then(() => {
+                                    console.log("Map updated");
+                                    return res.status(200).json({
+                                        success: true,
+                                        map: map,
+                                        message: 'Map updated!'
+                                    })
+                                })
+                            .catch(error => {
+                                console.log("FAILURE: " + JSON.stringify(error));
+                                return res.status(404).json({
+                                    error,
+                                    message: 'Not updated!',
+                                })
+                            })
+                        })
+                    }
                     post.comments.push(comment._id)
                     post.save().then(() => {
                         console.log("Post updated");
@@ -42,14 +66,13 @@ createComment = (req, res) => {
                             message: 'Post updated!'
                         })
                     })
-                        .catch(error => {
-                            console.log("FAILURE: " + JSON.stringify(error));
-                            return res.status(404).json({
-                                error,
-                                message: 'Post not updated!',
-                            })
-                        })
+                .catch(error => {
+                    console.log("FAILURE: " + JSON.stringify(error));
+                    return res.status(404).json({
+                        error,
+                        message: 'Not updated!',
                 })
+            })
         })
         .catch(error => {
             console.error(error);
@@ -57,10 +80,12 @@ createComment = (req, res) => {
                 errorMessage: 'Comment Not Created!'
             });
         });
+    })
 }
 
 getComments = async (req, res) => {
     const body = req.body
+    console.log("getComments body: " + JSON.stringify(body));
     Comment.find({ _id: { $in: body.ids } })
         .then(comments => {
             console.log(body.ids)

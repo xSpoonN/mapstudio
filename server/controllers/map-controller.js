@@ -1,26 +1,36 @@
 
 const Map = require('../models/Map')
+const User = require('../models/User');
 
-const { DefaultAzureCredential } = require('@azure/identity');
-const { BlobServiceClient } = require("@azure/storage-blob");
-const { create } = require('domain');
-const { get } = require('http');
-
-const blobServiceClient = new BlobServiceClient(`https://mapstudio.blob.core.windows.net`, new DefaultAzureCredential() );
-
-//create a new map  "models/Map.js"
 createMap = async (req, res) => {
-    try {
-        const { title, description, author, comments, likes, dislikes, mapFile } = req.body;
-        const newMap = new Map({ title, description, author, comments, likes, dislikes, mapFile });
-        await newMap.save();
-        res.status(201).json(newMap);
+    console.log(req);
 
-    } catch (err) {
-        res.status(400).json({ error: 'Failed to create a map.' });
-        
+    const author = await User.findOne({ _id: req.body.author });
+
+    const map = new Map({
+        author: author,
+        title: req.body.title,
+        description: req.body.description
+    });
+    if (!map) {
+        return res.status(400).json({ success: false, error: err })
     }
 
+    map.save().then(() => {
+        author.maps.push(map._id);
+        author.save();
+        return res.status(201).json({
+            success: true,
+            id: map._id,
+            message: 'Map created!',
+        })
+    }).catch(error => {
+        console.log(error);
+        return res.status(400).json({
+            error,
+            message: 'Map not created!',
+        })
+    });
 }
 
 deleteMapById = async (req, res) => {
@@ -37,11 +47,12 @@ deleteMapById = async (req, res) => {
 
 getMapById = async (req, res) => {
     try {
+        console.log('Finding map with id ' + req.params.id);
         const map = await Map.findById(req.params.id);
         if (!map) {
             return res.status(404).json({ error: 'Map not found.' });
         }
-        res.status(200).json(map);
+        res.status(200).json({ success: true, map: map });
     } catch (err) {
         res.status(400).json({ error: 'Failed to fetch the map.' });
     }
@@ -54,7 +65,7 @@ updateMapInfoById = async (req, res) => {
         if (!map) {
             return res.status(404).json({ error: 'Map not found.' });
         }
-        const { title, description, author, comments, likes, dislikes, mapFile } = req.body;
+        const { title, description, author, comments, likes, dislikes, mapFile, likeUsers, dislikeUsers } = req.body.map;
         map.title = title;
         map.description = description;
         map.author = author;
@@ -62,10 +73,17 @@ updateMapInfoById = async (req, res) => {
         map.likes = likes;
         map.dislikes = dislikes;
         map.mapFile = mapFile;
+        map.likeUsers = likeUsers;
+        map.dislikeUsers = dislikeUsers;
         await map.save();
-        res.status(200).json(map);
+        return res.status(200).json({
+            success: true,
+            map: map,
+            message: 'Map updated!'
+        })
     } catch (err) {
-        res.status(400).json({ error: 'Failed to update the map.' });
+        console.log(err);
+        res.status(404);
     }
 }
 
@@ -83,4 +101,31 @@ updateMapFile = async (req, res) => {
     } catch (err) {
         res.status(400).json({ error: 'Failed to update the map.' });
     }
+}
+
+getMapsByUser = async (req, res) => {
+    Map.find({ author: req.params.id })
+        .then(maps => {
+            maps.sort((a, b) => new Date(b.publishedDate) - new Date(a.publishedDate));
+            return res.status(200).json({
+                success: true,
+                maps: maps,
+                message: 'Maps retrieved!'
+            })
+        }).catch(error => {
+            console.log("FAILURE: " + JSON.stringify(error));
+            return res.status(404).json({
+                error,
+                message: 'Maps not found',
+            })
+        })
+}
+
+module.exports = {
+    createMap,
+    deleteMapById,
+    getMapById,
+    updateMapInfoById,
+    updateMapFile,
+    getMapsByUser
 }
