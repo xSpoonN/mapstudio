@@ -12,6 +12,8 @@ import SubdivisionSidebar from './SubdivisionSidebar';
 import BinSidebar from './BinSidebar';
 import GradientSidebar from './GradientSidebar';
 import TemplateSidebar from './TemplateSidebar';
+import shp from 'shpjs';
+import togeojson from 'togeojson';
 
 export default function EditMap() {
     const [openDrawer, setOpenDrawer] = useState(true);
@@ -66,6 +68,40 @@ export default function EditMap() {
         }
     }
 
+    const handleFileUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        let geojsonData;
+
+        if (file.name.endsWith('.kml')) {
+            // Parse KML file
+            const text = await file.text();
+            const parser = new DOMParser();
+            const kml = parser.parseFromString(text, 'text/xml');
+            geojsonData = togeojson.kml(kml);
+        } else if (file.name.endsWith('.shp')) {
+            // Parse Shapefile
+            geojsonData = await shp(file);
+        } else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
+            // Parse GeoJSON file
+            geojsonData = JSON.parse(await file.text());
+        }
+
+        // Render the uploaded data on the map
+        if (geojsonData) {
+            updateMapWithGeoJSON(geojsonData);
+        }
+    };
+
+    const updateMapWithGeoJSON = (geojsonData) => {
+        if (geoJSONLayerRef.current) {
+            geoJSONLayerRef.current.clearLayers(); // Clear existing layer
+        }
+        geoJSONLayerRef.current = L.geoJSON(geojsonData).addTo(mapRef.current);
+    };
+
+
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
             mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
@@ -92,7 +128,9 @@ export default function EditMap() {
                 <AppBar position="static" style={{ background: 'transparent', zIndex: 2000 }}>
                     <Toolbar sx={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 2 }}>
                         <Box sx={{ marginRight: 'auto', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '460px', maxWidth: '460px' }}>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Import</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => document.getElementById('file-input').click()}>Import</Button>
+                            <input type="file" id="file-input" style={{ display: 'none' }} accept=".kml,.shp,.json,.geojson" onChange={handleFileUpload} />
+                            
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Publish</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Delete</Button>
