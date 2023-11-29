@@ -56,23 +56,24 @@ createComment = (req, res) => {
                                 })
                             })
                         })
-                    }
-                    post.comments.push(comment._id)
-                    post.save().then(() => {
-                        console.log("Post updated");
-                        return res.status(200).json({
-                            success: true,
-                            post: post,
-                            message: 'Post updated!'
+                    } else {
+                        post.comments.push(comment._id)
+                        post.save().then(() => {
+                            console.log("Post updated");
+                            return res.status(200).json({
+                                success: true,
+                                post: post,
+                                message: 'Post updated!'
+                            })
+                        })
+                        .catch(error => {
+                            console.log("FAILURE: " + JSON.stringify(error));
+                            return res.status(404).json({
+                                error,
+                                message: 'Not updated!',
                         })
                     })
-                .catch(error => {
-                    console.log("FAILURE: " + JSON.stringify(error));
-                    return res.status(404).json({
-                        error,
-                        message: 'Not updated!',
-                })
-            })
+                }
         })
         .catch(error => {
             console.error(error);

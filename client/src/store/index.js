@@ -402,9 +402,18 @@ function GlobalStoreContextProvider(props) {
                     storeReducer({
                         type: GlobalStoreActionType.SET_CURRENT_MAP,
                         payload: {
-                            currentMap : response.data.map._id
+                            currentMapId : response.data.map._id
                         }
                     });
+                    response = await store.getAllComments(response.data.map._id)
+                    if (response.data.success) {
+                        storeReducer({
+                            type: GlobalStoreActionType.SET_CURRENT_COMMENTS,
+                            payload: {
+                                currentComments : response.data.comments
+                            }
+                        });
+                    }
                 }
             }
         } catch (error) {
@@ -412,7 +421,7 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
-    store.likeMap = async function(map) {
+    store.likeMap = function(map) {
         let newMap = map
         if(!newMap.likeUsers.includes(auth.user.username)) {
             newMap.likes++;
@@ -425,12 +434,10 @@ function GlobalStoreContextProvider(props) {
             newMap.likes--;
             newMap.likeUsers.splice(newMap.likeUsers.indexOf(auth.user.username),1)
         }
-        const resp = await store.updateMap(newMap);
-        /* console.log(resp); */
-        return resp;
+        store.updateMap(newMap);
     }
 
-    store.dislikeMap = async function(map) {
+    store.dislikeMap = function(map) {
         let newMap = map
         if(!newMap.dislikeUsers.includes(auth.user.username)) {
             newMap.dislikes++;
@@ -443,9 +450,7 @@ function GlobalStoreContextProvider(props) {
             newMap.dislikes--;
             newMap.dislikeUsers.splice(newMap.dislikeUsers.indexOf(auth.user.username),1)
         }
-        const resp = await store.updateMap(newMap);
-        /* console.log(resp); */
-        return resp;
+            store.updateMap(newMap);
     }
 
     store.updateMap = async function(newMap) {
@@ -456,10 +461,10 @@ function GlobalStoreContextProvider(props) {
                 storeReducer({
                     type: GlobalStoreActionType.SET_CURRENT_MAP,
                     payload: {
-                        currentMap : response.data.map
+                        currentMapId : response.data.map._id
                     }
                 });
-                return response.data.map;
+                return response.data.map._id;
             }
         } catch (error) {
             console.log("Failed updating map: " + error)
