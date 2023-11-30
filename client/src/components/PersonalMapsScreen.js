@@ -21,6 +21,7 @@ export default function PersonalMapsScreen() {
 
     const [filter, setFilter] = useState('None');
     const [sort, setSort] = useState('Newest');
+    const [search, setSearch] = useState('')
     const [maps, setMaps] = useState([]);
 
     useEffect(() => {
@@ -44,12 +45,28 @@ export default function PersonalMapsScreen() {
         setSort(event.target.value);
     };
 
+    const handleSetSearch = (event) => {
+        setSearch(event.target.value);
+    };
+
     const handleCreateNewMap = async () => {
         console.log("Recv create new map request");
         const authReq = await auth.getUserData(auth.user.email);
         console.log(authReq);
         store.createNewMap(authReq.user._id, 'New Map', 'Description');
     };
+
+    function handleSortAndFilter(maps) {
+        let sorted
+        if(sort === "Newest") {
+            sorted = maps.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate));
+        } else if(sort === "Most Liked") {
+            sorted = maps.sort((a, b) => b.likes - a.likes);
+        } else if(sort === "Most Commented") {
+            sorted = maps.sort((a, b) => b.comments.length - a.comments.length);
+        }
+        return sorted.filter(post => post.title.includes(search));
+    }
 
     return (
         <Box>
@@ -58,7 +75,7 @@ export default function PersonalMapsScreen() {
                     Your Maps
                 </Typography>
                 <Typography variant="h3" align="left" sx={{ mx: 6, my: 6 }} color='#000000' flexGrow={1}>
-                    {maps?.length}
+                    {handleSortAndFilter(maps).length}
                 </Typography>
                 <Box justifyContent="center" sx={{ flexGrow: 2, mx: 6, my: 6 }}>
 					<TextField
@@ -86,6 +103,8 @@ export default function PersonalMapsScreen() {
 							}
 						}}
 						style = {{ width: '75%' }}
+                        onChange={handleSetSearch}
+                        value={search}
 					/>
 				</Box>
                 <Button 
@@ -115,8 +134,8 @@ export default function PersonalMapsScreen() {
                         }}
                     >
                         <MenuItem value="Newest">Newest</MenuItem>
-                        <MenuItem value="Most Liked">Most liked</MenuItem>
-                        <MenuItem value="Most Viewed">Most viewed</MenuItem>
+                        <MenuItem value="Most Liked">Most Liked</MenuItem>
+                        <MenuItem value="Most Commented">Most Commented</MenuItem>
                     </Select>
                 </FormControl>
 
@@ -152,7 +171,7 @@ export default function PersonalMapsScreen() {
                 alignItems="center"
                 justify="center"
             >
-                {maps.map((map, index) => (
+                {handleSortAndFilter(maps).map((map, index) => (
                     <Grid item lg={3} md={4} sm={6} xs={12} align="center" sx={{ my: 4 }}>
                         <MapCard 
                         mapID={map._id}
@@ -162,6 +181,7 @@ export default function PersonalMapsScreen() {
                         views={map.__v}
                         likes={map.likes}
                         dislikes={map.dislikes}
+                        comments={map.comments.length}
                         />
                     </Grid>   
                 ))}

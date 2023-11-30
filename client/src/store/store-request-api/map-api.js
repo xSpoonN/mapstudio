@@ -23,13 +23,19 @@ export const getMapById = (id) => {
 export const getMapsByUser = (id) => {
     return api.get(`/user/${id}`)
 }
+export const getPublishedMaps = () => api.get('/publishedmaps')
+export const getLandingMaps = (id) => {
+    return api.get(`/landing/${id}`)
+}
 
 const apis = {
     createMap,
     getMaps,
     updateMapById,
     getMapById,
-    getMapsByUser
+    getMapsByUser,
+    getPublishedMaps,
+    getLandingMaps
 }
 
 export default apis

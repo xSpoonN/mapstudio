@@ -65,7 +65,7 @@ updateMapInfoById = async (req, res) => {
         if (!map) {
             return res.status(404).json({ error: 'Map not found.' });
         }
-        const { title, description, author, comments, likes, dislikes, mapFile, likeUsers, dislikeUsers } = req.body.map;
+        const { title, description, author, comments, likes, dislikes, mapFile, likeUsers, dislikeUsers, isPublished, publishedDate } = req.body.map;
         map.title = title;
         map.description = description;
         map.author = author;
@@ -75,6 +75,8 @@ updateMapInfoById = async (req, res) => {
         map.mapFile = mapFile;
         map.likeUsers = likeUsers;
         map.dislikeUsers = dislikeUsers;
+        map.isPublished = isPublished;
+        map.publishedDate = publishedDate;
         await map.save();
         return res.status(200).json({
             success: true,
@@ -106,7 +108,7 @@ updateMapFile = async (req, res) => {
 getMapsByUser = async (req, res) => {
     Map.find({ author: req.params.id })
         .then(maps => {
-            maps.sort((a, b) => new Date(b.publishedDate) - new Date(a.publishedDate));
+            maps.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate));
             return res.status(200).json({
                 success: true,
                 maps: maps,
@@ -121,11 +123,83 @@ getMapsByUser = async (req, res) => {
         })
 }
 
+getPublishedMaps = async (req, res) => {
+    Map.find({ isPublished: true })
+        .then(async maps => {
+            console.log('Published maps:', maps);
+            const authorIds = maps.map(map => map.author);
+            const authors = await Promise.all(authorIds.map(authorId =>
+                User.findOne({ _id: authorId })
+            ));
+            return res.status(200).json({
+                success: true,
+                maps: maps,
+                authors: authors,
+                message: 'Maps retrieved!'
+            })
+        }).catch(error => {
+            console.log("FAILURE: " + JSON.stringify(error));
+            return res.status(404).json({
+                error,
+                message: 'Maps not found',
+            })
+        })
+}
+
+getLandingMaps = async (req, res) => {
+    try {
+        let yourMaps = []
+        if(req.params.id !== "null") {
+            const user = await User.findOne({ _id: req.params.id });
+            if (user) {
+                yourMaps = await Map.find({ author: user._id, isPublished: false })
+                    .sort({ updateDate: 'desc' })
+                    .limit(4);
+            }
+        }
+
+        let popularMaps = await Map.find({ isPublished: true })
+            .sort({ likes: 'desc' })
+            .limit(4);
+
+        let authorIds = popularMaps.map(map => map.author);
+        const popularMapsAuthors = await Promise.all(authorIds.map(authorId =>
+            User.findOne({ _id: authorId })
+        ));
+
+        let newMaps = await Map.find({ isPublished: true })
+            .sort({ publishedDate: 'desc' })
+            .limit(4);
+
+        authorIds = popularMaps.map(map => map.author);
+        const newMapsAuthors = await Promise.all(authorIds.map(authorId =>
+            User.findOne({ _id: authorId })
+        ));
+
+        res.status(200).json({
+            success: true,
+            yourMaps: yourMaps,
+            popularMaps: popularMaps,
+            popularMapsAuthors: popularMapsAuthors,
+            newMaps: newMaps,
+            newMapsAuthors: newMapsAuthors
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Internal Server Error',
+        });
+    }
+}
+
 module.exports = {
     createMap,
     deleteMapById,
     getMapById,
     updateMapInfoById,
     updateMapFile,
-    getMapsByUser
+    getMapsByUser,
+    getPublishedMaps,
+    getLandingMaps
 }

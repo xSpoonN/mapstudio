@@ -43,7 +43,7 @@ export default function MainScreen() {
             Content = <RecoverPasswordScreen />
             break;
         case 'search':
-            Content = <SearchScreen />
+            Content = <SearchScreen search={store.searchTerm} />
             break;
         case 'personal':
             Content = <PersonalMapsScreen />
@@ -64,7 +64,7 @@ export default function MainScreen() {
             Content = <Profile />
             break;
         case 'editMap':
-            Content = <EditMap />
+            Content = <EditMap mapid={store.currentMap} />
             break;
         default:
             Content = <></>

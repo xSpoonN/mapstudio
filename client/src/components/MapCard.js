@@ -2,7 +2,7 @@ import { useContext } from 'react'
 import { GlobalStoreContext } from '../store'
 
 import { Card, CardMedia, CardContent, Typography, Box } from "@mui/material";
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import CommentIcon from '@mui/icons-material/Comment';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import EditIcon from '@mui/icons-material/Edit';
@@ -75,13 +75,23 @@ export default function MapCard(props) {
         return `${year}-${month}-${day} ${inputDate.getHours()}:${String(inputDate.getMinutes()).padStart(2, '0')}`;
     }
 
+    let y = 
+        <Typography variant="caption" color="grey" mx={1}>
+            By: {props.author}
+        </Typography>
+    if(store.currentScreen !== "search" && store.currentScreen !== "landing") {
+        y = <></>
+    }
+
     let x = 
+        <>
+        {y}
         <div style={styles.counters}>
             <Box style={styles.item}>
                 <Typography variant="caption" color="grey" mx={1}>
-                    {props.views}
+                    {props.comments}
                 </Typography>
-                <VisibilityIcon style={{ color:'grey' }} mx={1}/>
+                <CommentIcon style={{ color:'grey' }} mx={1}/>
             </Box>
             <Box style={styles.item}>
                 <Typography variant="caption" color="grey" mx={1}>
@@ -96,6 +106,7 @@ export default function MapCard(props) {
                 <ThumbDownIcon style={{ color:'grey' }} mx={1}/>
             </Box>
         </div>
+        </>
         
     if(props.shared === "Private") {
         x = 
@@ -110,8 +121,8 @@ export default function MapCard(props) {
     }
 
     function handleCardClick() {
-        if(props.redirect === "edit") {
-            store.changeToEditMap();
+        if(props.shared === "Private") {
+            store.changeToEditMap(props.mapID);
         } else {
             console.log('handleCardClick: ' + props.mapID)
             store.changeToMapView(props.mapID);
