@@ -23,6 +23,7 @@ export default function AppBanner() {
 
 	const [anchorElUser, setAnchorElUser] = useState(null);
 	const [user, setUser] = useState(null);
+	const [search, setSearch] = useState("")
 
 	useEffect(() => {
 		const fetchUser = async () => {
@@ -153,7 +154,8 @@ export default function AppBanner() {
     }
 
 	function handleSearch() {
-		store.changeToSearch();
+		store.changeToSearch(search);
+		setSearch("");
 	}
 
 	function handleBrowse() {
@@ -163,6 +165,10 @@ export default function AppBanner() {
 	function handleDiscuss() {
 		store.changeToDiscussionHome();
 	}
+
+	function handleUpdateSearch(event) {
+        setSearch(event.target.value);
+    }
 
 	return (
 		<AppBar position="static" style={{ background: '#E3256B', zIndex: 7777}} elevation={0}>
@@ -224,6 +230,8 @@ export default function AppBanner() {
 							}
 						}}
 						style = {{ width: '50%' }}
+						onChange={handleUpdateSearch}
+						value={search}
 					/>
 				</Box>
 

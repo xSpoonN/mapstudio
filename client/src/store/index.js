@@ -25,7 +25,8 @@ function GlobalStoreContextProvider(props) {
         currentPost: null,
         currentMap: null,
         currentComments: [],
-        currentFilter: ''
+        currentFilter: '',
+        searchTerm: ''
     });
 
     const storeReducer = (action) => {
@@ -40,7 +41,8 @@ function GlobalStoreContextProvider(props) {
                     currentPost : payload.currentPost || null,
                     currentComments : payload.currentComments || [],
                     currentMap : payload.currentMapId,
-                    currentFilter : payload.filter || ''
+                    currentFilter : payload.filter || '',
+                    searchTerm : payload.searchTerm || ''
                 });
             }
             case GlobalStoreActionType.CLOSE_MODAL: {
@@ -51,7 +53,8 @@ function GlobalStoreContextProvider(props) {
                     currentPost : store.currentPost,
                     currentComments : store.currentComments,
                     currentMap : store.currentMap,
-                    currentFilter : store.currentFilter
+                    currentFilter : store.currentFilter,
+                    searchTerm : store.searchTerm
                 });
             }
             case GlobalStoreActionType.OPEN_MODAL: {
@@ -62,7 +65,8 @@ function GlobalStoreContextProvider(props) {
                     currentPost : store.currentPost,
                     currentComments : store.currentComments,
                     currentMap : store.currentMap,
-                    currentFilter : store.currentFilter
+                    currentFilter : store.currentFilter,
+                    searchTerm : store.searchTerm
                 });
             }
             case GlobalStoreActionType.SET_CURRENT_POST: {
@@ -73,7 +77,8 @@ function GlobalStoreContextProvider(props) {
                     currentPost : payload.currentPost,
                     currentComments : store.currentComments,
                     currentMap : store.currentMap,
-                    currentFilter : store.currentFilter
+                    currentFilter : store.currentFilter,
+                    searchTerm : store.searchTerm
                 });
             }
             case GlobalStoreActionType.SET_CURRENT_MAP: {
@@ -84,7 +89,8 @@ function GlobalStoreContextProvider(props) {
                     currentPost : store.currentPost,
                     currentComments : store.currentComments,
                     currentMap : payload.currentMapId,
-                    currentFilter : store.currentFilter
+                    currentFilter : store.currentFilter,
+                    searchTerm : store.searchTerm
                 });
             }
             case GlobalStoreActionType.SET_CURRENT_COMMENTS: {
@@ -95,7 +101,8 @@ function GlobalStoreContextProvider(props) {
                     currentPost : store.currentPost,
                     currentComments : payload.currentComments,
                     currentMap : store.currentMap,
-                    currentFilter : store.currentFilter
+                    currentFilter : store.currentFilter,
+                    searchTerm : store.searchTerm
                 });
             }
             default:
@@ -153,12 +160,13 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
-    store.changeToSearch = function() {
+    store.changeToSearch = function(search) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
                 screen: 'search',
-                discussionPosts: store.discussionPosts
+                discussionPosts: store.discussionPosts,
+                searchTerm: search
             }
         });
     }
@@ -228,15 +236,14 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
-    store.changeToEditMap = function() {
+    store.changeToEditMap = async function(mapID) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
-                screen: 'editMap'
+                screen: 'editMap',
+                currentMapId: mapID
             }
         });
-
-        
     }
 
     store.closeModal = function() {
@@ -266,7 +273,7 @@ function GlobalStoreContextProvider(props) {
                         }
                     });
                 }
-                store.changeToEditMap();
+                store.changeToEditMap(response.data.id);
             }
         } catch (error) {
             console.log("Create New Map error")
@@ -576,6 +583,37 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
+    store.getPublishedMaps = async function () {
+        try{
+            const response = await mapAPI.getPublishedMaps();
+            if (response.data.success) {
+                return response.data
+            }
+        } catch (error) {
+            console.log("Failed getting published maps" + JSON.stringify(error))
+        }
+    }
+
+    store.publishMap = async function(map, mapid) {
+        console.log(map)
+        let newMap = map
+        newMap.isPublished = true
+        newMap.publishedDate = Date.now()
+        await store.updateMap(newMap);
+        store.changeToMapView(mapid)
+    }
+
+    store.getLandingMaps = async function(id) {
+        try{
+            const response = await mapAPI.getLandingMaps(id);
+            if (response.data.success) {
+                console.log(response.data)
+                return response.data
+            }
+        } catch (error) {
+            console.log("Failed getting published maps" + JSON.stringify(error))
+        }
+    }
 
     return (
         <GlobalStoreContext.Provider value={{

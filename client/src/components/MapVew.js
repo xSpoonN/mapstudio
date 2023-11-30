@@ -184,7 +184,7 @@ export default function MapView({ mapid }) {
                                 sx={{ bgcolor: "#E3256B", width: '32px', height: '32px', mr: 1 }} 
                             /> 
                             <Typography>
-                                {user?.username} | Published {formatDate(map?.creationDate)}
+                                {user?.username} | Published {formatDate(map?.publishedDate)}
                             </Typography>
                         </Box>
                     </Box>

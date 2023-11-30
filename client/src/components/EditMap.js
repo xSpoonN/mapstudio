@@ -12,10 +12,12 @@ import SubdivisionSidebar from './SubdivisionSidebar';
 import BinSidebar from './BinSidebar';
 import GradientSidebar from './GradientSidebar';
 import TemplateSidebar from './TemplateSidebar';
+import ConfirmModal from './ConfirmModal';
 
-export default function EditMap() {
+export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
     const [sidebar, setSidebar] = useState('map');
+    const [map, setMap] = useState(null);
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
@@ -43,7 +45,7 @@ export default function EditMap() {
             maxHeight: '45px',
             minWidth: '45px',
             minHeight: '45px',
-            zIndex: 9999
+            zIndex: 1000
         },
         toolbarBG: {
             position: 'absolute', 
@@ -55,7 +57,7 @@ export default function EditMap() {
             borderRadius: '20px', 
             minWidth: '40px', 
             minHeight: '130px',
-            zIndex: 9998
+            zIndex: 999
         },
         sxOverride: {
             color: '#333333',
@@ -65,6 +67,17 @@ export default function EditMap() {
             }
         }
     }
+
+    useEffect(() => {
+        const fetchMap = async () => {
+            const resp = await store.getMap(mapid);
+            console.log(resp)
+            if (resp) {
+                setMap(resp);
+            }
+        }
+        fetchMap();
+    }, [store, mapid]);
 
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
@@ -85,6 +98,11 @@ export default function EditMap() {
 
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); }; // Remove GeoJSON layer on unmount
     });
+
+    function handlePublishModal() {
+        store.openModal();
+    }
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Box height='80vh' width='100vw' style={{ flex: 1 }} >
@@ -94,7 +112,7 @@ export default function EditMap() {
                         <Box sx={{ marginRight: 'auto', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '460px', maxWidth: '460px' }}>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Import</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Publish</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={handlePublishModal}>Publish</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Delete</Button>
                         </Box>
                         <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px' }}>
@@ -150,6 +168,7 @@ export default function EditMap() {
                 {sidebar === 'gradient' && <GradientSidebar />}
                 {sidebar === 'template' && <TemplateSidebar />}
             </Drawer>
+            <ConfirmModal map={map}/>
         </Box>
     );
 }

@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { GlobalStoreContext } from '../store'
 import AuthContext from '../auth'
 
@@ -9,13 +9,14 @@ import { Grid } from '@mui/material';
 
 import MapCard from './MapCard';
 
-const popularMaps = Array.from({ length: 4 }, (_, i) => `Popular Map ${i + 1}`);
-const newMaps = Array.from({ length: 4 }, (_, i) => `New Map ${i + 1}`);
-const yourMaps = Array.from({ length: 4 }, (_, i) => `Your Map ${i + 1}`);
-
 export default function LandingWrapper() {
     const { store } = useContext(GlobalStoreContext);
 	const { auth } = useContext(AuthContext);
+    const [yourMaps, setYourMaps] = useState([]);
+    const [popularMaps, setPopularMaps] = useState([]);
+    const [popularMapsAuthors, setPopularMapsAuthors] = useState([]);
+    const [newMaps, setNewMaps] = useState([]);
+    const [newMapsAuthors, setNewMapsAuthors] = useState([]);
 
     function handleLoginScreen() {
         store.changeToLogin();
@@ -24,6 +25,26 @@ export default function LandingWrapper() {
     function handleRegisterScreen() {
         store.changeToRegister();
     }
+
+    useEffect(() => {
+        const fetchMaps = async () => {
+            let id = null
+            console.log("user " + auth.user)
+            if (auth.user) {
+                const resp = await auth.getUserData(auth.getUser().email);
+                if (resp.success) {
+                    id = resp.user._id;
+                }
+            }
+            const maps = await store.getLandingMaps(id);
+            setYourMaps(maps.yourMaps);
+            setPopularMaps(maps.popularMaps);
+            setPopularMapsAuthors(maps.popularMapsAuthors);
+            setNewMaps(maps.newMaps);
+            setNewMapsAuthors(maps.newMapsAuthors);
+        }
+        fetchMaps();
+    }, [store, auth]);
 
     let x = 
         <Box>
@@ -42,7 +63,16 @@ export default function LandingWrapper() {
             >
                 {yourMaps.map((map) => (
                     <Grid item lg={3} md={4} sm={6} xs={12} align="center" sx={{ my: 4 }}>
-                        <MapCard name={map} redirect="edit" shared="Private"/>
+                        <MapCard 
+                            mapID={map._id}
+                            name={map.title}
+                            lastEdited={map.updateDate} 
+                            shared={map.isPublished ? "Public" : "Private"}
+                            views={map.__v}
+                            likes={map.likes}
+                            dislikes={map.dislikes}
+                            comments={map.comments.length}
+                        />
                     </Grid>   
                 ))}
             </Grid>
@@ -56,9 +86,19 @@ export default function LandingWrapper() {
                 justify="center"
                 flexGrow={1}
             >
-                {popularMaps.map((map) => (
+                {popularMaps.map((map, index) => (
                     <Grid item lg={3} md={4} sm={6} xs={12} align="center" sx={{ my: 4 }}>
-                        <MapCard name={map}/>
+                        <MapCard 
+                            mapID={map._id}
+                            name={map.title}
+                            lastEdited={map.updateDate} 
+                            shared={map.isPublished ? "Public" : "Private"}
+                            views={map.__v}
+                            likes={map.likes}
+                            dislikes={map.dislikes}
+                            comments={map.comments.length}
+                            author={popularMapsAuthors[index]?.username}
+                        />
                     </Grid>   
                 ))}
             </Grid>
@@ -72,9 +112,19 @@ export default function LandingWrapper() {
                 justify="center"
                 flexGrow={1}
             >
-                {newMaps.map((map) => (
+                {newMaps.map((map, index) => (
                     <Grid item lg={3} md={4} sm={6} xs={12} align="center" sx={{ my: 4 }}>
-                        <MapCard name={map}/>
+                        <MapCard 
+                            mapID={map._id}
+                            name={map.title}
+                            lastEdited={map.updateDate} 
+                            shared={map.isPublished ? "Public" : "Private"}
+                            views={map.__v}
+                            likes={map.likes}
+                            dislikes={map.dislikes}
+                            comments={map.comments.length}
+                            author={newMapsAuthors[index]?.username}
+                        />
                     </Grid>   
                 ))}
             </Grid>
@@ -124,9 +174,19 @@ export default function LandingWrapper() {
                     justify="center"
                     flexGrow={1}
                 >
-                    {newMaps.map((map) => (
+                    {popularMaps.map((map, index) => (
                         <Grid item lg={3} md={4} sm={6} xs={12} align="center" sx={{ my: 4 }}>
-                            <MapCard name={map}/>
+                            <MapCard 
+                                mapID={map._id}
+                                name={map.title}
+                                lastEdited={map.updateDate} 
+                                shared={map.isPublished ? "Public" : "Private"}
+                                views={map.__v}
+                                likes={map.likes}
+                                dislikes={map.dislikes}
+                                comments={map.comments.length}
+                                author={popularMapsAuthors[index]?.username}
+                            />
                         </Grid>   
                     ))}
                 </Grid>

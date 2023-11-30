@@ -10,6 +10,7 @@ router.get('/maps/:id', MapController.getMapById)
 router.put('/maps/:id', MapController.updateMapInfoById)
 router.put('/maps/:id/file', upload.single('mapFile'), MapController.updateMapFile)
 router.get('/user/:id', MapController.getMapsByUser)
-
+router.get('/publishedmaps', MapController.getPublishedMaps)
+router.get('/landing/:id', MapController.getLandingMaps)
 
 module.exports = router
