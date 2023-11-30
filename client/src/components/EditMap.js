@@ -13,6 +13,8 @@ import BinSidebar from './BinSidebar';
 import GradientSidebar from './GradientSidebar';
 import TemplateSidebar from './TemplateSidebar';
 import ConfirmModal from './ConfirmModal';
+import shp from 'shpjs';
+import togeojson from 'togeojson';
 
 export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
@@ -22,6 +24,11 @@ export default function EditMap({ mapid }) {
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
     const { store } = useContext(GlobalStoreContext); // eslint-disable-line
+    L.Icon.Default.mergeOptions({
+        iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png',
+        iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png'
+      });
     const styles = {
         standardButton: {
             fontSize: '14pt',
@@ -68,6 +75,39 @@ export default function EditMap({ mapid }) {
         }
     }
 
+    const handleFileUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        let geojsonData;
+
+        if (file.name.endsWith('.kml')) {
+            // Parse KML file
+            const text = await file.text();
+            const parser = new DOMParser();
+            const kml = parser.parseFromString(text, 'text/xml');
+            geojsonData = togeojson.kml(kml);
+        } else if (file.name.endsWith('.shp')) {
+            // Parse Shapefile
+            geojsonData = await shp(file);
+        } else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
+            // Parse GeoJSON file
+            geojsonData = JSON.parse(await file.text());
+        }
+        // Render the uploaded data on the map
+        if (geojsonData) {
+            updateMapWithGeoJSON(geojsonData);
+        }
+    };
+
+    const updateMapWithGeoJSON = (geojsonData) => {
+        if (geoJSONLayerRef.current) {
+            geoJSONLayerRef.current.clearLayers(); // Clear existing layer
+        }
+        geoJSONLayerRef.current = L.geoJSON(geojsonData).addTo(mapRef.current);
+    };
+
+
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
@@ -110,7 +150,9 @@ export default function EditMap({ mapid }) {
                 <AppBar position="static" style={{ background: 'transparent', zIndex: 2000 }}>
                     <Toolbar sx={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 2 }}>
                         <Box sx={{ marginRight: 'auto', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '460px', maxWidth: '460px' }}>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Import</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => document.getElementById('file-input').click()}>Import</Button>
+                            <input type="file" id="file-input" style={{ display: 'none' }} accept=".kml,.shp,.json,.geojson" onChange={handleFileUpload} />
+                            
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={handlePublishModal}>Publish</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Delete</Button>
