@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
+import { GlobalStoreContext } from '../store';
 import { Button, TextField, FormControl, Select, MenuItem, IconButton, Divider, Box, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -6,20 +7,50 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import { TwitterPicker } from 'react-color';
 
-export default function SubdivisionInfoSidebar() {
-    const [name, setName] = useState('New Zealand');
-    const [dropdownValue, setDropdownValue] = useState('Option 1');
-    const [value, setValue] = useState('13');
-    const [size, setSize] = useState(3); 
+export default function SubdivisionInfoSidebar({ currentFeature }) {
+    const { store } = useContext(GlobalStoreContext);
+    /* const [sdData, setSdData] = useState({}); */
+    const [mapInfo, setMapInfo] = useState({});
+    const [name, setName] = useState('');
+    const [dropdownOptions, setDropdownOptions] = useState([]);
+    const [dropdownValue, setDropdownValue] = useState('');
+    const [value, setValue] = useState('');
+    const [weight, setWeight] = useState(0.5); 
     const [color, setColor] = useState('#E3256B');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
+
+    useEffect(() => {
+        const retrieveData = () => {
+            const schemaData = store.schemaData;
+            console.log(currentFeature);
+            if (currentFeature) {
+                /* setName(featureData.name); */
+                const match = schemaData?.subdivisions.find(subdivision => subdivision.name === currentFeature);
+                setName(currentFeature.name);
+                if (match) {
+                    /* setSdData(match); */
+                    const options = Object.getOwnPropertyNames(match.data);
+                    setDropdownOptions(options)
+                    setDropdownValue(options ? options[0] : '');
+                    setValue(options ? match.data[options[0]] : '');
+                    setWeight(match.weight ? match.weight : 0.5);
+                    setColor(match.color ? match.color : '#E3256B');
+                }
+            }
+            const mapData = store.mapData;
+            if (mapData) {
+                setMapInfo(mapData);
+            }
+        }
+        retrieveData();
+    }, [store])
 
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
             {/* Map Info Header */}
-            <Typography variant="h6" style={{ margin: '10px' }}>Map of the Pacific Ocean</Typography>
+            <Typography variant="h6" style={{ margin: '10px' }}>{mapInfo?.title ? mapInfo.title : ''}</Typography>
             <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
-            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>A graphic showing the amount of water in the Pacific Ocean. It's a lot.</Typography>
+            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>{mapInfo?.description ? mapInfo.description : ''}</Typography>
             <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '80px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
 
             {/* Subdivision Data */}
@@ -41,8 +72,9 @@ export default function SubdivisionInfoSidebar() {
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <FormControl sx={{ mr: 1, ml: '10%' }}>
                         <Select value={dropdownValue} onChange={e => setDropdownValue(e.target.value)} sx={{ borderRadius: 3 }}>
-                            <MenuItem value="Option 1">Option 1</MenuItem>
-                            <MenuItem value="Option 2">Option 2</MenuItem>
+                            {dropdownOptions.map(option => <MenuItem value={option}>{option}</MenuItem>)}
+                            {/* <MenuItem value="Option 1">Option 1</MenuItem>
+                            <MenuItem value="Option 2">Option 2</MenuItem> */}
                         </Select>
                         </FormControl>
 
@@ -55,19 +87,19 @@ export default function SubdivisionInfoSidebar() {
                         </IconButton>
                     </Box>
 
-                    {/* Subdivision Size */}
+                    {/* Subdivision Weight */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <Typography sx={{ mr: 1, ml: '10%' }}>Weight</Typography>
 
-                        <IconButton sx={{ marginLeft: 'auto'}} onClick={() => setSize(size - 1)}>
+                        <IconButton sx={{ marginLeft: 'auto'}} onClick={() => setWeight(weight - 1)}>
                         <RemoveIcon />
                         </IconButton>
 
-                        <TextField value={size} sx={{ width: '50px', margin: '2px' }} 
+                        <TextField value={weight} sx={{ width: '50px', margin: '2px' }} 
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
-                        onChange={e => setSize(Number(e.target.value))}/>
+                        onChange={e => setWeight(Number(e.target.value))}/>
 
-                        <IconButton  onClick={() => setSize(size + 1)}>
+                        <IconButton  onClick={() => setWeight(weight + 1)}>
                         <AddIcon />
                         </IconButton>
                     </Box>
@@ -93,7 +125,7 @@ export default function SubdivisionInfoSidebar() {
                         <Button 
                             variant="contained"
                             sx={{ color: 'white', mx: 1, marginTop: 'auto', marginBottom: '10px' }} 
-                            style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '190px', minHeight: '20px'}} 
+                            style={{fontWeight:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '190px', minHeight: '20px'}} 
                             disableRipple
                             color='razzmatazz'
                         >
