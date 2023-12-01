@@ -187,7 +187,6 @@ export default function EditMap({ mapid }) {
         }
     };
     }
-
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
@@ -203,6 +202,7 @@ export default function EditMap({ mapid }) {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
             mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
+            L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ subdomains:['mt0','mt1','mt2','mt3']}).addTo(mapRef.current); // Add Google Satellite tiles
             mapInitializedRef.current = true; // Mark map as initialized
         }
 
@@ -239,7 +239,7 @@ export default function EditMap({ mapid }) {
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Delete</Button>
                         </Box>
                         <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px' }}>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('map')}>Map Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => {setSidebar('map'); store.setMapData(map);}}>Map Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('subdivision')}>Subdivision Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('point')}>Point Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('bin')}>Bin Info</Button>
@@ -284,8 +284,8 @@ export default function EditMap({ mapid }) {
                 onClose={() => setOpenDrawer(false)}
             >
                 <Toolbar style={{marginTop: '25px'}}/>
-                {sidebar === 'map' && <MapSidebar />}
-                {sidebar === 'subdivision' && <SubdivisionSidebar currentFeature={feature}/>}
+                {sidebar === 'map' && <MapSidebar mapData={map}/>}
+                {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature}/>}
                 {sidebar === 'point' && <PointSidebar />}
                 {sidebar === 'bin' && <BinSidebar />}
                 {sidebar === 'gradient' && <GradientSidebar />}

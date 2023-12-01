@@ -7,10 +7,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import { TwitterPicker } from 'react-color';
 
-export default function SubdivisionInfoSidebar({ currentFeature }) {
+export default function SubdivisionInfoSidebar({ mapData, currentFeature }) {
     const { store } = useContext(GlobalStoreContext);
     /* const [sdData, setSdData] = useState({}); */
-    const [mapInfo, setMapInfo] = useState({});
+    const [mapInfo, setMapInfo] = useState({}); // eslint-disable-line
     const [name, setName] = useState('');
     const [dropdownOptions, setDropdownOptions] = useState([]);
     const [dropdownValue, setDropdownValue] = useState('');
@@ -37,20 +37,20 @@ export default function SubdivisionInfoSidebar({ currentFeature }) {
                     setColor(match.color ? match.color : '#E3256B');
                 }
             }
-            const mapData = store.mapData;
+            /* const mapData = store.mapData;
             if (mapData) {
                 setMapInfo(mapData);
-            }
+            } */
         }
         retrieveData();
-    }, [store])
+    }, [store, currentFeature])
 
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
             {/* Map Info Header */}
-            <Typography variant="h6" style={{ margin: '10px' }}>{mapInfo?.title ? mapInfo.title : ''}</Typography>
+            <Typography variant="h6" style={{ margin: '10px' }}>{mapData?.title ? mapData.title : ''}</Typography>
             <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
-            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>{mapInfo?.description ? mapInfo.description : ''}</Typography>
+            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>{mapData?.description ? mapData.description : ''}</Typography>
             <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '80px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
 
             {/* Subdivision Data */}
