@@ -13,7 +13,6 @@ import BinSidebar from './BinSidebar';
 import GradientSidebar from './GradientSidebar';
 import TemplateSidebar from './TemplateSidebar';
 import ConfirmModal from './ConfirmModal';
-import shp from 'shpjs';
 import togeojson from 'togeojson';
 import * as shapefile from 'shapefile';
 
