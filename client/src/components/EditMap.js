@@ -15,6 +15,8 @@ import TemplateSidebar from './TemplateSidebar';
 import ConfirmModal from './ConfirmModal';
 import shp from 'shpjs';
 import togeojson from 'togeojson';
+import * as shapefile from 'shapefile';
+
 
 export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
@@ -74,39 +76,110 @@ export default function EditMap({ mapid }) {
             }
         }
     }
+/*---------------------------------------------------*/
+const updateMapWithGeoJSON = (geojsonData) => {
+    if (geoJSONLayerRef.current) {
+        geoJSONLayerRef.current.clearLayers(); // Clear existing layer
+    }
+    geoJSONLayerRef.current = L.geoJSON(geojsonData,{onEachFeature:onEachFeature}).addTo(mapRef.current);
+    geoJSONLayerRef.current.addData(geojsonData);
+};
 
-    const handleFileUpload = async (event) => {
-        const file = event.target.files[0];
-        if (!file) return;
+function onEachFeature(feature, layer) {
+    var popupcontent = [];
+    for (var prop in feature.properties) {
+        popupcontent.push(prop + ": " + feature.properties[prop]);
+    }
+    if(popupcontent.length !== 0) {
+      layer.bindPopup(popupcontent.join("<br/>"), {maxHeight: 200, maxWidth: 200});
+ 
+      // Add mouseover and mouseout event listeners
+      layer.on('mouseover', function() {
+        layer.openPopup();
+      });
+      layer.on('mouseout', function() {
+        layer.closePopup();
+      });
+    }
+  }
+/*---------------------------------------------------*/
+const handleFileUpload = async (event) => {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+    let geojsonData;
 
-        let geojsonData;
-
+    if (files.length === 1){
+        const file = files[0];
         if (file.name.endsWith('.kml')) {
-            // Parse KML file
+            // Parse KML or GeoJSON file
             const text = await file.text();
             const parser = new DOMParser();
             const kml = parser.parseFromString(text, 'text/xml');
             geojsonData = togeojson.kml(kml);
-        } else if (file.name.endsWith('.shp')) {
-            // Parse Shapefile
-            geojsonData = await shp(file);
-        } else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
+            updateMapWithGeoJSON(geojsonData);// render the geojsonData to map
+            // Next:
+            // need to write a function store the geojsonData to database
+
+        }
+        else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
             // Parse GeoJSON file
             geojsonData = JSON.parse(await file.text());
+            updateMapWithGeoJSON(geojsonData);// render the geojsonData to map
+            // Next:
+            // need to write a function store the geojsonData to database
         }
-        // Render the uploaded data on the map
-        if (geojsonData) {
-            updateMapWithGeoJSON(geojsonData);
-        }
-    };
+        else if (file.name.endsWith('.shp')) {
+            const shpReader = new FileReader();
+            shpReader.onload = (shpEvent) => {
+            const shpArrayBuffer = shpEvent.target.result;
+                shapefile.read(shpArrayBuffer).then((result) => {
+                    geojsonData = { type: 'FeatureCollection', features: result.features };
+                    updateMapWithGeoJSON(geojsonData);// render the geojsonData to map
+                    // Next:
+                    // need to write a function store the geojsonData to database
+                }).catch((error) => {
+                    console.error('Error reading Shapefile', error);
+                });
+            };
+            shpReader.readAsArrayBuffer(file); // 确保这里是 shpFile
 
-    const updateMapWithGeoJSON = (geojsonData) => {
-        if (geoJSONLayerRef.current) {
-            geoJSONLayerRef.current.clearLayers(); // Clear existing layer
+    }
+    else if (files.length === 2) {
+        const validExtensions = ['shp', 'shx', 'dbf'];
+        const fileExtensions = Array.from(files).map(file => file.name.split('.').pop().toLowerCase());
+        if (!fileExtensions.every(ext => validExtensions.includes(ext))) {
+            alert('please upload .shp, .shx, and .dbf files');
+            return;
         }
-        geoJSONLayerRef.current = L.geoJSON(geojsonData).addTo(mapRef.current);
-    };
-
+        const shpFile = files.find(file => file.name.endsWith('.shp'));
+        const dbfFile = files.find(file => file.name.endsWith('.dbf'));
+        if (!shpFile || !dbfFile) {alert('Both .shp and .dbf files are required');
+            return;
+        }
+        const shpReader = new FileReader();
+            shpReader.onload = (shpEvent) => {
+                const shpArrayBuffer = shpEvent.target.result;
+        const dbfReader = new FileReader();
+            dbfReader.onload = (dbfEvent) => {
+                const dbfArrayBuffer = dbfEvent.target.result;
+                shapefile.read(shpArrayBuffer, dbfArrayBuffer).then((result) => {
+                    // geojsonData = { type: 'FeatureCollection', features: result.features };
+                    console.log("WROOOOOO");
+                    geojsonData = result;
+                    
+                    updateMapWithGeoJSON(geojsonData);
+                }).catch((error) => {
+                    console.error('Error reading Shapefile', error);
+                });
+            };
+            dbfReader.readAsArrayBuffer(dbfFile);
+        };
+        shpReader.readAsArrayBuffer(shpFile);
+    }else{
+        alert('not supported files');
+    }
+};
+}
 
     useEffect(() => {
         const fetchMap = async () => {
@@ -150,8 +223,9 @@ export default function EditMap({ mapid }) {
                 <AppBar position="static" style={{ background: 'transparent', zIndex: 2000 }}>
                     <Toolbar sx={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 2 }}>
                         <Box sx={{ marginRight: 'auto', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '460px', maxWidth: '460px' }}>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => document.getElementById('file-input').click()}>Import</Button>
-                            <input type="file" id="file-input" style={{ display: 'none' }} accept=".kml,.shp,.json,.geojson" onChange={handleFileUpload} />
+                        <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => document.getElementById('file-input').click()}>Import</Button>
+                            <input type="file" id="file-input" style={{ display: 'none' }} accept=".kml,.shp,.shx,.dbf,.json,.geojson" multiple onChange={handleFileUpload} />
+
                             
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={handlePublishModal}>Publish</Button>
