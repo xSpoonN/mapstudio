@@ -645,6 +645,23 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
+    store.updateMapData = async function(mapData) {
+        try{
+            const response = await mapAPI.updateMapById(mapData._id, mapData);
+            if (response.data.success) {
+                storeReducer({
+                    type: GlobalStoreActionType.SET_CURRENT_MAP,
+                    payload: {
+                        currentMapId : response.data.map._id
+                    }
+                });
+            }
+            return response;
+        } catch (error) {
+            console.log("Failed updating map")
+        }
+    }
+
     return (
         <GlobalStoreContext.Provider value={{
             store
