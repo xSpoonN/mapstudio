@@ -79,10 +79,10 @@ export default function EditMap({ mapid }) {
 /*---------------------------------------------------*/
 const updateMapWithGeoJSON = (geojsonData) => {
     if (geoJSONLayerRef.current) {
-        geoJSONLayerRef.current.clearLayers(); // Clear existing layer
+        geoJSONLayerRef.current.clearLayers(); 
     }
     geoJSONLayerRef.current = L.geoJSON(geojsonData,{onEachFeature:onEachFeature}).addTo(mapRef.current);
-    geoJSONLayerRef.current.addData(geojsonData);
+ 
 };
 
 function onEachFeature(feature, layer) {
@@ -141,7 +141,7 @@ const handleFileUpload = async (event) => {
                     console.error('Error reading Shapefile', error);
                 });
             };
-            shpReader.readAsArrayBuffer(file); // 确保这里是 shpFile
+            shpReader.readAsArrayBuffer(file); 
 
     }
     else if (files.length === 2) {
@@ -164,7 +164,8 @@ const handleFileUpload = async (event) => {
                 const dbfArrayBuffer = dbfEvent.target.result;
                 shapefile.read(shpArrayBuffer, dbfArrayBuffer).then((result) => {
                     // geojsonData = { type: 'FeatureCollection', features: result.features };
-                    console.log("WROOOOOO");
+                    console.log("WROOOOOO"); //not print out in console
+                    console.log(result);    //not print out in console
                     geojsonData = result;
                     
                     updateMapWithGeoJSON(geojsonData);
