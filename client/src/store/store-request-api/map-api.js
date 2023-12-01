@@ -12,9 +12,11 @@ export const createMap = (author, title, description) => {
     })
 }
 export const getMaps = () => api.get(`/allmaps`)
-export const updateMapById = (id, map) => {
-    return api.put(`/maps/${id}`, {
-        map : map
+
+
+export const updateMapFileById = (id, geojsonData) => {
+    return api.put(`/maps/${id}/file`, {
+        mapFile : geojsonData
     })
 }
 export const getMapById = (id) => {
@@ -31,7 +33,7 @@ export const getLandingMaps = (id) => {
 const apis = {
     createMap,
     getMaps,
-    updateMapById,
+    updateMapFileById,
     getMapById,
     getMapsByUser,
     getPublishedMaps,

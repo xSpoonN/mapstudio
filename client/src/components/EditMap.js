@@ -76,11 +76,14 @@ export default function EditMap({ mapid }) {
         }
     }
 /*---------------------------------------------------*/
-const updateMapWithGeoJSON = (geojsonData) => {
+const RenderNewGeoJSON = (geojsonData) => {
     if (geoJSONLayerRef.current) {
         geoJSONLayerRef.current.clearLayers(); 
     }
     geoJSONLayerRef.current = L.geoJSON(geojsonData,{onEachFeature:onEachFeature}).addTo(mapRef.current);
+
+    //update map file data
+    updateMapFileData(mapid,geojsonData);
  
 };
 
@@ -101,6 +104,15 @@ function onEachFeature(feature, layer) {
       });
     }
   }
+
+  // update map file data
+  const updateMapFileData = async (mapid,geojsonData) => {
+    try {
+        const resp = await store.updateMapFile(mapid,geojsonData);
+        console.log(resp);
+    } catch (err) {
+        console.log('Error updating map file data in database');
+    }
 /*---------------------------------------------------*/
 const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
@@ -115,7 +127,7 @@ const handleFileUpload = async (event) => {
             const parser = new DOMParser();
             const kml = parser.parseFromString(text, 'text/xml');
             geojsonData = togeojson.kml(kml);
-            updateMapWithGeoJSON(geojsonData);// render the geojsonData to map
+            RenderNewGeoJSON(geojsonData);// render the geojsonData to map
             // Next:
             // need to write a function store the geojsonData to database
 
@@ -123,7 +135,7 @@ const handleFileUpload = async (event) => {
         else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
             // Parse GeoJSON file
             geojsonData = JSON.parse(await file.text());
-            updateMapWithGeoJSON(geojsonData);// render the geojsonData to map
+            RenderNewGeoJSON(geojsonData);// render the geojsonData to map
             // Next:
             // need to write a function store the geojsonData to database
         }
@@ -133,7 +145,7 @@ const handleFileUpload = async (event) => {
             const shpArrayBuffer = shpEvent.target.result;
                 shapefile.read(shpArrayBuffer).then((result) => {
                     geojsonData = { type: 'FeatureCollection', features: result.features };
-                    updateMapWithGeoJSON(geojsonData);// render the geojsonData to map
+                    RenderNewGeoJSON(geojsonData);// render the geojsonData to map
                     // Next:
                     // need to write a function store the geojsonData to database
                 }).catch((error) => {
@@ -167,7 +179,7 @@ const handleFileUpload = async (event) => {
                     console.log(result);    //not print out in console
                     geojsonData = result;
                     
-                    updateMapWithGeoJSON(geojsonData);
+                    RenderNewGeoJSON(geojsonData);
                 }).catch((error) => {
                     console.error('Error reading Shapefile', error);
                 });

@@ -280,6 +280,30 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
+    // update map geojson data in database
+    store.updateMapFile = async function(id, geojsonData) {
+        try {
+            let response = await mapAPI.updateMapFileById(id, geojsonData);
+            console.log("updateMapFile response: " + JSON.stringify(response));
+            if (response.status === 200) {
+                if (response.data.success) {
+                    console.log("updateMapFile response: " + response.data.id);
+                    storeReducer({
+                        type: GlobalStoreActionType.SET_CURRENT_MAP,
+                        payload: {
+                            currentMapId : response.data.id
+                        }
+                    });
+
+                    store.changeToEditMap(response.data.id);
+                }
+            }
+        } catch (error) {
+            console.log("updateMapFile error")
+        }
+    }
+    
+
     //Community Post Actions
 
     store.createNewPost = async function(title, content) {
