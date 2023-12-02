@@ -1,4 +1,3 @@
-
 const Map = require('../models/Map')
 const User = require('../models/User');
 
@@ -119,7 +118,6 @@ updateMapInfoById = async (req, res) => {
         })
 
 }
-
 
 updateMapFileById = async (req, res) => {
     // update the map file's url

@@ -116,17 +116,18 @@ function onEachFeature(feature, layer) {
 async function updateMapFileData(mapid,geojsonData) {
     try {
         // get the geometries from the GeoJSON object
-        const geometries = geojsonData.features.map(feature => feature.geometry);
-        // create a new GeoJSON object with only the geometries
-        const geometryData = {
-            type: "GeometryCollection",
-            geometries: geometries
-        };
+        // const geometries = geojsonData.features.map(feature => feature.geometry);
+        // // create a new GeoJSON object with only the geometries
+        // const geometryData = {
+        //     type: "GeometryCollection",
+        //     geometries: geometries
+        // };
 
         // test store the url of the geojsonData to database
         const testurl = 'URL TEST'
         const resp = await store.updateMapFile(mapid, testurl);
         console.log(resp);
+        
     } catch (err) {
         console.log('Error updating map file data in database');
     }
