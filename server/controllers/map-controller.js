@@ -1,4 +1,5 @@
 
+const { updateMapFileById } = require('../../client/src/store/store-request-api/map-api');
 const Map = require('../models/Map')
 const User = require('../models/User');
 
@@ -91,7 +92,7 @@ updateMapInfoById = async (req, res) => {
 
 
 
-updateMapFile = async (req, res) => {
+updateMapFileById = async (req, res) => {
     try {
         const map = await Map.findById(req.params.id);
         if (!map) {

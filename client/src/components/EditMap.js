@@ -77,78 +77,89 @@ export default function EditMap({ mapid }) {
             }
         }
     }
-    /*---------------------------------------------------*/
-    const updateMapWithGeoJSON = (geojsonData) => {
-        if (geoJSONLayerRef.current) {
-            geoJSONLayerRef.current.clearLayers(); 
-        }
-        geoJSONLayerRef.current = L.geoJSON(geojsonData,{onEachFeature:onEachFeature}).addTo(mapRef.current);
-    
-    };
-
-    function onEachFeature(feature, layer) {
-        var popupcontent = [];
-        for (var prop in feature.properties) {
-            popupcontent.push(prop + ": " + feature.properties[prop]);
-        }
-        if(popupcontent.length !== 0) {
-        layer.bindPopup(popupcontent.join("<br/>"), {maxHeight: 200, maxWidth: 200});
-    
-        // Add mouseover and mouseout event listeners
-        layer.on('click', function() {
-            console.log(feature.properties);
-            setFeature(feature.properties);
-            store.setSchemaData(data);
-            store.setMapData(map);
-            setSidebar('subdivision');
-            layer.openPopup();
-        });
-        layer.on('mouseout', function() {
-            layer.closePopup();
-        });
-        }
+/*---------------------------------------------------*/
+const RenderNewGeoJSON = (geojsonData) => {
+    if (geoJSONLayerRef.current) {
+        geoJSONLayerRef.current.clearLayers(); 
     }
-    /*---------------------------------------------------*/
-    const handleFileUpload = async (event) => {
-        const files = Array.from(event.target.files);
-        if (!files.length) return;
-        let geojsonData;
+    geoJSONLayerRef.current = L.geoJSON(geojsonData,{onEachFeature:onEachFeature}).addTo(mapRef.current);
 
-        if (files.length === 1){
-            const file = files[0];
-            if (file.name.endsWith('.kml')) {
-                // Parse KML or GeoJSON file
-                const text = await file.text();
-                const parser = new DOMParser();
-                const kml = parser.parseFromString(text, 'text/xml');
-                geojsonData = togeojson.kml(kml);
-                updateMapWithGeoJSON(geojsonData);// render the geojsonData to map
-                // Next:
-                // need to write a function store the geojsonData to database
+    //update map file data
+    updateMapFileData(mapid,geojsonData);
+};
 
-            }
-            else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
-                // Parse GeoJSON file
-                geojsonData = JSON.parse(await file.text());
-                updateMapWithGeoJSON(geojsonData);// render the geojsonData to map
-                // Next:
-                // need to write a function store the geojsonData to database
-            }
-            else if (file.name.endsWith('.shp')) {
-                const shpReader = new FileReader();
-                shpReader.onload = (shpEvent) => {
-                const shpArrayBuffer = shpEvent.target.result;
-                    shapefile.read(shpArrayBuffer).then((result) => {
-                        geojsonData = { type: 'FeatureCollection', features: result.features };
-                        updateMapWithGeoJSON(geojsonData);// render the geojsonData to map
-                        // Next:
-                        // need to write a function store the geojsonData to database
-                    }).catch((error) => {
-                        console.error('Error reading Shapefile', error);
-                    });
-                };
-                shpReader.readAsArrayBuffer(file); 
+function onEachFeature(feature, layer) {
+    var popupcontent = [];
+    for (var prop in feature.properties) {
+        popupcontent.push(prop + ": " + feature.properties[prop]);
+    }
+    if(popupcontent.length !== 0) {
+    layer.bindPopup(popupcontent.join("<br/>"), {maxHeight: 200, maxWidth: 200});
 
+    // Add mouseover and mouseout event listeners
+    layer.on('click', function() {
+        console.log(feature.properties);
+        setFeature(feature.properties);
+        store.setSchemaData(data);
+        store.setMapData(map);
+        setSidebar('subdivision');
+        layer.openPopup();
+    });
+    layer.on('mouseout', function() {
+        layer.closePopup();
+    });
+    }
+}
+
+  // update map file data
+const updateMapFileData = async (mapid,geojsonData) => {
+    try {
+        const resp = await store.updateMapFile(mapid,geojsonData);
+        console.log(resp);
+    } catch (err) {
+        console.log('Error updating map file data in database');
+    }
+}
+/*---------------------------------------------------*/
+const handleFileUpload = async (event) => {
+    const files = Array.from(event.target.files);
+    if (!files.length) return;
+    let geojsonData;
+
+    if (files.length === 1){
+        const file = files[0];
+        if (file.name.endsWith('.kml')) {
+            // Parse KML or GeoJSON file
+            const text = await file.text();
+            const parser = new DOMParser();
+            const kml = parser.parseFromString(text, 'text/xml');
+            geojsonData = togeojson.kml(kml);
+            RenderNewGeoJSON(geojsonData);// render the geojsonData to map
+            // Next:
+            // need to write a function store the geojsonData to database
+
+        }
+        else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
+            // Parse GeoJSON file
+            geojsonData = JSON.parse(await file.text());
+            RenderNewGeoJSON(geojsonData);// render the geojsonData to map
+            // Next:
+            // need to write a function store the geojsonData to database
+        }
+        else if (file.name.endsWith('.shp')) {
+            const shpReader = new FileReader();
+            shpReader.onload = (shpEvent) => {
+            const shpArrayBuffer = shpEvent.target.result;
+                shapefile.read(shpArrayBuffer).then((result) => {
+                    geojsonData = { type: 'FeatureCollection', features: result.features };
+                    RenderNewGeoJSON(geojsonData);// render the geojsonData to map
+                    // Next:
+                    // need to write a function store the geojsonData to database
+                }).catch((error) => {
+                    console.error('Error reading Shapefile', error);
+                });
+            };
+            shpReader.readAsArrayBuffer(file); 
         }
         else if (files.length === 2) {
             const validExtensions = ['shp', 'shx', 'dbf'];
@@ -165,28 +176,28 @@ export default function EditMap({ mapid }) {
             const shpReader = new FileReader();
                 shpReader.onload = (shpEvent) => {
                     const shpArrayBuffer = shpEvent.target.result;
-            const dbfReader = new FileReader();
-                dbfReader.onload = (dbfEvent) => {
-                    const dbfArrayBuffer = dbfEvent.target.result;
-                    shapefile.read(shpArrayBuffer, dbfArrayBuffer).then((result) => {
-                        // geojsonData = { type: 'FeatureCollection', features: result.features };
-                        console.log("WROOOOOO"); //not print out in console
-                        console.log(result);    //not print out in console
-                        geojsonData = result;
-                        
-                        updateMapWithGeoJSON(geojsonData);
-                    }).catch((error) => {
-                        console.error('Error reading Shapefile', error);
-                    });
+                    const dbfReader = new FileReader();
+                    dbfReader.onload = (dbfEvent) => {
+                        const dbfArrayBuffer = dbfEvent.target.result;
+                        shapefile.read(shpArrayBuffer, dbfArrayBuffer).then((result) => {
+                            // geojsonData = { type: 'FeatureCollection', features: result.features };
+                            console.log("WROOOOOO"); //not print out in console
+                            console.log(result);    //not print out in console
+                            geojsonData = result;
+                            
+                            RenderNewGeoJSON(geojsonData);
+                        }).catch((error) => {
+                            console.error('Error reading Shapefile', error);
+                        });
+                    };
+                    dbfReader.readAsArrayBuffer(dbfFile);
                 };
-                dbfReader.readAsArrayBuffer(dbfFile);
-            };
-            shpReader.readAsArrayBuffer(shpFile);
-        }else{
-            alert('not supported files');
+                shpReader.readAsArrayBuffer(shpFile);
+            }else{
+                alert('not supported files');
+            }
+        };
         }
-    };
-    }
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
