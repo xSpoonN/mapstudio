@@ -1,5 +1,4 @@
 
-const { updateMapFileById } = require('../../client/src/store/store-request-api/map-api');
 const Map = require('../models/Map')
 const User = require('../models/User');
 
@@ -35,75 +34,121 @@ createMap = async (req, res) => {
 }
 
 deleteMapById = async (req, res) => {
-    try {
-        const map = await Map.findByIdAndDelete(req.params.id);
-        if (!map) {
-            return res.status(404).json({ error: 'Map not found.' });
-        }
-        res.status(200).json(map);
-    } catch (err) {
-        res.status(400).json({ error: 'Failed to delete the map.' });
-    }
+    Map.findOne({ _id: req.params.id })
+        .then(map => {
+            if (!map) {
+                return res.status(404).json({ error: 'Map not found.' });
+            }
+            // delete map from author's maps array
+            // find author by getting map's author id
+            let authorId = map.author;
+            author = User.findOne({ _id: authorId });
+            map.remove().then(() => {
+                author.maps.pull(map._id);
+                author.save();
+                return res.status(200).json({
+                    success: true,
+                    id: map._id,
+                    message: 'Map deleted!',
+                })
+            }).catch(error => {
+                console.log(error);
+                return res.status(400).json({
+                    error,
+                    message: 'Map not deleted!',
+                })
+            })
+        }).catch(error => {
+            console.log(error);
+            return res.status(400).json({
+                error,
+                message: 'Map not found!',
+            })
+        })
 }
 
 getMapById = async (req, res) => {
-    try {
-        console.log('Finding map with id ' + req.params.id);
-        const map = await Map.findById(req.params.id);
-        if (!map) {
-            return res.status(404).json({ error: 'Map not found.' });
-        }
-        res.status(200).json({ success: true, map: map });
-    } catch (err) {
-        res.status(400).json({ error: 'Failed to fetch the map.' });
-    }
+    Map.findOne({ _id: req.params.id })
+        .then(map => {
+            if (!map) {
+                return res.status(404).json({ error: 'Map not found.' });
+            }
+            return res.status(200).json({
+                success: true,
+                map: map,
+                message: 'Map retrieved!',
+            })
+        }).catch(error => {
+            console.log("FAILURE: " + JSON.stringify(error));
+            return res.status(404).json({
+                error,
+                message: 'Map not found',
+            })
+        })
 }
 
 updateMapInfoById = async (req, res) => {
-
-    try {
-        const map = await Map.findById(req.params.id);
-        if (!map) {
-            return res.status(404).json({ error: 'Map not found.' });
-        }
-        const { title, description, author, comments, likes, dislikes, mapFile, likeUsers, dislikeUsers, isPublished, publishedDate } = req.body.map;
-        map.title = title;
-        map.description = description;
-        map.author = author;
-        map.comments = comments;
-        map.likes = likes;
-        map.dislikes = dislikes;
-        map.mapFile = mapFile;
-        map.likeUsers = likeUsers;
-        map.dislikeUsers = dislikeUsers;
-        map.isPublished = isPublished;
-        map.publishedDate = publishedDate;
-        await map.save();
-        return res.status(200).json({
-            success: true,
-            map: map,
-            message: 'Map updated!'
+    Map.findOne({ _id: req.params.id })
+        .then(map => {
+            if (!map) {
+                return res.status(404).json({ error: 'Map not found.' });
+            }
+            map.title = req.body.title;
+            map.description = req.body.description;
+            map.isPublished = req.body.isPublished;
+            map.updateDate = Date.now();
+            map.save().then(() => {
+                return res.status(200).json({
+                    success: true,
+                    id: map._id,
+                    message: 'Map updated!',
+                })
+            }).catch(error => {
+                console.log(error);
+                return res.status(400).json({
+                    error,
+                    message: 'Map not updated!',
+                })
+            })
+        }).catch(error => {
+            console.log(error);
+            return res.status(400).json({
+                error,
+                message: 'Map not found!',
+            })
         })
-    } catch (err) {
-        console.log(err);
-        res.status(404);
-    }
+
 }
 
 
-
 updateMapFileById = async (req, res) => {
-    try {
-        const map = await Map.findById(req.params.id);
-        if (!map) {
-            return res.status(404).json({ error: 'Map not found.' });
-        }
-        map.mapFile = req.body.mapFile;
-        await map.save();
-        res.status(200).json(map);
-    } catch (err) {
-        res.status(400).json({ error: 'Failed to update the map.' });
-    }
+    // update the map file's url
+    Map.findOne({ _id: req.params.id })
+        .then(map => {
+            if (!map) {
+                return res.status(404).json({ error: 'Map not found.' });
+            }
+            map.mapFile = req.body.mapFile;
+            map.save().then(() => {
+                return res.status(200).json({
+                    success: true,
+                    id: map._id,
+                    message: 'Map updated!',
+                })
+            }).catch(error => {
+                console.log(error);
+                return res.status(400).json({
+                    error,
+                    message: 'Map not updated!',
+                })
+            })
+        }).catch(error => {
+            console.log(error);
+            return res.status(400).json({
+                error,
+                message: 'Map not found!',
+            })
+        })
 }
 
 getMapsByUser = async (req, res) => {

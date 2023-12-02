@@ -78,13 +78,13 @@ export default function EditMap({ mapid }) {
         }
     }
 /*---------------------------------------------------*/
-const RenderNewGeoJSON = (geojsonData) => {
-    if (geoJSONLayerRef.current) {
-        geoJSONLayerRef.current.clearLayers(); 
-    }
-    geoJSONLayerRef.current = L.geoJSON(geojsonData,{onEachFeature:onEachFeature}).addTo(mapRef.current);
 
-    //update map file data
+function RenderNewGeoJSON (geojsonData) {
+    if (geoJSONLayerRef.current) { geoJSONLayerRef.current.clearLayers(); }
+    geoJSONLayerRef.current = L.geoJSON(geojsonData,{onEachFeature:onEachFeature}).addTo(mapRef.current);
+    //print out the geojsonData in console
+    console.log(geojsonData);
+    // after render the geojsonData to map, need to update the geojsonData to database
     updateMapFileData(mapid,geojsonData);
 };
 
@@ -111,8 +111,7 @@ function onEachFeature(feature, layer) {
     }
 }
 
-  // update map file data
-const updateMapFileData = async (mapid,geojsonData) => {
+async function updateMapFileData(mapid,geojsonData) {
     try {
         const resp = await store.updateMapFile(mapid,geojsonData);
         console.log(resp);
