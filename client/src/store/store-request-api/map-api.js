@@ -14,6 +14,10 @@ export const createMap = (author, title, description) => {
 export const getMaps = () => api.get(`/allmaps`)
 
 export const updateMapFileById = (id, geojsonData) => {
+    // but the geojson data is too large to upload to the database
+    // so we need to upload it to the server's file system
+    // and then store the url of the file in the database
+
     return api.put(`/mapsfile/${id}`, {
         mapFile : geojsonData
     })

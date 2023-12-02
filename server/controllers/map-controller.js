@@ -123,6 +123,7 @@ updateMapInfoById = async (req, res) => {
 
 updateMapFileById = async (req, res) => {
     // update the map file's url
+    
     Map.findOne({ _id: req.params.id })
         .then(map => {
             if (!map) {
