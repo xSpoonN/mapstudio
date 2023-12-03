@@ -22,7 +22,7 @@ export const updateMapFileById = (id, geojsonData) => {
     // how to solve this?
 
     return api.put(`/maps/${id}`, {
-        mapFile : geojsonData
+        geojsonData : geojsonData
     })
 }
 export const getMapById = (id) => {

@@ -16,6 +16,7 @@ import ConfirmModal from './ConfirmModal';
 import togeojson from 'togeojson';
 import * as shapefile from 'shapefile';
 
+const SASTOKEN = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
 
 export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
@@ -118,7 +119,7 @@ async function updateMapFileData(mapid,geojsonData) {
         // get the geometries from the GeoJSON object
         // const geometries = geojsonData.features.map(feature => feature.geometry);
         // // create a new GeoJSON object with only the geometries
-        // const geometryData = {
+        // const geometryData = {handleFileUpload
         //     type: "GeometryCollection",
         //     geometries: geometries
         // };
@@ -231,9 +232,10 @@ const handleFileUpload = async (event) => {
             mapInitializedRef.current = true; // Mark map as initialized
         }
 
-        fetch("brazil-states.json")
-            .then((response) => response.json())
+        fetch(map?.mapFile ? `${map.mapFile}?${SASTOKEN}` : "brazil-states.json", {mode: "cors"})
+            .then((response) =>  response.json())
             .then((geojson) => {
+                console.log(geojson);
                 if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); // Remove existing GeoJSON layer
                 else geoJSONLayerRef.current = L.geoJSON(geojson,{onEachFeature:onEachFeature}).addTo(mapRef.current); // Add new GeoJSON layer
                 geoJSONLayerRef.current.addData(geojson); // Add GeoJSON data to layer
@@ -242,7 +244,7 @@ const handleFileUpload = async (event) => {
             });
 
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); }; // Remove GeoJSON layer on unmount
-    });
+    }, [map]); // eslint-disable-line react-hooks/exhaustive-deps
 
     function handlePublishModal() {
         store.openModal();
