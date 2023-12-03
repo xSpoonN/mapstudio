@@ -1,8 +1,13 @@
 const Map = require('../models/Map')
+const MapSchema = require('../models/MapSchema')
 const User = require('../models/User');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { BlobServiceClient } = require("@azure/storage-blob");
 const blobServiceClient = new BlobServiceClient(`https://mapstudio.blob.core.windows.net`, new DefaultAzureCredential() );
+const Ajv = require('ajv');
+const ajv = new Ajv();
+const mongoose = require('mongoose');
+/* const mapSchemaModel = mongoose.model('MapSchema', new mongoose.Schema({}, {strict: false}), 'mapschemas'); */
 
 createMap = async (req, res) => {
     console.log(req);
@@ -123,7 +128,6 @@ updateMapInfoById = async (req, res) => {
 }
 
 async function uploadToBlobStorage(geoJsonData, mapid) {
-    /* const blobName = "geojson-" + Date.now() + ".json"; */ // create a new blob name every time
     try {
         const containerClient = blobServiceClient.getContainerClient('mapfiles');
         const blockBlobClient = containerClient.getBlockBlobClient(`geojson${mapid}.json`);
@@ -268,6 +272,192 @@ getLandingMaps = async (req, res) => {
     }
 }
 
+updateMapSchema = async (req, res) => {
+    const schema = {  
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "definitions": {
+          "bin": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "color": { "type": "string", "default": "#000000" },
+              "subdivisions": {
+                "type": "array",
+                "items": { "type": "string" },
+                "uniqueItems": true
+              }
+            },
+            "required": [ "name" ]
+          },
+          "subdivision": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "weight": {
+                "type": "number",
+                "maximum": 1,
+                "minimum": 0,
+                "default": 1
+              }
+            },
+            "required": [ "name" ],
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "object",
+                  "additionalProperties": { "type": "number"  }
+                }
+              }
+            }
+          },
+          "point": {
+            "type": "object",
+            "properties": {
+              "location": {
+                "type": "object",
+                "properties": {
+                  "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+                  "lon": { "type": "number", "minimum": -180, "maximum": 180 }
+                },
+                "required": [ "lat", "lon" ]
+              },
+              "weight": {
+                "type": "number",
+                "maximum": 1,
+                "minimum": 0,
+                "default": 1
+              }
+            },
+            "required": [ "location" ]
+          },
+          "gradient": {
+            "type": "object",
+            "properties": {
+              "dataField": { "type": "string" },
+              "minColor": { "type": "string", "default": "#000000" },
+              "maxColor": { "type": "string", "default": "#E3256B" },
+              "affectedBins": {
+                "type": "array",
+                "items": { "type": "string" },
+                "uniqueItems": true
+              }
+            },
+            "required": [ "dataField" ]
+          }
+        },
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [ "bin", "gradient", "heatmap", "point", "satellite" ]
+          },
+          "bins": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/bin" },
+            "uniqueItems": true
+          },
+          "subdivisions": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/subdivision" },
+            "uniqueItems": true
+          },
+          "points": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/point" },
+            "uniqueItems": true
+          },
+          "gradients": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/gradient" },
+            "uniqueItems": true
+          },
+          "showSatellite": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [ "type" ]
+    }
+    const mapSchema = req.body.schema;
+    console.log(mapSchema);
+    const validate = ajv.compile(schema);
+    if (!validate(mapSchema)) {
+        return console.log(validate.errors);
+        return res.status(400).json({
+            error: validate.errors,
+            message: 'Invalid schema',
+        })
+    }
+    console.log("here");
+    const map = await Map.findOne({ _id: req.params.id })
+    if (!map) {
+        return res.status(400).json({
+            error: 'Map not found',
+            message: 'Map not found',
+        })
+    }
+    if (!map.mapSchema) {
+        try {
+            const newdoc = await MapSchema.create(mapSchema);
+            console.log(newdoc);
+            map.mapSchema = newdoc._id;
+            await map.save();
+            return res.status(200).json({
+                success: true,
+                id: newdoc._id,
+                message: 'Schema updated!',
+            })
+        } catch (err) {
+            console.log("error1241241");
+            return res.status(400).json({
+                error: err,
+                message: 'Schema not updated!',
+            })
+        }
+    }
+    try {
+        const existingMap = await MapSchema.findOne({ _id: map.mapSchema });
+        if (!existingMap) {
+            console.log("error2");
+            return res.status(400).json({
+                error: "Schema not found!",
+                message: 'Schema not updated!',
+            });
+        }
+        const updatedMap = await MapSchema.replaceOne({ _id: map.mapSchema }, mapSchema);
+        console.log(updatedMap);
+        return res.status(200).json({
+            success: true,
+            id: updatedMap._id,
+            message: 'Schema updated!',
+        });
+    } catch (error) {
+        console.log("error3");
+        return res.status(400).json({
+            error: error.message,
+            message: 'Schema not updated!',
+        });
+    }
+}
+
+getMapSchema = async (req, res) => {
+    try {
+        const doc = await MapSchema.findOne({_id: req.params.id });
+        return res.status(200).json({
+            success: true,
+            schema: doc,
+            message: 'Schema retrieved!',
+        })
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({
+            error: error,
+            message: 'Schema not found!',
+        })
+    }
+}
+
 module.exports = {
     createMap,
     deleteMapById,
@@ -276,5 +466,7 @@ module.exports = {
     updateMapFileById,
     getMapsByUser,
     getPublishedMaps,
-    getLandingMaps
+    getLandingMaps,
+    updateMapSchema,
+    getMapSchema
 }

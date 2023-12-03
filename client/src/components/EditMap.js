@@ -23,7 +23,7 @@ export default function EditMap({ mapid }) {
     const [sidebar, setSidebar] = useState('map');
     const [map, setMap] = useState(null);
     const [feature, setFeature] = useState(null);
-    const [data, setData] = useState(null); // eslint-disable-line
+    const [data, setData] = useState(null); // Schema data
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
@@ -103,7 +103,7 @@ function onEachFeature(feature, layer) {
     layer.on('click', function() {
         console.log(feature.properties);
         setFeature(feature.properties);
-        store.setSchemaData(data);
+        /* store.setSchemaData(data); */
         store.setMapData(map);
         setSidebar('subdivision');
         layer.openPopup();
@@ -212,13 +212,34 @@ const handleFileUpload = async (event) => {
                 alert('not supported files');
             }
         };
-        }
+    }
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
             console.log(resp)
             if (resp) {
                 setMap(resp);
+                if (!resp.mapSchema) return setData({
+                    "type": "bin",
+                    "bins": [],
+                    "subdivisions": [],
+                    "points": [],
+                    "gradients": [],
+                    "showSatellite": true
+                });
+                const resp2 = await store.getSchema(resp.mapSchema);
+                console.log(resp2);
+                if (!resp2) return setData({
+                    "type": "bin",
+                    "bins": [],
+                    "subdivisions": [],
+                    "points": [],
+                    "gradients": [],
+                    "showSatellite": true
+                });
+                /* store.setSchemaData(resp2?.schema); */
+                setData(resp2);
+
             }
         }
         fetchMap();
@@ -312,7 +333,7 @@ const handleFileUpload = async (event) => {
             >
                 <Toolbar style={{marginTop: '25px'}}/>
                 {sidebar === 'map' && <MapSidebar mapData={map}/>}
-                {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature}/>}
+                {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
                 {sidebar === 'point' && <PointSidebar />}
                 {sidebar === 'bin' && <BinSidebar />}
                 {sidebar === 'gradient' && <GradientSidebar />}
