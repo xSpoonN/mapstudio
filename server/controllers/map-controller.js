@@ -3,10 +3,6 @@ const User = require('../models/User');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { BlobServiceClient } = require("@azure/storage-blob");
 
-
-
-
-
 createMap = async (req, res) => {
     console.log(req);
 
@@ -125,7 +121,6 @@ updateMapInfoById = async (req, res) => {
 
 }
 
-
 async function uploadToBlobStorage(geoJsonData) {
    
     const blobServiceClient = new BlobServiceClient(`https://mapstudio.blob.core.windows.net`, new DefaultAzureCredential() );
@@ -135,7 +130,6 @@ async function uploadToBlobStorage(geoJsonData) {
     const blockBlobClient = containerClient.getBlockBlobClient(blobName);
     const uploadBlobResponse = await blockBlobClient.upload(JSON.stringify(geoJsonData), Buffer.byteLength(JSON.stringify(geoJsonData)));
     console.log(`upload response: ${uploadBlobResponse.requestId}`);
-
     return blockBlobClient.url; // return the url of the blob
 }
 
@@ -157,7 +151,7 @@ updateMapFileById = async (req, res) => {
                 return res.status(200).json({
                     success: true,
                     id: map._id,
-                    message: 'Map updated!',
+                    message: 'Map File updated!',
                 })
             }).catch(error => {
                 console.log(error);
