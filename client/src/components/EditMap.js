@@ -18,7 +18,6 @@ import * as shapefile from 'shapefile';
 
 const SASTOKEN = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
 
-
 export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
     const [sidebar, setSidebar] = useState('map');
@@ -206,8 +205,8 @@ const handleFileUpload = async (event) => {
             mapInitializedRef.current = true; // Mark map as initialized
         }
 
-        fetch(map?.mapFile ? '${map.mapFile}?${SASTOKEN}' : "brazil-states.json",{mode: 'cors'})
-            .then((response) => response.json())
+        fetch(map?.mapFile ? `${map.mapFile}?${SASTOKEN}` : "brazil-states.json", {mode: "cors"})
+            .then((response) =>  response.json())
             .then((geojson) => {
                 console.log(geojson);
                 if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); // Remove existing GeoJSON layer
@@ -218,7 +217,7 @@ const handleFileUpload = async (event) => {
             });
 
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); }; // Remove GeoJSON layer on unmount
-    }, [map]);
+    }, [map]); // eslint-disable-line react-hooks/exhaustive-deps
 
     function handlePublishModal() {
         store.openModal();
