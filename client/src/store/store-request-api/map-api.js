@@ -17,7 +17,7 @@ export const getMaps = () => api.get(`/allmaps`)
 export const updateMapFileById = (id, geojsonData) => {
     // The geojsonData is the stringified version of the geojson object
     return api.put(`/maps/${id}`, {
-        geojsonData : geojsonData
+        mapFile : geojsonData
     })
 }
 export const getMapById = (id) => {
