@@ -78,13 +78,15 @@ export default function EditMap({ mapid }) {
         }
     }
 /*---------------------------------------------------*/
-const RenderNewGeoJSON = (geojsonData) => {
-    if (geoJSONLayerRef.current) {
-        geoJSONLayerRef.current.clearLayers(); 
-    }
+
+function RenderNewGeoJSON (geojsonData) {
+    if (geoJSONLayerRef.current) { geoJSONLayerRef.current.clearLayers(); }
     geoJSONLayerRef.current = L.geoJSON(geojsonData,{onEachFeature:onEachFeature}).addTo(mapRef.current);
 
-    //update map file data
+    //print out the geojsonData in console
+    console.log(geojsonData);
+
+    // after render the geojsonData to map, need to update the geojsonData to database
     updateMapFileData(mapid,geojsonData);
 };
 
@@ -111,11 +113,23 @@ function onEachFeature(feature, layer) {
     }
 }
 
-  // update map file data
-const updateMapFileData = async (mapid,geojsonData) => {
+async function updateMapFileData(mapid,geojsonData) {
     try {
-        const resp = await store.updateMapFile(mapid,geojsonData);
+        // get the geometries from the GeoJSON object
+        // const geometries = geojsonData.features.map(feature => feature.geometry);
+        // // create a new GeoJSON object with only the geometries
+        // const geometryData = {
+        //     type: "GeometryCollection",
+        //     geometries: geometries
+        // };
+
+        // test store the url of the geojsonData to database
+        const testurl = 'URL TEST 20.21.12.2.2023'
+        // Test stringfy the geojsonData
+        const geojsonDataString = JSON.stringify(geojsonData);
+        const resp = await store.updateMapFile(mapid, geojsonDataString);
         console.log(resp);
+        
     } catch (err) {
         console.log('Error updating map file data in database');
     }
