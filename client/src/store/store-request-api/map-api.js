@@ -2,6 +2,7 @@ import axios from 'axios'
 axios.defaults.withCredentials = true;
 const api = axios.create({
     baseURL: 'https://mapstudio.azurewebsites.net/map',
+    // baseURL: 'http://localhost:8080/map',
 })
 
 export const createMap = (author, title, description) => {

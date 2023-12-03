@@ -1,5 +1,9 @@
 const Map = require('../models/Map')
 const User = require('../models/User');
+const { DefaultAzureCredential } = require('@azure/identity');
+const { BlobServiceClient } = require("@azure/storage-blob");
+
+const blobServiceClient = new BlobServiceClient(`https://mapstudio.blob.core.windows.net`, new DefaultAzureCredential() );
 
 createMap = async (req, res) => {
     console.log(req);
@@ -121,7 +125,6 @@ updateMapInfoById = async (req, res) => {
 
 updateMapFileById = async (req, res) => {
     // update the map file's url
-
     Map.findOne({ _id: req.params.id })
         .then(map => {
             if (!map) {

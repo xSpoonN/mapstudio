@@ -124,8 +124,10 @@ async function updateMapFileData(mapid,geojsonData) {
         // };
 
         // test store the url of the geojsonData to database
-        const testurl = 'URL TEST'
-        const resp = await store.updateMapFile(mapid, testurl);
+        const testurl = 'URL TEST 20.21.12.2.2023'
+        // Test stringfy the geojsonData
+        const geojsonDataString = JSON.stringify(geojsonData);
+        const resp = await store.updateMapFile(mapid, geojsonDataString);
         console.log(resp);
         
     } catch (err) {
