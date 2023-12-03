@@ -3,8 +3,6 @@ const User = require('../models/User');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { BlobServiceClient } = require("@azure/storage-blob");
 
-const blobServiceClient = new BlobServiceClient(`https://mapstudio.blob.core.windows.net`, new DefaultAzureCredential() );
-
 createMap = async (req, res) => {
     console.log(req);
 
@@ -123,19 +121,37 @@ updateMapInfoById = async (req, res) => {
 
 }
 
+async function uploadToBlobStorage(geoJsonData) {
+   
+    const blobServiceClient = new BlobServiceClient(`https://mapstudio.blob.core.windows.net`, new DefaultAzureCredential() );
+    const containerName = "geojson-container";
+    const blobName = "geojson-" + Date.now() + ".json"; // create a new blob name every time
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
+    const uploadBlobResponse = await blockBlobClient.upload(JSON.stringify(geoJsonData), Buffer.byteLength(JSON.stringify(geoJsonData)));
+    console.log(`upload response: ${uploadBlobResponse.requestId}`);
+    return blockBlobClient.url; // return the url of the blob
+}
+
 updateMapFileById = async (req, res) => {
-    // update the map file's url
+    // req includes map id and geojson data
+    // upload geojson data to blob storage and get the url of the blob
+    // update the mapFile field of the map with the url
+
+    const geojsonData = req.body.geojsonData;
+    const blobUrl = await uploadToBlobStorage(geojsonData);
+
     Map.findOne({ _id: req.params.id })
         .then(map => {
             if (!map) {
                 return res.status(404).json({ error: 'Map not found.' });
             }
-            map.mapFile = req.body.mapFile;
+            map.mapFile = blobUrl;
             map.save().then(() => {
                 return res.status(200).json({
                     success: true,
                     id: map._id,
-                    message: 'Map updated!',
+                    message: 'Map File updated!',
                 })
             }).catch(error => {
                 console.log(error);

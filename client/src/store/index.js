@@ -3,7 +3,7 @@ import postAPI from './store-request-api/post-api'
 import commentAPI from './store-request-api/comment-api'
 import mapAPI from './store-request-api/map-api'
 import AuthContext from '../auth'
-import { map } from 'leaflet'
+// import { map } from 'leaflet'
 
 export const GlobalStoreContext = createContext({});
 console.log("create GlobalStoreContext");
