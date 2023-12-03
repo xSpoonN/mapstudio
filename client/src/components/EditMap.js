@@ -174,8 +174,6 @@ const handleFileUpload = async (event) => {
                         const dbfArrayBuffer = dbfEvent.target.result;
                         shapefile.read(shpArrayBuffer, dbfArrayBuffer).then((result) => {
                             geojsonData = { type: 'FeatureCollection', features: result.features };
-                            console.log("entering shapefile.read(shpdbf ArrayBuffer) converting into geojson file: WR3333333");
-                            console.log('converted geojson file:'+' '+result);
                             RenderNewGeoJSON(geojsonData);
                         }).catch((error) => {
                             console.error('Error reading Shapefile', error);

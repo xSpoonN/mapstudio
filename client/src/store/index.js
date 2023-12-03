@@ -285,8 +285,6 @@ function GlobalStoreContextProvider(props) {
 
     // update map geojson data in database
     store.updateMapFile = async function(id, geojsonData) {
-        console.log("Entering /store/index.js function updateMapFile: " + id);
-        console.log("update DATA: " + " " + geojsonData);
         try {
             let response = await mapAPI.updateMapFileById(id, geojsonData);
             console.log("updateMapFile response: " + JSON.stringify(response));
