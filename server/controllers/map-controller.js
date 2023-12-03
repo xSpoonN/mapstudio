@@ -2,6 +2,7 @@ const Map = require('../models/Map')
 const User = require('../models/User');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { BlobServiceClient } = require("@azure/storage-blob");
+const blobServiceClient = new BlobServiceClient(`https://mapstudio.blob.core.windows.net`, new DefaultAzureCredential() );
 
 createMap = async (req, res) => {
     console.log(req);
@@ -121,16 +122,20 @@ updateMapInfoById = async (req, res) => {
 
 }
 
-async function uploadToBlobStorage(geoJsonData) {
-   
-    const blobServiceClient = new BlobServiceClient(`https://mapstudio.blob.core.windows.net`, new DefaultAzureCredential() );
-    const containerName = "geojson-container";
-    const blobName = "geojson-" + Date.now() + ".json"; // create a new blob name every time
-    const containerClient = blobServiceClient.getContainerClient(containerName);
-    const blockBlobClient = containerClient.getBlockBlobClient(blobName);
-    const uploadBlobResponse = await blockBlobClient.upload(JSON.stringify(geoJsonData), Buffer.byteLength(JSON.stringify(geoJsonData)));
-    console.log(`upload response: ${uploadBlobResponse.requestId}`);
-    return blockBlobClient.url; // return the url of the blob
+async function uploadToBlobStorage(geoJsonData, mapid) {
+    /* const blobName = "geojson-" + Date.now() + ".json"; */ // create a new blob name every time
+    try {
+        const containerClient = blobServiceClient.getContainerClient('mapfiles');
+        const blockBlobClient = containerClient.getBlockBlobClient(`geojson${mapid}.json`);
+        const jsonContent = JSON.stringify(geoJsonData);
+        const uploadBlobResponse = await blockBlobClient.upload(jsonContent, jsonContent.length);
+        console.log(`upload response: ${uploadBlobResponse.requestId}`);
+        const url = `https://mapstudio.blob.core.windows.net/mapfiles/geojson${mapid}.json`;
+        return url; // return the url of the blob
+    } catch (error) {
+        console.log(error);
+        return undefined;
+    }
 }
 
 updateMapFileById = async (req, res) => {
@@ -139,7 +144,13 @@ updateMapFileById = async (req, res) => {
     // update the mapFile field of the map with the url
 
     const geojsonData = req.body.geojsonData;
-    const blobUrl = await uploadToBlobStorage(geojsonData);
+    const blobUrl = await uploadToBlobStorage(geojsonData, req.params.id);
+    if (!blobUrl) {
+        return res.status(400).json({
+            error,
+            message: 'Map not updated!',
+        })
+    }
 
     Map.findOne({ _id: req.params.id })
         .then(map => {
