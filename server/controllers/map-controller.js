@@ -275,7 +275,7 @@ getLandingMaps = async (req, res) => {
 }
 
 updateMapSchema = async (req, res) => {
-    const schema = {  
+    const SCHEMA = {  
         "$schema": "http://json-schema.org/draft-07/schema#",
         "definitions": {
           "bin": {
@@ -384,7 +384,7 @@ updateMapSchema = async (req, res) => {
     }
     const mapSchema = req.body.schema;
     console.log(mapSchema);
-    const validate = ajv.compile(schema);
+    const validate = ajv.compile(SCHEMA);
     if (!validate(mapSchema)) {
         return console.log(validate.errors);
         return res.status(400).json({

@@ -21,44 +21,24 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
 
     useEffect(() => {
         const retrieveData = async () => {
-            /* let schemaData = {}; */
-            /* if (mapData?.mapSchema) {
-                const schemaDataResp = await store.getSchema(mapData.mapSchema);
-                console.log(schemaDataResp);
-                if (schemaDataResp) {
-                    setMapInfo(schemaDataResp); 
-                    store.updateMapSchema(mapData._id, schemaDataResp);
-                    schemaData = schemaDataResp;
-                } else { */
-                    setMapInfo(mapSchema);
-                    /* schemaData = {};
-                }
-            } */
+            setMapInfo(mapSchema);
             console.log(currentFeature);
             console.log(mapSchema);
             if (currentFeature) {
-                /* setName(featureData.name); */
                 const match = mapSchema?.subdivisions?.find(subdivision => 
                     subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                 );
                 console.log(match)
                 setName(currentFeature.name || currentFeature.NAME || currentFeature.Name);
-                /* if (match) { */
-                    /* setSdData(match); */
-                    if (match?.data) {
-                        const options = Object.getOwnPropertyNames(match.data);
-                        setDropdownOptions(options)
-                        setDropdownValue(options ? options[0] : '');
-                        setValue(options ? match.data[options[0]] : '');
-                    }
-                    setWeight(match?.weight ? match.weight : 0.5);
-                    setColor(match?.color ? match.color : '#DDDDDD');
-                /* } */
+                if (match?.data) {
+                    const options = Object.getOwnPropertyNames(match.data);
+                    setDropdownOptions(options)
+                    setDropdownValue(options ? options[0] : '');
+                    setValue(options ? match.data[options[0]] : '');
+                }
+                setWeight(match?.weight ? match.weight : 0.5);
+                setColor(match?.color ? match.color : '#DDDDDD');
             }
-            /* const mapData = store.mapData;
-            if (mapData) {
-                setMapInfo(mapData);
-            } */
         }
         retrieveData();
     }, [store, currentFeature, mapData, mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -72,7 +52,6 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
         );
         setName(currentFeature.name || currentFeature.NAME || currentFeature.Name);
         if (match) {
-            /* setSdData(match); */
             if (match.data) {
                 const options = Object.getOwnPropertyNames(match.data);
                 setDropdownOptions(options)
@@ -131,13 +110,20 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
                         onChange={e => { 
                             setValue(e.target.value); 
-                            updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
-                                if (subdivision.name === currentFeature) { ////////////// NAME NAME NAME HAHAHAHHAHA
-                                    return {...subdivision, data: {...subdivision.data, [dropdownValue]: e.target.value}}
-                                } else {
-                                    return subdivision;
-                                }
-                            })})
+                            const existing = mapInfo?.subdivisions?.find(subdivision => 
+                                subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
+                            );
+                            console.log("existing", existing);
+                            if (existing) { // Technically this should always be true
+                                updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
+                                    return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
+                                    ? {...subdivision, data: {...subdivision.data, [dropdownValue]: e.target.value}} : subdivision;
+                                })})
+                            } else {
+                                updateSchema({...mapInfo, 
+                                    subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, data: {[dropdownValue]: e.target.value}}]
+                                })
+                            }
                         }}/>
                         
                         <IconButton>

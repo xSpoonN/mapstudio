@@ -15,8 +15,117 @@ import TemplateSidebar from './TemplateSidebar';
 import ConfirmModal from './ConfirmModal';
 import togeojson from 'togeojson';
 import * as shapefile from 'shapefile';
+const Ajv = require('ajv');
+const ajv = new Ajv();
 
 const SASTOKEN = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
+const SCHEMA = {  
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+      "bin": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "color": { "type": "string", "default": "#000000" },
+          "subdivisions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "uniqueItems": true
+          }
+        },
+        "required": [ "name" ]
+      },
+      "subdivision": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "weight": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "default": 1
+          },
+          "color": { "type": "string", "default": "#000000" }
+        },
+        "required": [ "name" ],
+        "additionalProperties": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "additionalProperties": { "type": "number"  }
+            }
+          }
+        }
+      },
+      "point": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "object",
+            "properties": {
+              "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+              "lon": { "type": "number", "minimum": -180, "maximum": 180 }
+            },
+            "required": [ "lat", "lon" ]
+          },
+          "weight": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "default": 1
+          }
+        },
+        "required": [ "location" ]
+      },
+      "gradient": {
+        "type": "object",
+        "properties": {
+          "dataField": { "type": "string" },
+          "minColor": { "type": "string", "default": "#000000" },
+          "maxColor": { "type": "string", "default": "#E3256B" },
+          "affectedBins": {
+            "type": "array",
+            "items": { "type": "string" },
+            "uniqueItems": true
+          }
+        },
+        "required": [ "dataField" ]
+      }
+    },
+    "type": "object",
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [ "bin", "gradient", "heatmap", "point", "satellite" ]
+      },
+      "bins": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/bin" },
+        "uniqueItems": true
+      },
+      "subdivisions": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/subdivision" },
+        "uniqueItems": true
+      },
+      "points": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/point" },
+        "uniqueItems": true
+      },
+      "gradients": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/gradient" },
+        "uniqueItems": true
+      },
+      "showSatellite": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "required": [ "type" ]
+}
 
 export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
@@ -134,7 +243,31 @@ export default function EditMap({ mapid }) {
             else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
                 // Parse GeoJSON file
                 geojsonData = JSON.parse(await file.text());
-                RenderNewGeoJSON(geojsonData);// render the geojsonData to map
+                console.log(geojsonData);
+                const validate = ajv.compile(SCHEMA);
+                if (!validate(geojsonData)) { // Does not match map schema, is a geojson file
+                    RenderNewGeoJSON(geojsonData);// render the geojsonData to map
+                    console.log(validate.errors);
+                } else {
+                    // Is a map schema file
+                    setData(geojsonData);
+                    await store.updateMapSchema(mapid, geojsonData);
+                    if (geoJSONLayerRef.current)
+                        geoJSONLayerRef.current.eachLayer((layer) => {
+                            const existing = geojsonData?.subdivisions?.find(subdivision => 
+                                subdivision.name === layer.feature.properties.name || 
+                                subdivision.name === layer.feature.properties.NAME || 
+                                subdivision.name === layer.feature.properties.Name
+                            );
+                            console.log("existing", existing);
+                            if (existing) {
+                                layer.setStyle({fillColor: existing.color || '#DDDDDD', fillOpacity: existing.weight || 0.5});
+                            } else {
+                                layer.setStyle({fillColor: '#DDDDDD', fillOpacity: 0.5});
+                            }
+                        });
+                }
+                return;
             }
             else if (file.name.endsWith('.shp')) {
                 const shpReader = new FileReader();
