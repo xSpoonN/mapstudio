@@ -16,7 +16,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
     const [dropdownValue, setDropdownValue] = useState('');
     const [value, setValue] = useState('');
     const [weight, setWeight] = useState(0.5); 
-    const [color, setColor] = useState('#E3256B');
+    const [color, setColor] = useState('#DDDDDD');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
     useEffect(() => {
@@ -52,7 +52,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                         setValue(options ? match.data[options[0]] : '');
                     }
                     setWeight(match?.weight ? match.weight : 0.5);
-                    setColor(match?.color ? match.color : '#E3256B');
+                    setColor(match?.color ? match.color : '#DDDDDD');
                 /* } */
             }
             /* const mapData = store.mapData;
@@ -223,7 +223,23 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
 
                     {/* Color Pickers */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
-                        {displayColorPicker && (<TwitterPicker color={color} onChangeComplete={color => setColor(color.hex)} sx={{ marginLeft: 'auto'}} triangle='hide'/>)}
+                        {displayColorPicker && (<TwitterPicker color={color} onChangeComplete={color => {
+                            setColor(color.hex);
+                            const existing = mapInfo?.subdivisions?.find(subdivision => 
+                                subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
+                            );
+                            console.log("existing", existing);
+                            if (existing) {
+                                updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
+                                    return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
+                                    ? {...subdivision, color: color.hex} : subdivision;
+                                })})
+                            } else {
+                                updateSchema({...mapInfo,
+                                    subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, color: color.hex}]
+                                })
+                            }
+                        }} sx={{ marginLeft: 'auto'}} triangle='hide'/>)}
                     </Box>
 
                     {/* Add New Property */}

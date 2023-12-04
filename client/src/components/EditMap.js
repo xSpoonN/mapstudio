@@ -97,8 +97,9 @@ function onEachFeature(feature, layer) {
         popupcontent.push(prop + ": " + feature.properties[prop]);
     }
     if(popupcontent.length !== 0) {
-    layer.bindPopup(popupcontent.join("<br/>"), {maxHeight: 200, maxWidth: 200});
+        layer.bindPopup(popupcontent.join("<br/>"), {maxHeight: 200, maxWidth: 200});
 
+    }
     // Add mouseover and mouseout event listeners
     layer.on('click', function() {
         console.log(feature.properties);
@@ -106,28 +107,15 @@ function onEachFeature(feature, layer) {
         /* store.setSchemaData(data); */
         store.setMapData(map);
         setSidebar('subdivision');
-        layer.openPopup();
+        /* layer.openPopup(); */
     });
-    layer.on('mouseout', function() {
+    /* layer.on('mouseout', function() {
         layer.closePopup();
-    });
-    }
+    }); */
 }
 
 async function updateMapFileData(mapid,geojsonData) {
     try {
-        // get the geometries from the GeoJSON object
-        // const geometries = geojsonData.features.map(feature => feature.geometry);
-        // // create a new GeoJSON object with only the geometries
-        // const geometryData = {handleFileUpload
-        //     type: "GeometryCollection",
-        //     geometries: geometries
-        // };
-
-        // test store the url of the geojsonData to database
-        // const testurl = 'URL TEST 20.21.12.2.2023'
-        // Test stringfy the geojsonData
-        // const geojsonDataString = JSON.stringify(geojsonData);
         const resp = await store.updateMapFile(mapid, geojsonData);
         console.log(resp);
         
@@ -239,6 +227,20 @@ const handleFileUpload = async (event) => {
                 });
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
+                if (geoJSONLayerRef.current)
+                    geoJSONLayerRef.current.eachLayer((layer) => {
+                        const existing = resp2?.subdivisions?.find(subdivision => 
+                            subdivision.name === layer.feature.properties.name || 
+                            subdivision.name === layer.feature.properties.NAME || 
+                            subdivision.name === layer.feature.properties.Name
+                        );
+                        console.log("existing", existing);
+                        if (existing) {
+                            layer.setStyle({fillColor: existing.color || '#DDDDDD', fillOpacity: existing.weight || 0.5});
+                        } else {
+                            layer.setStyle({fillColor: '#DDDDDD', fillOpacity: 0.5});
+                        }
+                    } );
 
             }
         }

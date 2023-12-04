@@ -298,7 +298,8 @@ updateMapSchema = async (req, res) => {
                 "maximum": 1,
                 "minimum": 0,
                 "default": 1
-              }
+              },
+              "color": { "type": "string", "default": "#000000" }
             },
             "required": [ "name" ],
             "additionalProperties": {
