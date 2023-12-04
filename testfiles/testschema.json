@@ -1,0 +1,36 @@
+{
+    "type": "bin",
+    "bins": [],
+    "subdivisions": [
+        { 
+            "name": "Minnesota", 
+            "weight": 0.7, 
+            "color": "#ff6900"
+        },
+        { 
+            "name": "Wisconsin", 
+            "weight": 0.4
+        },
+        { 
+            "name": "North Dakota", 
+            "color": "#00d084", 
+            "weight": 0.6
+        },
+        {
+            "name": "South Dakota",
+            "weight": 0.30000000000000004,
+            "color": "#0693e3"
+        },
+        { 
+            "name": "Iowa", 
+            "color": "#eb144c"
+        },
+        { 
+            "name": "Nebraska", 
+            "weight": 0.8999999999999999
+        }
+    ],
+    "points": [],
+    "gradients": [],
+    "showSatellite": true
+}
