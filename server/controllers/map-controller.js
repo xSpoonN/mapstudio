@@ -3,11 +3,13 @@ const MapSchema = require('../models/MapSchema')
 const User = require('../models/User');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { BlobServiceClient } = require("@azure/storage-blob");
+
 const blobServiceClient = new BlobServiceClient(`https://mapstudio.blob.core.windows.net`, new DefaultAzureCredential() );
 const Ajv = require('ajv');
 const ajv = new Ajv();
 const mongoose = require('mongoose');
 /* const mapSchemaModel = mongoose.model('MapSchema', new mongoose.Schema({}, {strict: false}), 'mapschemas'); */
+
 
 createMap = async (req, res) => {
     console.log(req);

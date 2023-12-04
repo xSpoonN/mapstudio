@@ -297,7 +297,6 @@ function GlobalStoreContextProvider(props) {
                             currentMapId : response.data.id
                         }
                     });
-
                     store.changeToEditMap(response.data.id);
                 }
             }
@@ -341,7 +340,6 @@ function GlobalStoreContextProvider(props) {
         }
     }
     
-
     //Community Post Actions
 
     store.createNewPost = async function(title, content) {

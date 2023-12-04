@@ -15,12 +15,7 @@ export const createMap = (author, title, description) => {
 export const getMaps = () => api.get(`/allmaps`)
 
 export const updateMapFileById = (id, geojsonData) => {
-    // the geojson data is too large to upload to the database
-    // need to upload it to the server's file system
-    // and then store the url of the file in the database
-    // but azure cannot GET the /mapsfile/id
-    // how to solve this?
-
+    // The geojsonData is the stringified version of the geojson object
     return api.put(`/maps/${id}`, {
         geojsonData : geojsonData
     })
