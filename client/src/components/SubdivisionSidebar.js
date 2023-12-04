@@ -169,7 +169,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                         <RemoveIcon />
                         </IconButton>
 
-                        <TextField value={weight} sx={{ width: '70px', margin: '2px' }} 
+                        <TextField value={weight.toFixed(2)} sx={{ width: '70px', margin: '2px' }} 
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
                         onChange={e => {
                             setWeight(e.target.value);
