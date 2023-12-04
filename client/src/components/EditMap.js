@@ -23,7 +23,7 @@ export default function EditMap({ mapid }) {
     const [sidebar, setSidebar] = useState('map');
     const [map, setMap] = useState(null);
     const [feature, setFeature] = useState(null);
-    const [data, setData] = useState(null); // eslint-disable-line
+    const [data, setData] = useState(null); // Schema data
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
@@ -78,120 +78,153 @@ export default function EditMap({ mapid }) {
             }
         }
     }
-/*---------------------------------------------------*/
+    function RenderNewGeoJSON(geojsonData) {
+        if (geoJSONLayerRef.current) { geoJSONLayerRef.current.clearLayers(); }
+        geoJSONLayerRef.current = L.geoJSON(geojsonData, { onEachFeature: onEachFeature }).addTo(mapRef.current);
+        updateMapFileData(mapid, geojsonData);
+    };
 
-function RenderNewGeoJSON (geojsonData) {
-    if (geoJSONLayerRef.current) { geoJSONLayerRef.current.clearLayers(); }
-    geoJSONLayerRef.current = L.geoJSON(geojsonData,{onEachFeature:onEachFeature}).addTo(mapRef.current);
-    updateMapFileData(mapid,geojsonData);
-};
-
-function onEachFeature(feature, layer) {
-    var popupcontent = [];
-    for (var prop in feature.properties) {
-        popupcontent.push(prop + ": " + feature.properties[prop]);
-    }
-    if(popupcontent.length !== 0) {
-    layer.bindPopup(popupcontent.join("<br/>"), {maxHeight: 200, maxWidth: 200});
-
-    // Add mouseover and mouseout event listeners
-    layer.on('click', function() {
-        console.log(feature.properties);
-        setFeature(feature.properties);
-        store.setSchemaData(data);
-        store.setMapData(map);
-        setSidebar('subdivision');
-        layer.openPopup();
-    });
-    layer.on('mouseout', function() {
-        layer.closePopup();
-    });
-    }
-}
-
-async function updateMapFileData(mapid,geojsonData) {
-    try {
-        const resp = await store.updateMapFile(mapid, geojsonData);
-        console.log(resp);
-    } catch (err) {
-        console.log('Error updating map file data in database');
-    }
-}
-/*---------------------------------------------------*/
-const handleFileUpload = async (event) => {
-    console.log('entering handleFileUpload ');
-    const files = Array.from(event.target.files);
-    if (!files.length) return;
-    let geojsonData;
-
-    if (files.length === 1){
-        const file = files[0];
-        if (file.name.endsWith('.kml')) {
-            // Parse KML or GeoJSON file
-            const text = await file.text();
-            const parser = new DOMParser();
-            const kml = parser.parseFromString(text, 'text/xml');
-            geojsonData = togeojson.kml(kml);
-            RenderNewGeoJSON(geojsonData);// render the geojsonData to map
+    function onEachFeature(feature, layer) {
+        var popupcontent = [];
+        for (var prop in feature.properties) {
+            popupcontent.push(prop + ": " + feature.properties[prop]);
         }
-        else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
-            // Parse GeoJSON file
-            geojsonData = JSON.parse(await file.text());
-            RenderNewGeoJSON(geojsonData);// render the geojsonData to map
+        if (popupcontent.length !== 0) {
+            layer.bindPopup(popupcontent.join("<br/>"), { maxHeight: 200, maxWidth: 200 });
+
         }
-        else if (file.name.endsWith('.shp')) {
+        // Add mouseover and mouseout event listeners
+        layer.on('click', function () {
+            console.log(feature.properties);
+            setFeature(feature.properties);
+            /* store.setSchemaData(data); */
+            store.setMapData(map);
+            setSidebar('subdivision');
+            /* layer.openPopup(); */
+        });
+        /* layer.on('mouseout', function() {
+            layer.closePopup();
+        }); */
+    }
+
+    async function updateMapFileData(mapid, geojsonData) {
+        try {
+            const resp = await store.updateMapFile(mapid, geojsonData);
+            console.log(resp);
+        } catch (err) {
+            console.log('Error updating map file data in database');
+        }
+    }
+    const handleFileUpload = async (event) => {
+        console.log('entering handleFileUpload ');
+        const files = Array.from(event.target.files);
+        if (!files.length) return;
+        let geojsonData;
+
+        if (files.length === 1) {
+            const file = files[0];
+            if (file.name.endsWith('.kml')) {
+                // Parse KML or GeoJSON file
+                const text = await file.text();
+                const parser = new DOMParser();
+                const kml = parser.parseFromString(text, 'text/xml');
+                geojsonData = togeojson.kml(kml);
+                RenderNewGeoJSON(geojsonData);// render the geojsonData to map
+            }
+            else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
+                // Parse GeoJSON file
+                geojsonData = JSON.parse(await file.text());
+                RenderNewGeoJSON(geojsonData);// render the geojsonData to map
+            }
+            else if (file.name.endsWith('.shp')) {
+                const shpReader = new FileReader();
+                shpReader.onload = (shpEvent) => {
+                    const shpArrayBuffer = shpEvent.target.result;
+                    shapefile.read(shpArrayBuffer).then((result) => {
+                        geojsonData = { type: 'FeatureCollection', features: result.features };
+                        RenderNewGeoJSON(geojsonData);// render the geojsonData to map
+                    }).catch((error) => {
+                        console.error('Error reading Shapefile', error);
+                    });
+                };
+                shpReader.readAsArrayBuffer(file);
+            }
+        }
+
+        if (files.length === 2) {
+            const validExtensions = ['shp', 'shx', 'dbf'];
+            const fileExtensions = Array.from(files).map(file => file.name.split('.').pop().toLowerCase());
+            if (!fileExtensions.every(ext => validExtensions.includes(ext))) {
+                alert('please upload .shp, .shx, and .dbf files');
+                return;
+            }
+            const shpFile = files.find(file => file.name.endsWith('.shp'));
+            const dbfFile = files.find(file => file.name.endsWith('.dbf'));
+            if (!shpFile || !dbfFile) {
+                alert('Both .shp and .dbf files are required');
+                return;
+            }
             const shpReader = new FileReader();
-            shpReader.onload = (shpEvent) => {
-            const shpArrayBuffer = shpEvent.target.result;
-                shapefile.read(shpArrayBuffer).then((result) => {
-                    geojsonData = { type: 'FeatureCollection', features: result.features };
-                    RenderNewGeoJSON(geojsonData);// render the geojsonData to map
-                }).catch((error) => {
-                    console.error('Error reading Shapefile', error);
-                });
-            };
-            shpReader.readAsArrayBuffer(file); 
-        }  
-    }
-
-    if (files.length === 2) {
-        const validExtensions = ['shp', 'shx', 'dbf'];
-        const fileExtensions = Array.from(files).map(file => file.name.split('.').pop().toLowerCase());
-        if (!fileExtensions.every(ext => validExtensions.includes(ext))) {
-            alert('please upload .shp, .shx, and .dbf files');
-            return;
-        }
-        const shpFile = files.find(file => file.name.endsWith('.shp'));
-        const dbfFile = files.find(file => file.name.endsWith('.dbf'));
-        if (!shpFile || !dbfFile) {alert('Both .shp and .dbf files are required');
-            return;
-        } 
-        const shpReader = new FileReader();
             shpReader.onload = (shpEvent) => {
                 const shpArrayBuffer = shpEvent.target.result;
                 const dbfReader = new FileReader();
-                    dbfReader.onload = (dbfEvent) => {
-                        const dbfArrayBuffer = dbfEvent.target.result;
-                        shapefile.read(shpArrayBuffer, dbfArrayBuffer).then((result) => {
-                            geojsonData = { type: 'FeatureCollection', features: result.features };
-                            RenderNewGeoJSON(geojsonData);
-                        }).catch((error) => {
-                            console.error('Error reading Shapefile', error);
-                        });
-                    };
-                    dbfReader.readAsArrayBuffer(dbfFile);
+                dbfReader.onload = (dbfEvent) => {
+                    const dbfArrayBuffer = dbfEvent.target.result;
+                    shapefile.read(shpArrayBuffer, dbfArrayBuffer).then((result) => {
+                        geojsonData = { type: 'FeatureCollection', features: result.features };
+                        RenderNewGeoJSON(geojsonData);
+                    }).catch((error) => {
+                        console.error('Error reading Shapefile', error);
+                    });
+                };
+                dbfReader.readAsArrayBuffer(dbfFile);
             };
             shpReader.readAsArrayBuffer(shpFile);
-        }else{
+        } else {
             alert('not supported files');
         }
-}
+    }
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
             console.log(resp)
             if (resp) {
                 setMap(resp);
+                if (!resp.mapSchema) return setData({
+                    "type": "bin",
+                    "bins": [],
+                    "subdivisions": [],
+                    "points": [],
+                    "gradients": [],
+                    "showSatellite": true
+                });
+                const resp2 = await store.getSchema(resp.mapSchema);
+                console.log(resp2);
+                if (!resp2) return setData({
+                    "type": "bin",
+                    "bins": [],
+                    "subdivisions": [],
+                    "points": [],
+                    "gradients": [],
+                    "showSatellite": true
+                });
+                /* store.setSchemaData(resp2?.schema); */
+                setData(resp2);
+                if (geoJSONLayerRef.current)
+                    geoJSONLayerRef.current.eachLayer((layer) => {
+                        const existing = resp2?.subdivisions?.find(subdivision => 
+                            subdivision.name === layer.feature.properties.name || 
+                            subdivision.name === layer.feature.properties.NAME || 
+                            subdivision.name === layer.feature.properties.Name
+                        );
+                        console.log("existing", existing);
+                        if (existing) {
+                            layer.setStyle({fillColor: existing.color || '#DDDDDD', fillOpacity: existing.weight || 0.5});
+                        } else {
+                            layer.setStyle({fillColor: '#DDDDDD', fillOpacity: 0.5});
+                        }
+                    } );
+
             }
         }
         fetchMap();
@@ -285,7 +318,7 @@ const handleFileUpload = async (event) => {
             >
                 <Toolbar style={{marginTop: '25px'}}/>
                 {sidebar === 'map' && <MapSidebar mapData={map}/>}
-                {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature}/>}
+                {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
                 {sidebar === 'point' && <PointSidebar />}
                 {sidebar === 'bin' && <BinSidebar />}
                 {sidebar === 'gradient' && <GradientSidebar />}

@@ -1,8 +1,8 @@
 import axios from 'axios'
 axios.defaults.withCredentials = true;
 const api = axios.create({
-    baseURL: 'https://mapstudio.azurewebsites.net/map',
-    // baseURL: 'http://localhost:8080/map',
+    /* baseURL: 'https://mapstudio.azurewebsites.net/map', */
+    baseURL: 'http://localhost:8080/map',
 })
 
 export const createMap = (author, title, description) => {
@@ -30,6 +30,16 @@ export const getPublishedMaps = () => api.get('/publishedmaps')
 export const getLandingMaps = (id) => {
     return api.get(`/landing/${id}`)
 }
+export const updateMapSchema = (id, mapSchema) => {
+    console.log(mapSchema);
+    return api.put(`/mapschema/${id}`, {
+        schema: mapSchema
+    })
+}
+
+export const getMapSchema = (id) => {
+    return api.get(`/mapschema/${id}`)
+}
 
 const apis = {
     createMap,
@@ -38,7 +48,9 @@ const apis = {
     getMapById,
     getMapsByUser,
     getPublishedMaps,
-    getLandingMaps
+    getLandingMaps,
+    updateMapSchema,
+    getMapSchema
 }
 
 export default apis

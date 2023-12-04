@@ -304,6 +304,41 @@ function GlobalStoreContextProvider(props) {
             console.log("updateMapFile error")
         }
     }
+
+    store.updateMapSchema = async function(id, mapSchema) {
+        try {  
+            let response = await mapAPI.updateMapSchema(id, mapSchema);
+            console.log("updateMapSchema response: " + JSON.stringify(response));
+            if (response.status === 200) {
+                if (response.data.success) {
+                    console.log("updateMapSchema response: " + response.data.id);
+                    storeReducer({
+                        type: GlobalStoreActionType.SET_SCHEMA_DATA,
+                        payload: {
+                            schemaData : mapSchema
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.log("updateMapSchema error", error)
+        }
+    }
+
+    store.getSchema = async function(id) {
+        try {
+            let response = await mapAPI.getMapSchema(id);
+            console.log("getSchema response: " + JSON.stringify(response));
+            if (response.status === 200) {
+                if (response.data.success) {
+                    console.log("getSchema response: " + response.data.schema);
+                    return response.data.schema;
+                }
+            }
+        } catch (error) {
+            console.log("getSchema error")
+        }
+    }
     
     //Community Post Actions
 
