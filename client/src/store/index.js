@@ -3,6 +3,7 @@ import postAPI from './store-request-api/post-api'
 import commentAPI from './store-request-api/comment-api'
 import mapAPI from './store-request-api/map-api'
 import AuthContext from '../auth'
+// import { map } from 'leaflet'
 
 export const GlobalStoreContext = createContext({});
 console.log("create GlobalStoreContext");
@@ -13,7 +14,10 @@ export const GlobalStoreActionType = {
     OPEN_MODAL: "OPEN_MODAL",
     SET_CURRENT_POST: "SET_CURRENT_POST",
     SET_CURRENT_MAP: "SET_CURRENT_MAP",
-    SET_CURRENT_COMMENTS: "SET_CURRENT_COMMENTS"
+    SET_CURRENT_COMMENTS: "SET_CURRENT_COMMENTS",
+    SET_FEATURE_DATA: "SET_FEATURE_DATA",
+    SET_SCHEMA_DATA: "SET_SCHEMA_DATA",
+    SET_MAP_DATA: "SET_MAP_DATA"
 }
 
 function GlobalStoreContextProvider(props) {
@@ -23,10 +27,13 @@ function GlobalStoreContextProvider(props) {
         modal: null,
         discussionPosts: null,
         currentPost: null,
-        currentMap: null,
+        currentMap: null, // Only the map ID is stored here.
         currentComments: [],
         currentFilter: '',
-        searchTerm: ''
+        searchTerm: '',
+        schemaData: null, // Used for storing our JSON schema map data.
+        featureData: null, // Used for switching sidebars to a certain feature.
+        mapData: null // Used for storing our map data during editing.
     });
 
     const storeReducer = (action) => {
@@ -35,6 +42,7 @@ function GlobalStoreContextProvider(props) {
             //Change screen
             case GlobalStoreActionType.CHANGE_CURRENT_SCREEN: {
                 return setStore({
+                    ...store,
                     currentScreen : payload.screen,
                     modal: null,
                     discussionPosts : payload.discussionPosts,
@@ -47,62 +55,57 @@ function GlobalStoreContextProvider(props) {
             }
             case GlobalStoreActionType.CLOSE_MODAL: {
                 return setStore({
-                    currentScreen : store.currentScreen,
-                    modal : null,
-                    discussionPosts : store.discussionPosts,
-                    currentPost : store.currentPost,
-                    currentComments : store.currentComments,
-                    currentMap : store.currentMap,
-                    currentFilter : store.currentFilter,
-                    searchTerm : store.searchTerm
+                    ...store,
+                    modal : null
                 });
             }
             case GlobalStoreActionType.OPEN_MODAL: {
                 return setStore({
-                    currentScreen : store.currentScreen,
-                    modal : 1,
-                    discussionPosts : store.discussionPosts,
-                    currentPost : store.currentPost,
-                    currentComments : store.currentComments,
-                    currentMap : store.currentMap,
-                    currentFilter : store.currentFilter,
-                    searchTerm : store.searchTerm
+                    ...store,
+                    modal : 1
                 });
             }
             case GlobalStoreActionType.SET_CURRENT_POST: {
                 return setStore({
-                    currentScreen : store.currentScreen,
+                    ...store,
                     modal : null,
-                    discussionPosts : store.discussionPosts,
-                    currentPost : payload.currentPost,
-                    currentComments : store.currentComments,
-                    currentMap : store.currentMap,
-                    currentFilter : store.currentFilter,
-                    searchTerm : store.searchTerm
+                    currentPost : payload.currentPost
                 });
             }
             case GlobalStoreActionType.SET_CURRENT_MAP: {
                 return setStore({
-                    currentScreen : store.currentScreen,
+                    ...store,
                     modal : null,
-                    discussionPosts : store.discussionPosts,
-                    currentPost : store.currentPost,
-                    currentComments : store.currentComments,
-                    currentMap : payload.currentMapId,
-                    currentFilter : store.currentFilter,
-                    searchTerm : store.searchTerm
+                    currentMap : payload.currentMapId
                 });
             }
             case GlobalStoreActionType.SET_CURRENT_COMMENTS: {
                 return setStore({
-                    currentScreen : store.currentScreen,
+                    ...store,
                     modal : null,
-                    discussionPosts : store.discussionPosts,
-                    currentPost : store.currentPost,
-                    currentComments : payload.currentComments,
-                    currentMap : store.currentMap,
-                    currentFilter : store.currentFilter,
-                    searchTerm : store.searchTerm
+                    currentComments : payload.currentComments
+                });
+            }
+            case GlobalStoreActionType.SET_FEATURE_DATA: {
+                console.log(payload);
+                return setStore({
+                    ...store,
+                    modal : null,
+                    featureData : payload.featureData
+                });
+            }
+            case GlobalStoreActionType.SET_SCHEMA_DATA: {
+                return setStore({
+                    ...store,
+                    modal : null,
+                    schemaData : payload.schemaData
+                });
+            }
+            case GlobalStoreActionType.SET_MAP_DATA: {
+                return setStore({
+                    ...store,
+                    modal : null,
+                    mapData : payload.mapData
                 });
             }
             default:
@@ -280,6 +283,63 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
+    // update map geojson data in database
+    store.updateMapFile = async function(id, geojsonData) {
+        try {
+            let response = await mapAPI.updateMapFileById(id, geojsonData);
+            console.log("updateMapFile response: " + JSON.stringify(response));
+            if (response.status === 200) {
+                if (response.data.success) {
+                    console.log("updateMapFile response: " + response.data.id);
+                    storeReducer({
+                        type: GlobalStoreActionType.SET_CURRENT_MAP,
+                        payload: {
+                            currentMapId : response.data.id
+                        }
+                    });
+                    store.changeToEditMap(response.data.id);
+                }
+            }
+        } catch (error) {
+            console.log("updateMapFile error")
+        }
+    }
+
+    store.updateMapSchema = async function(id, mapSchema) {
+        try {  
+            let response = await mapAPI.updateMapSchema(id, mapSchema);
+            console.log("updateMapSchema response: " + JSON.stringify(response));
+            if (response.status === 200) {
+                if (response.data.success) {
+                    console.log("updateMapSchema response: " + response.data.id);
+                    storeReducer({
+                        type: GlobalStoreActionType.SET_SCHEMA_DATA,
+                        payload: {
+                            schemaData : mapSchema
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.log("updateMapSchema error", error)
+        }
+    }
+
+    store.getSchema = async function(id) {
+        try {
+            let response = await mapAPI.getMapSchema(id);
+            console.log("getSchema response: " + JSON.stringify(response));
+            if (response.status === 200) {
+                if (response.data.success) {
+                    console.log("getSchema response: " + response.data.schema);
+                    return response.data.schema;
+                }
+            }
+        } catch (error) {
+            console.log("getSchema error")
+        }
+    }
+    
     //Community Post Actions
 
     store.createNewPost = async function(title, content) {
@@ -612,6 +672,51 @@ function GlobalStoreContextProvider(props) {
             }
         } catch (error) {
             console.log("Failed getting published maps" + JSON.stringify(error))
+        }
+    }
+
+    store.setCurrentFeature = function(feature) {
+        console.log(feature);
+        storeReducer({
+            type: GlobalStoreActionType.SET_FEATURE_DATA,
+            payload: {
+                featureData : feature.name
+            }
+        });
+    }
+
+    store.setSchemaData = function(schema) {
+        storeReducer({
+            type: GlobalStoreActionType.SET_SCHEMA_DATA,
+            payload: {
+                schemaData : schema
+            }
+        });
+    }
+
+    store.setMapData = function(mapData) {
+        storeReducer({
+            type: GlobalStoreActionType.SET_MAP_DATA,
+            payload: {
+                mapData : mapData
+            }
+        });
+    }
+
+    store.updateMapData = async function(mapData) {
+        try{
+            const response = await mapAPI.updateMapById(mapData._id, mapData);
+            if (response.data.success) {
+                storeReducer({
+                    type: GlobalStoreActionType.SET_CURRENT_MAP,
+                    payload: {
+                        currentMapId : response.data.map._id
+                    }
+                });
+            }
+            return response;
+        } catch (error) {
+            console.log("Failed updating map")
         }
     }
 
