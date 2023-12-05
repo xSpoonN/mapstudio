@@ -66,7 +66,7 @@ export default function DiscussionHomeScreen(props) {
                     Discuss!
                 </Typography>
                 <Typography variant="h3" align="left" sx={{ mx: 6, my: 6 }} color='#000000' flexGrow={1}>
-                    {props.posts.length}
+                    {handleSortAndFilter(props.posts).length}
                 </Typography>
                 <Box justifyContent="center" sx={{ flexGrow: 2, mx: 6, my: 6 }}>
 					<TextField

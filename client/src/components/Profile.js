@@ -164,6 +164,7 @@ export default function Profile() {
                                                     views={maps[i].__v}
                                                     likes={maps[i].likes}
                                                     dislikes={maps[i].dislikes}
+                                                    comments={maps[i].comments.length}
                                                 />
                                             </Grid>
                                         ))}

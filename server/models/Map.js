@@ -11,9 +11,11 @@ const mapSchema = new mongoose.Schema({
     likeUsers: [{ type: String, default: [] }],
     dislikeUsers: [{ type: String, default: [] }],
     comments: [{ type: ObjectId, ref: 'Comment', default: [] }],
-    mapFile: { type: Buffer, default: null },
+    mapFile: { type: String, default: '' },
+    mapSchema: {type: ObjectId, ref: 'MapSchema', default: null},
     creationDate: { type: Date, default: Date.now },
-    updateDate: { type: Date, default: Date.now }
+    updateDate: { type: Date, default: Date.now },
+    publishedDate: { type: Date, default: null }
 });
 
 module.exports = mongoose.model('Map', mapSchema);
