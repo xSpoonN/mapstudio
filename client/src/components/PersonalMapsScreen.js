@@ -65,7 +65,7 @@ export default function PersonalMapsScreen() {
         } else if(sort === "Most Commented") {
             sorted = maps.sort((a, b) => b.comments.length - a.comments.length);
         }
-        return sorted.filter(post => post.title.includes(search));
+        return sorted.filter(post => post.title.toLowerCase().includes(search?.toLowerCase()));
     }
 
     return (
