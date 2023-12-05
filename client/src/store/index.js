@@ -501,7 +501,7 @@ function GlobalStoreContextProvider(props) {
             newMap.likes--;
             newMap.likeUsers.splice(newMap.likeUsers.indexOf(auth.user.username),1)
         }
-        store.updateMap(newMap);
+        store.updateMapInfo(newMap);
     }
 
     store.dislikeMap = function(map) {
@@ -517,13 +517,13 @@ function GlobalStoreContextProvider(props) {
             newMap.dislikes--;
             newMap.dislikeUsers.splice(newMap.dislikeUsers.indexOf(auth.user.username),1)
         }
-            store.updateMap(newMap);
+        store.updateMapInfo(newMap);
     }
 
-    store.updateMap = async function(newMap) {
+    store.updateMapInfo = async function(newMap) {
         try{
-            const response = await mapAPI.updateMapById(newMap._id, newMap);
-            /* console.log(response) */
+            const response = await mapAPI.updateMapInfoById(newMap._id, newMap);
+            console.log(response) 
             if (response.data.success) {
                 storeReducer({
                     type: GlobalStoreActionType.SET_CURRENT_MAP,
@@ -659,7 +659,7 @@ function GlobalStoreContextProvider(props) {
         let newMap = map
         newMap.isPublished = true
         newMap.publishedDate = Date.now()
-        await store.updateMap(newMap);
+        await store.updateMapInfo(newMap);
         store.changeToMapView(mapid)
     }
 
@@ -701,23 +701,6 @@ function GlobalStoreContextProvider(props) {
                 mapData : mapData
             }
         });
-    }
-
-    store.updateMapData = async function(mapData) {
-        try{
-            const response = await mapAPI.updateMapById(mapData._id, mapData);
-            if (response.data.success) {
-                storeReducer({
-                    type: GlobalStoreActionType.SET_CURRENT_MAP,
-                    payload: {
-                        currentMapId : response.data.map._id
-                    }
-                });
-            }
-            return response;
-        } catch (error) {
-            console.log("Failed updating map")
-        }
     }
 
     return (
