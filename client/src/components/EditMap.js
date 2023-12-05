@@ -398,6 +398,7 @@ export default function EditMap({ mapid }) {
     }
 
     const handleDelete = async () => {
+        console.log('delete map called on ' + mapid);
         const resp = await store.deleteMap(mapid);
         console.log(resp);
     }

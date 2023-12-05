@@ -45,7 +45,7 @@ createMap = async (req, res) => {
 
 deleteMapById = async (req, res) => {
     try {
-        const map = await Map.findOne({ _id: req.params.id });
+        const map = await Map.findOneAndDelete({ _id: req.params.id });
 
         if (!map) {
             return res.status(404).json({ error: 'Map not found.' });
@@ -69,7 +69,6 @@ deleteMapById = async (req, res) => {
 
         author.maps.pull(map._id);
         await author.save();
-        await map.remove();
         await deleteFromBlobStorage(map._id);
 
         return res.status(200).json({
