@@ -5,7 +5,11 @@
         { 
             "name": "Minnesota", 
             "weight": 0.7, 
-            "color": "#ff6900"
+            "color": "#ff6900",
+            "data": {
+                "population": 59,
+                "area": 13434
+            }
         },
         { 
             "name": "Wisconsin", 
@@ -32,5 +36,5 @@
     ],
     "points": [],
     "gradients": [],
-    "showSatellite": true
+    "satelliteView": true
 }

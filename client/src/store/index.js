@@ -328,10 +328,10 @@ function GlobalStoreContextProvider(props) {
     store.getSchema = async function(id) {
         try {
             let response = await mapAPI.getMapSchema(id);
-            console.log("getSchema response: " + JSON.stringify(response));
+            /* console.log("getSchema response: " + JSON.stringify(response)); */
             if (response.status === 200) {
                 if (response.data.success) {
-                    console.log("getSchema response: " + response.data.schema);
+                    /* console.log("getSchema response: " + response.data.schema); */
                     return response.data.schema;
                 }
             }

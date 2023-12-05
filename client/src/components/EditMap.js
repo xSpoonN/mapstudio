@@ -136,6 +136,8 @@ export default function EditMap({ mapid }) {
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
+    const satelliteLayerRef = useRef(null); // Track satellite layer instance
+    const [showSatellite, setShowSatellite] = useState(false);
     const { store } = useContext(GlobalStoreContext); // eslint-disable-line
     L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png',
@@ -194,14 +196,14 @@ export default function EditMap({ mapid }) {
     };
 
     function onEachFeature(feature, layer) {
-        var popupcontent = [];
+        /* var popupcontent = [];
         for (var prop in feature.properties) {
             popupcontent.push(prop + ": " + feature.properties[prop]);
         }
         if (popupcontent.length !== 0) {
             layer.bindPopup(popupcontent.join("<br/>"), { maxHeight: 200, maxWidth: 200 });
 
-        }
+        } */
         // Add mouseover and mouseout event listeners
         layer.on('click', function () {
             console.log(feature.properties);
@@ -317,10 +319,29 @@ export default function EditMap({ mapid }) {
             alert('not supported files');
         }
     }
+
+    const drawSubdivisions = (resp2) => {
+        if (geoJSONLayerRef.current){
+            /* console.log("drawing subdivisions with data", resp2?.subdivisions); */
+            geoJSONLayerRef.current.eachLayer((layer) => {
+                const existing = resp2?.subdivisions?.find(subdivision => 
+                    subdivision.name === layer.feature.properties.name || 
+                    subdivision.name === layer.feature.properties.NAME || 
+                    subdivision.name === layer.feature.properties.Name
+                );
+                /* console.log("existing", existing); */
+                if (existing) {
+                    layer.setStyle({fillColor: existing.color || '#DDDDDD', fillOpacity: existing.weight || 0.5});
+                } else {
+                    layer.setStyle({fillColor: '#DDDDDD', fillOpacity: 0.5});
+                }
+            } );
+        }
+    }
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
-            console.log(resp)
+            /* console.log(resp) */
             if (resp) {
                 setMap(resp);
                 if (!resp.mapSchema) return setData({
@@ -343,47 +364,37 @@ export default function EditMap({ mapid }) {
                 });
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
-                if (geoJSONLayerRef.current)
-                    geoJSONLayerRef.current.eachLayer((layer) => {
-                        const existing = resp2?.subdivisions?.find(subdivision => 
-                            subdivision.name === layer.feature.properties.name || 
-                            subdivision.name === layer.feature.properties.NAME || 
-                            subdivision.name === layer.feature.properties.Name
-                        );
-                        console.log("existing", existing);
-                        if (existing) {
-                            layer.setStyle({fillColor: existing.color || '#DDDDDD', fillOpacity: existing.weight || 0.5});
-                        } else {
-                            layer.setStyle({fillColor: '#DDDDDD', fillOpacity: 0.5});
-                        }
-                    } );
-
+                drawSubdivisions(resp2);
+                setShowSatellite(resp2?.satelliteView);
+    
             }
         }
         fetchMap();
-    }, [store, mapid]);
+    }, [store, mapid]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
             mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
-            L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ subdomains:['mt0','mt1','mt2','mt3']}).addTo(mapRef.current); // Add Google Satellite tiles
+            //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
+            satelliteLayerRef.current = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ 
+                subdomains:['mt0','mt1','mt2','mt3']
+            }).addTo(mapRef.current); // Add Google Satellite tiles
             mapInitializedRef.current = true; // Mark map as initialized
         }
-
         fetch(map?.mapFile ? `${map.mapFile}?${SASTOKEN}` : "brazil-states.json", {mode: "cors"})
             .then((response) =>  response.json())
             .then((geojson) => {
-                console.log(geojson);
                 if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); // Remove existing GeoJSON layer
                 else geoJSONLayerRef.current = L.geoJSON(geojson,{onEachFeature:onEachFeature}).addTo(mapRef.current); // Add new GeoJSON layer
                 geoJSONLayerRef.current.addData(geojson); // Add GeoJSON data to layer
+                if (data) drawSubdivisions(data);
             }).catch((error) => {
                 console.error('Error reading GeoJSON', error);
             });
-
-        return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); }; // Remove GeoJSON layer on unmount
-    }, [map]); // eslint-disable-line react-hooks/exhaustive-deps
+        /* console.log(showSatellite); */
+        satelliteLayerRef?.current?.setOpacity(showSatellite ? 1 : 0);
+        return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers();  }; // Remove GeoJSON layer on unmount
+    }, [map?.mapFile, showSatellite]); // eslint-disable-line react-hooks/exhaustive-deps
 
     function handlePublishModal() {
         store.openModal();
@@ -450,7 +461,7 @@ export default function EditMap({ mapid }) {
                 onClose={() => setOpenDrawer(false)}
             >
                 <Toolbar style={{marginTop: '25px'}}/>
-                {sidebar === 'map' && <MapSidebar mapData={map}/>}
+                {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data}/>}
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
                 {sidebar === 'point' && <PointSidebar />}
                 {sidebar === 'bin' && <BinSidebar />}
