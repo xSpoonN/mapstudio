@@ -394,7 +394,7 @@ export default function EditMap({ mapid }) {
         /* console.log(showSatellite); */
         satelliteLayerRef?.current?.setOpacity(showSatellite ? 1 : 0);
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers();  }; // Remove GeoJSON layer on unmount
-    }, [map, showSatellite]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [map?.mapFile, showSatellite]); // eslint-disable-line react-hooks/exhaustive-deps
 
     function handlePublishModal() {
         store.openModal();
