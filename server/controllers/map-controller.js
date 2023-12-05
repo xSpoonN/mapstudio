@@ -1,6 +1,7 @@
 const Map = require('../models/Map')
 const MapSchema = require('../models/MapSchema')
 const User = require('../models/User');
+const Comment = require('../models/Comment');
 const { DefaultAzureCredential } = require('@azure/identity');
 const { BlobServiceClient } = require("@azure/storage-blob");
 
@@ -53,6 +54,12 @@ deleteMapById = async (req, res) => {
         // attempt to delete MapSchema
         if (map.mapSchema) {
             await MapSchema.deleteOne({ _id: map.mapSchema });
+        }
+
+        // drop all associated comments
+        const commentIds = map.comments;
+        if (commentIds && commentIds.length > 0) {
+            await Comment.deleteMany({ _id: { $in: commentIds } });
         }
 
         // Delete map from author's maps array
