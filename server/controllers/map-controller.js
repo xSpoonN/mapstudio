@@ -55,6 +55,7 @@ deleteMapById = async (req, res) => {
             map.remove().then(() => {
                 author.maps.pull(map._id);
                 author.save();
+                deleteFromBlobStorage(map._id);
                 return res.status(200).json({
                     success: true,
                     id: map._id,
@@ -148,6 +149,19 @@ async function uploadToBlobStorage(geoJsonData, mapid) {
     } catch (error) {
         console.log(error);
         return undefined;
+    }
+}
+
+async function deleteFromBlobStorage(mapid) {
+    try {
+        const containerClient = blobServiceClient.getContainerClient('mapfiles');
+        const blockBlobClient = containerClient.getBlockBlobClient(`geojson${mapid}.json`);
+        const deleteBlobResponse = await blockBlobClient.deleteIfExists();
+        console.log(`delete response: ${deleteBlobResponse.requestId}`);
+        return true;
+    } catch (error) {
+        console.log(error);
+        return false;
     }
 }
 
