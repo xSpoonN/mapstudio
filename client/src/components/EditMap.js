@@ -152,9 +152,7 @@ const handleFileUpload = async (event) => {
             };
             shpReader.readAsArrayBuffer(file); 
         }  
-    }
-
-    if (files.length === 2) {
+    }else if (files.length === 2) {
         const validExtensions = ['shp', 'shx', 'dbf'];
         const fileExtensions = Array.from(files).map(file => file.name.split('.').pop().toLowerCase());
         if (!fileExtensions.every(ext => validExtensions.includes(ext))) {
@@ -182,9 +180,9 @@ const handleFileUpload = async (event) => {
                     dbfReader.readAsArrayBuffer(dbfFile);
             };
             shpReader.readAsArrayBuffer(shpFile);
-        }else{
-            alert('not supported files');
-        }
+    }else{
+        alert('not supported files');
+    }
 }
     useEffect(() => {
         const fetchMap = async () => {
