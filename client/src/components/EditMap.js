@@ -194,14 +194,14 @@ export default function EditMap({ mapid }) {
     };
 
     function onEachFeature(feature, layer) {
-        var popupcontent = [];
+        /* var popupcontent = [];
         for (var prop in feature.properties) {
             popupcontent.push(prop + ": " + feature.properties[prop]);
         }
         if (popupcontent.length !== 0) {
             layer.bindPopup(popupcontent.join("<br/>"), { maxHeight: 200, maxWidth: 200 });
 
-        }
+        } */
         // Add mouseover and mouseout event listeners
         layer.on('click', function () {
             console.log(feature.properties);

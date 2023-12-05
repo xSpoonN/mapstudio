@@ -35,6 +35,10 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                     setDropdownOptions(options)
                     setDropdownValue(options ? options[0] : '');
                     setValue(options ? match.data[options[0]] : '');
+                } else {
+                    setDropdownOptions([]);
+                    setDropdownValue('');
+                    setValue('');
                 }
                 setWeight(match?.weight ? match.weight : 0.5);
                 setColor(match?.color ? match.color : '#DDDDDD');
@@ -52,11 +56,17 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
         );
         setName(currentFeature.name || currentFeature.NAME || currentFeature.Name);
         if (match) {
+            setWeight(match.weight ? match.weight : 0.5);
+            setColor(match.color ? match.color : '#E3256B');
             if (match.data) {
                 const options = Object.getOwnPropertyNames(match.data);
                 setDropdownOptions(options)
                 setDropdownValue(options ? options[0] : '');
                 setValue(options ? match.data[options[0]] : '');
+            } else {
+                setDropdownOptions([]);
+                setDropdownValue('');
+                setValue('');
             }
             setWeight(match.weight ? match.weight : 0.5);
             setColor(match.color ? match.color : '#E3256B');
@@ -79,7 +89,8 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                     {/* Subdivision Name */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <Typography sx={{ mr: 1, ml: '10%' }}>Name</Typography>  
-                        <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} onChange={e => {
+                        {/* <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} 
+                        onChange={e => {
                             setName(e.target.value); 
                             updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
                                 if (subdivision.name === currentFeature) { // NAME NAME NAME HAHAHAHHAHA
@@ -88,7 +99,9 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                                     return subdivision;
                                 }
                             })})
-                        }} />
+                        }} 
+                        /> */}
+                        <Typography sx={{ marginLeft: 'auto', borderRadius: 3, marginRight: '5px' }}>{name}</Typography>
 
                         {/* Placeholder to take up space for alignment */}
                         <IconButton disabled={true}>
@@ -99,7 +112,14 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                     {/* Subdivision Properties */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <FormControl sx={{ mr: 1, ml: '10%' }}>
-                        <Select value={dropdownValue} onChange={e => setDropdownValue(e.target.value)} sx={{ borderRadius: 3 }}>
+                        <Select value={dropdownValue} onChange={e => {
+                            setDropdownValue(e.target.value);
+                            const existing = mapInfo?.subdivisions?.find(subdivision =>
+                                subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
+                            );
+                            console.log("existing", existing);
+                            setValue(existing?.data[e.target.value] ? existing.data[e.target.value] : '')
+                        }} sx={{ borderRadius: 3 }}>
                             {dropdownOptions.map(option => <MenuItem value={option}>{option}</MenuItem>)}
                             {/* <MenuItem value="Option 1">Option 1</MenuItem>
                             <MenuItem value="Option 2">Option 2</MenuItem> */}
@@ -110,7 +130,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
                         onChange={e => { 
                             setValue(e.target.value); 
-                            const existing = mapInfo?.subdivisions?.find(subdivision => 
+                            /* const existing = mapInfo?.subdivisions?.find(subdivision => 
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
                             console.log("existing", existing);
@@ -123,8 +143,25 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                                 updateSchema({...mapInfo, 
                                     subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, data: {[dropdownValue]: e.target.value}}]
                                 })
+                            } */
+                        }}
+                        onBlur={() => {
+                            const existing = mapInfo?.subdivisions?.find(subdivision => 
+                                subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
+                            );
+                            console.log("existing", existing);
+                            if (existing) { // Technically this should always be true
+                                updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
+                                    return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
+                                    ? {...subdivision, data: {...subdivision.data, [dropdownValue]: value}} : subdivision;
+                                })})
+                            } else {
+                                updateSchema({...mapInfo, 
+                                    subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, data: {[dropdownValue]: value}}]
+                                })
                             }
-                        }}/>
+                        }}
+                        />
                         
                         <IconButton>
                         <DeleteIcon  sx={{ marginLeft: 'auto' }} />  
@@ -159,7 +196,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
                         onChange={e => {
                             setWeight(e.target.value);
-                            const existing = mapInfo?.subdivisions?.find(subdivision => 
+                            /* const existing = mapInfo?.subdivisions?.find(subdivision => 
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
                             console.log("existing", existing);
@@ -172,8 +209,25 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                                 updateSchema({...mapInfo,
                                     subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, weight: Number(e.target.value)}]
                                 })
+                            } */
+                        }}
+                        onBlur={() => {
+                            const existing = mapInfo?.subdivisions?.find(subdivision => 
+                                subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
+                            );
+                            console.log("existing", existing);
+                            if (existing) {
+                                updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
+                                    return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
+                                    ? {...subdivision, weight: Number(weight)} : subdivision;
+                                })})
+                            } else {
+                                updateSchema({...mapInfo,
+                                    subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, weight: Number(weight)}]
+                                })
                             }
-                        }}/>
+                        }}
+                        />
 
                         <IconButton  onClick={() => {
                             setWeight(weight + 0.1);
