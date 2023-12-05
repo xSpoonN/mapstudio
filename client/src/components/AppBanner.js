@@ -232,6 +232,11 @@ export default function AppBanner() {
 						style = {{ width: '50%' }}
 						onChange={handleUpdateSearch}
 						value={search}
+						onKeyDown={(e) => {
+							if (e.key === 'Enter') {
+								handleSearch();
+							}
+						}}
 					/>
 				</Box>
 
