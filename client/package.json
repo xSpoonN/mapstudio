@@ -52,6 +52,7 @@
     ]
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "cypress": "^13.4.0",
     "cypress-file-upload": "^5.0.8"
   }
