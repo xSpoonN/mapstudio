@@ -227,7 +227,6 @@ export default function EditMap({ mapid }) {
         }
     }
     const handleFileUpload = async (event) => {
-        console.log('entering handleFileUpload ');
         const files = Array.from(event.target.files);
         if (!files.length) return;
         let geojsonData;
@@ -284,9 +283,7 @@ export default function EditMap({ mapid }) {
                 };
                 shpReader.readAsArrayBuffer(file);
             }
-        }
-
-        if (files.length === 2) {
+        }else if (files.length === 2) {
             const validExtensions = ['shp', 'shx', 'dbf'];
             const fileExtensions = Array.from(files).map(file => file.name.split('.').pop().toLowerCase());
             if (!fileExtensions.every(ext => validExtensions.includes(ext))) {
@@ -316,7 +313,7 @@ export default function EditMap({ mapid }) {
             };
             shpReader.readAsArrayBuffer(shpFile);
         } else {
-            alert('not supported files');
+            alert('not supported importing');
         }
     }
 
