@@ -45,7 +45,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
             }
         }
         retrieveData();
-    }, [store, currentFeature, mapData, mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [/* store,  */currentFeature, /* mapData, */ mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
 
     const updateSchema = async (updatedSchema) => {
         /* const resp =  */await store.updateMapSchema(mapData._id, updatedSchema);
