@@ -12,6 +12,9 @@ export const createMap = (author, title, description) => {
         description: description
     })
 }
+export const deleteMap = (mapid) => {
+    return api.delete(`/maps/${mapid}`)
+}
 export const getMaps = () => api.get(`/allmaps`)
 export const updateMapInfoById = (id, map) => {
     return api.put(`/mapInfo/${id}`, {
@@ -47,6 +50,7 @@ export const getMapSchema = (id) => {
 
 const apis = {
     createMap,
+    deleteMap,
     updateMapInfoById,
     getMaps,
     updateMapFileById,
