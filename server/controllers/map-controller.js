@@ -43,39 +43,41 @@ createMap = async (req, res) => {
 }
 
 deleteMapById = async (req, res) => {
-    Map.findOne({ _id: req.params.id })
-        .then(map => {
-            if (!map) {
-                return res.status(404).json({ error: 'Map not found.' });
-            }
-            // delete map from author's maps array
-            // find author by getting map's author id
-            let authorId = map.author;
-            author = User.findOne({ _id: authorId });
-            map.remove().then(() => {
-                author.maps.pull(map._id);
-                author.save();
-                deleteFromBlobStorage(map._id);
-                return res.status(200).json({
-                    success: true,
-                    id: map._id,
-                    message: 'Map deleted!',
-                })
-            }).catch(error => {
-                console.log(error);
-                return res.status(400).json({
-                    error,
-                    message: 'Map not deleted!',
-                })
-            })
-        }).catch(error => {
-            console.log(error);
-            return res.status(400).json({
-                error,
-                message: 'Map not found!',
-            })
-        })
-}
+    try {
+        const map = await Map.findOne({ _id: req.params.id });
+
+        if (!map) {
+            return res.status(404).json({ error: 'Map not found.' });
+        }
+        
+        // attempt to delete MapSchema
+        if (map.mapSchema) {
+            await MapSchema.deleteOne({ _id: map.mapSchema });
+        }
+
+        // Delete map from author's maps array
+        // Find author by getting map's author id
+        const authorId = map.author;
+        const author = await User.findOne({ _id: authorId });
+
+        author.maps.pull(map._id);
+        await author.save();
+        await map.remove();
+        await deleteFromBlobStorage(map._id);
+
+        return res.status(200).json({
+            success: true,
+            id: map._id,
+            message: 'Map deleted!',
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({
+            error,
+            message: 'Map not deleted!',
+        });
+    }
+};
 
 getMapById = async (req, res) => {
     Map.findOne({ _id: req.params.id })
