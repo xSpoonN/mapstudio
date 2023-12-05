@@ -76,4 +76,5 @@ describe('Create Map', () => {
         cy.contains("Satellite Map").should("exist")
 
     })
+
   })
