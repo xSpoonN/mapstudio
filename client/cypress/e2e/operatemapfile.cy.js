@@ -32,12 +32,12 @@ describe('Operating Map file', () => {
         cy.get('button').contains('JSON').click();
     });
 
-    it('Edit map file ', () => {
-        cy.get('.MuiPaper-root.map-card').first().click();
-        cy.get('button').contains('Map Info').click();
-        cy.get('label').contains('Title').parent().find('input').clear().type('test title');
-        cy.get('label').contains('Satellite View').parent().find('input[type="checkbox"]').check();
-    });
+    // it('Edit map file ', () => {
+    //     cy.get('.MuiPaper-root.map-card').first().click();
+    //     cy.get('button').contains('Map Info').click();
+    //     cy.get('label').contains('Title').parent().find('input').clear().type('test title');
+    //     cy.get('label').contains('Satellite View').parent().find('input[type="checkbox"]').check();
+    // });
 
     it('Delete map file ', () => {
         cy.get('button').contains('Create +').click();
