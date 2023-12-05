@@ -285,7 +285,7 @@ function GlobalStoreContextProvider(props) {
 
     store.deleteMap = async function(mapid) {
         try {
-            let response = await mapAPI.deleteMapById(mapid);
+            let response = await mapAPI.deleteMap(mapid);
             console.log("deleteMap response: " + JSON.stringify(response));
             if (response.status === 200) {
                 if (response.data.success) {
