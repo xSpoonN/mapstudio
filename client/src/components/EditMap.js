@@ -322,7 +322,7 @@ export default function EditMap({ mapid }) {
 
     const drawSubdivisions = (resp2) => {
         if (geoJSONLayerRef.current){
-            console.log("drawing subdivisions with data", resp2?.subdivisions);
+            /* console.log("drawing subdivisions with data", resp2?.subdivisions); */
             geoJSONLayerRef.current.eachLayer((layer) => {
                 const existing = resp2?.subdivisions?.find(subdivision => 
                     subdivision.name === layer.feature.properties.name || 
@@ -338,11 +338,10 @@ export default function EditMap({ mapid }) {
             } );
         }
     }
-
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
-            console.log(resp)
+            /* console.log(resp) */
             if (resp) {
                 setMap(resp);
                 if (!resp.mapSchema) return setData({
@@ -392,7 +391,7 @@ export default function EditMap({ mapid }) {
             }).catch((error) => {
                 console.error('Error reading GeoJSON', error);
             });
-        console.log(showSatellite);
+        /* console.log(showSatellite); */
         satelliteLayerRef?.current?.setOpacity(showSatellite ? 1 : 0);
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers();  }; // Remove GeoJSON layer on unmount
     }, [map, showSatellite]); // eslint-disable-line react-hooks/exhaustive-deps

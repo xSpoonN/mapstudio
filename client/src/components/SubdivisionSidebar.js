@@ -28,7 +28,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                 const match = mapSchema?.subdivisions?.find(subdivision => 
                     subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                 );
-                console.log(match)
+                /* console.log(match) */
                 setName(currentFeature.name || currentFeature.NAME || currentFeature.Name);
                 if (match?.data) {
                     const options = Object.getOwnPropertyNames(match.data);
@@ -48,8 +48,8 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
     }, [store, currentFeature, mapData, mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
 
     const updateSchema = async (updatedSchema) => {
-        const resp = await store.updateMapSchema(mapData._id, updatedSchema);
-        console.log(resp);
+        /* const resp =  */await store.updateMapSchema(mapData._id, updatedSchema);
+        /* console.log(resp); */
         setMapInfo(updatedSchema);
         const match = updatedSchema?.subdivisions?.find(subdivision => 
             subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
@@ -89,18 +89,6 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                     {/* Subdivision Name */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <Typography sx={{ mr: 1, ml: '10%' }}>Name</Typography>  
-                        {/* <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} 
-                        onChange={e => {
-                            setName(e.target.value); 
-                            updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
-                                if (subdivision.name === currentFeature) { // NAME NAME NAME HAHAHAHHAHA
-                                    return {...subdivision, name: e.target.value}
-                                } else {
-                                    return subdivision;
-                                }
-                            })})
-                        }} 
-                        /> */}
                         <Typography sx={{ marginLeft: 'auto', borderRadius: 3, marginRight: '5px' }}>{name}</Typography>
 
                         {/* Placeholder to take up space for alignment */}
@@ -117,12 +105,10 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             const existing = mapInfo?.subdivisions?.find(subdivision =>
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
-                            console.log("existing", existing);
+                            /* console.log("existing", existing); */
                             setValue(existing?.data[e.target.value] ? existing.data[e.target.value] : '')
                         }} sx={{ borderRadius: 3 }}>
                             {dropdownOptions.map(option => <MenuItem value={option}>{option}</MenuItem>)}
-                            {/* <MenuItem value="Option 1">Option 1</MenuItem>
-                            <MenuItem value="Option 2">Option 2</MenuItem> */}
                         </Select>
                         </FormControl>
 
@@ -130,26 +116,12 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
                         onChange={e => { 
                             setValue(e.target.value); 
-                            /* const existing = mapInfo?.subdivisions?.find(subdivision => 
-                                subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
-                            );
-                            console.log("existing", existing);
-                            if (existing) { // Technically this should always be true
-                                updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
-                                    return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
-                                    ? {...subdivision, data: {...subdivision.data, [dropdownValue]: e.target.value}} : subdivision;
-                                })})
-                            } else {
-                                updateSchema({...mapInfo, 
-                                    subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, data: {[dropdownValue]: e.target.value}}]
-                                })
-                            } */
                         }}
                         onBlur={() => {
                             const existing = mapInfo?.subdivisions?.find(subdivision => 
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
-                            console.log("existing", existing);
+                            /* console.log("existing", existing); */
                             if (existing) { // Technically this should always be true
                                 updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
                                     return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
@@ -177,7 +149,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             const existing = mapInfo?.subdivisions?.find(subdivision => 
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
-                            console.log("existing", existing);
+                            /* console.log("existing", existing); */
                             if (existing) {
                                 updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
                                     return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
@@ -196,26 +168,12 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
                         onChange={e => {
                             setWeight(e.target.value);
-                            /* const existing = mapInfo?.subdivisions?.find(subdivision => 
-                                subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
-                            );
-                            console.log("existing", existing);
-                            if (existing) {
-                                updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
-                                    return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
-                                    ? {...subdivision, weight: Number(e.target.value)} : subdivision;
-                                })})
-                            } else {
-                                updateSchema({...mapInfo,
-                                    subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, weight: Number(e.target.value)}]
-                                })
-                            } */
                         }}
                         onBlur={() => {
                             const existing = mapInfo?.subdivisions?.find(subdivision => 
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
-                            console.log("existing", existing);
+                            /* console.log("existing", existing); */
                             if (existing) {
                                 updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
                                     return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
@@ -234,7 +192,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             const existing = mapInfo?.subdivisions?.find(subdivision => 
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
-                            console.log("existing", existing);
+                            /* console.log("existing", existing); */
                             if (existing) {
                                 updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
                                     return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
@@ -268,7 +226,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             const existing = mapInfo?.subdivisions?.find(subdivision => 
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
-                            console.log("existing", existing);
+                            /* console.log("existing", existing); */
                             if (existing) {
                                 updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
                                     return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 

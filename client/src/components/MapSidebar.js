@@ -11,7 +11,7 @@ export default function MapInfoSidebar({ mapData, mapSchema }) {
 
     useEffect(() => {
         const retrieveData = async () => {
-            console.log(mapData)
+            /* console.log(mapData) */
             setMapInfo(mapData);
             setTitle(mapData?.title ? mapData.title : '');
             setDescription(mapData?.description ? mapData.description : '');
