@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from 'react';
 import { GlobalStoreContext } from '../store';
 import { TextField, FormControlLabel, Checkbox, Divider, Box } from '@mui/material';
 
-export default function MapInfoSidebar({ mapData }) {
+export default function MapInfoSidebar({ mapData, mapSchema }) {
     const [mapInfo, setMapInfo] = useState({});
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -11,13 +11,14 @@ export default function MapInfoSidebar({ mapData }) {
 
     useEffect(() => {
         const retrieveData = async () => {
-            console.log(mapData)
+            /* console.log(mapData) */
             setMapInfo(mapData);
             setTitle(mapData?.title ? mapData.title : '');
             setDescription(mapData?.description ? mapData.description : '');
+            setSatelliteView(mapSchema?.satelliteView ? mapSchema.satelliteView : false);
         }
         retrieveData();
-    }, [mapData])
+    }, [mapData, mapSchema])
 
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
@@ -28,7 +29,7 @@ export default function MapInfoSidebar({ mapData }) {
                 inputProps={{style: { textAlign: 'center'}}} // Do not ask why capitalization matters here...
                 InputProps={{ sx: { borderRadius: 3 } }}
                 onChange={(e) => setTitle(e.target.value)}
-                onBlur={async () => {store.setMapData({ ...mapInfo, title: title }); const resp = await store.updateMapData({ ...mapInfo, title: title }); console.log(resp)}}
+                onBlur={async () => {store.setMapData({ ...mapInfo, title: title }); const resp = await store.updateMapInfo({ ...mapInfo, title: title }); console.log(resp)}}
             />
             <Divider variant='middle' style={{ width: '80%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2}}/>
             <TextField
@@ -39,7 +40,7 @@ export default function MapInfoSidebar({ mapData }) {
                 style={{margin: '10px', width: '80%'}}
                 InputProps={{ sx: { borderRadius: 3 } }}
                 onChange={(e) => setDescription(e.target.value)}
-                onBlur={async () => {store.setMapData({ ...mapInfo, description: description }); const resp = await store.updateMapData({ ...mapInfo, description: description }); console.log(resp)}}
+                onBlur={async () => {store.setMapData({ ...mapInfo, description: description }); const resp = await store.updateMapInfo({ ...mapInfo, description: description }); console.log(resp)}}
             />
             <Divider variant='middle' style={{ width: '80%', margin: '5px', marginTop: 'auto', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2}}/>
             <FormControlLabel
@@ -47,8 +48,10 @@ export default function MapInfoSidebar({ mapData }) {
                 control={
                     <Checkbox
                         checked={satelliteView}
-                        onChange={(e) => setSatelliteView(e.target.checked)}
-                        onBlur={async () => {store.setMapData({ ...mapInfo, satelliteView: satelliteView }); const resp = await store.updateMapData({ ...mapInfo, satelliteView: satelliteView }); console.log(resp)}}
+                        onChange={async (e) => {
+                            setSatelliteView(e.target.checked)
+                            await store.updateMapSchema(mapData._id, { ...mapSchema, satelliteView: e.target.checked })
+                        }}
                     />
                 }
             />

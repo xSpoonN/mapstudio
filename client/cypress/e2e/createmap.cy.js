@@ -39,7 +39,7 @@ describe('Create Map', () => {
         cy.contains('Name').should('exist');
         cy.contains('Weight').should('exist');
         cy.contains('Color').should('exist');
-        cy.get('input[type="text"]').should('have.length', 4); // 1 Search box, name box, property box, weight box
+        cy.get('input[type="text"]').should('have.length', 3); // 1 Search box, property box, weight box
         cy.contains('Add New Property').should('exist');
     })
 

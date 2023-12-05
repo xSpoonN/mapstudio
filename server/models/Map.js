@@ -12,6 +12,7 @@ const mapSchema = new mongoose.Schema({
     dislikeUsers: [{ type: String, default: [] }],
     comments: [{ type: ObjectId, ref: 'Comment', default: [] }],
     mapFile: { type: String, default: '' },
+    mapSchema: {type: ObjectId, ref: 'MapSchema', default: null},
     creationDate: { type: Date, default: Date.now },
     updateDate: { type: Date, default: Date.now },
     publishedDate: { type: Date, default: null }

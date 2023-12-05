@@ -304,6 +304,41 @@ function GlobalStoreContextProvider(props) {
             console.log("updateMapFile error")
         }
     }
+
+    store.updateMapSchema = async function(id, mapSchema) {
+        try {  
+            let response = await mapAPI.updateMapSchema(id, mapSchema);
+            console.log("updateMapSchema response: " + JSON.stringify(response));
+            if (response.status === 200) {
+                if (response.data.success) {
+                    console.log("updateMapSchema response: " + response.data.id);
+                    storeReducer({
+                        type: GlobalStoreActionType.SET_SCHEMA_DATA,
+                        payload: {
+                            schemaData : mapSchema
+                        }
+                    });
+                }
+            }
+        } catch (error) {
+            console.log("updateMapSchema error", error)
+        }
+    }
+
+    store.getSchema = async function(id) {
+        try {
+            let response = await mapAPI.getMapSchema(id);
+            /* console.log("getSchema response: " + JSON.stringify(response)); */
+            if (response.status === 200) {
+                if (response.data.success) {
+                    /* console.log("getSchema response: " + response.data.schema); */
+                    return response.data.schema;
+                }
+            }
+        } catch (error) {
+            console.log("getSchema error")
+        }
+    }
     
     //Community Post Actions
 
@@ -466,7 +501,7 @@ function GlobalStoreContextProvider(props) {
             newMap.likes--;
             newMap.likeUsers.splice(newMap.likeUsers.indexOf(auth.user.username),1)
         }
-        store.updateMap(newMap);
+        store.updateMapInfo(newMap);
     }
 
     store.dislikeMap = function(map) {
@@ -482,13 +517,13 @@ function GlobalStoreContextProvider(props) {
             newMap.dislikes--;
             newMap.dislikeUsers.splice(newMap.dislikeUsers.indexOf(auth.user.username),1)
         }
-            store.updateMap(newMap);
+        store.updateMapInfo(newMap);
     }
 
-    store.updateMap = async function(newMap) {
+    store.updateMapInfo = async function(newMap) {
         try{
-            const response = await mapAPI.updateMapById(newMap._id, newMap);
-            /* console.log(response) */
+            const response = await mapAPI.updateMapInfoById(newMap._id, newMap);
+            console.log(response) 
             if (response.data.success) {
                 storeReducer({
                     type: GlobalStoreActionType.SET_CURRENT_MAP,
@@ -624,7 +659,7 @@ function GlobalStoreContextProvider(props) {
         let newMap = map
         newMap.isPublished = true
         newMap.publishedDate = Date.now()
-        await store.updateMap(newMap);
+        await store.updateMapInfo(newMap);
         store.changeToMapView(mapid)
     }
 
@@ -666,23 +701,6 @@ function GlobalStoreContextProvider(props) {
                 mapData : mapData
             }
         });
-    }
-
-    store.updateMapData = async function(mapData) {
-        try{
-            const response = await mapAPI.updateMapById(mapData._id, mapData);
-            if (response.data.success) {
-                storeReducer({
-                    type: GlobalStoreActionType.SET_CURRENT_MAP,
-                    payload: {
-                        currentMapId : response.data.map._id
-                    }
-                });
-            }
-            return response;
-        } catch (error) {
-            console.log("Failed updating map")
-        }
     }
 
     return (
