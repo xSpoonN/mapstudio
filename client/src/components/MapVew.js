@@ -13,6 +13,8 @@ import AuthContext from '../auth';
 
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import domtoimage from 'dom-to-image';
+import { saveAs } from 'file-saver';
 
 import Comment from './Comment';
 import { Typography } from '@mui/material';
@@ -23,7 +25,8 @@ const styles = {
     }
 }
 
-const SASTOKEN = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D';
+const SASTOKENICON = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D';
+const SASTOKENMAP = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
 export default function MapView({ mapid }) {
     console.log('MAPID:::: ' + mapid)
     const mapRef = useRef(null); // Track map instance
@@ -47,18 +50,19 @@ export default function MapView({ mapid }) {
             mapInitializedRef.current = true; // Mark map as initialized
         }
 
-        fetch("brazil-states.json")
+        fetch(`${map?.mapFile}?${SASTOKENMAP}`, {mode: "cors"})
             .then((response) => response.json())
             .then((geojson) => {
                 if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); // Remove existing GeoJSON layer
                 else geoJSONLayerRef.current = L.geoJSON(geojson).addTo(mapRef.current); // Add new GeoJSON layer
                 geoJSONLayerRef.current.addData(geojson); // Add GeoJSON data to layer
+                console.log("map: " + map)
             }).catch((error) => {
                 console.error('Error reading GeoJSON', error);
             });
 
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); }; // Remove GeoJSON layer on unmount
-    }, []);
+    }, [map]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
@@ -158,6 +162,34 @@ export default function MapView({ mapid }) {
         setComment('');
     }
 
+    async function handlePNG() {
+        let element = document.getElementById("map")
+        let width = element.offsetWidth
+        let height = element.offsetHeight
+        mapRef.current.removeControl(mapRef.current.zoomControl);
+        mapRef.current.removeControl(mapRef.current.attributionControl);
+        const dataURL = await domtoimage.toPng(element, { width, height })
+        saveAs(dataURL, map.title + ".png")
+        mapRef.current.addControl(mapRef.current.zoomControl);
+        mapRef.current.addControl(mapRef.current.attributionControl);
+    }
+
+    async function handleJPG() {
+        let element = document.getElementById("map")
+        let width = element.offsetWidth
+        let height = element.offsetHeight
+        mapRef.current.removeControl(mapRef.current.zoomControl);
+        mapRef.current.removeControl(mapRef.current.attributionControl);
+        const dataURL = await domtoimage.toJpeg(element, { width, height })
+        saveAs(dataURL, map.title + ".jpeg")
+        mapRef.current.addControl(mapRef.current.zoomControl);
+        mapRef.current.addControl(mapRef.current.attributionControl);
+    }
+
+    async function handleJSON() {
+        saveAs(`${map?.mapFile}?${SASTOKENMAP}`, map.title + ".json")
+    }
+
     return (
         <Box display="flex" flexDirection="row">
             <Box 
@@ -180,7 +212,7 @@ export default function MapView({ mapid }) {
                         <Box display="flex" flexDirection="row" alignItems="center" sx={{ mt: 1}}>
                             <Avatar 
                                 alt="Kenna McRichard" 
-                                src={user?.pfp ? `${user.pfp}?${SASTOKEN}` : "/static/images/avatar/2.jpg" }
+                                src={user?.pfp ? `${user.pfp}?${SASTOKENICON}` : "/static/images/avatar/2.jpg" }
                                 sx={{ bgcolor: "#E3256B", width: '32px', height: '32px', mr: 1 }} 
                             /> 
                             <Typography>
@@ -191,13 +223,14 @@ export default function MapView({ mapid }) {
                     {handleLikeCounter()}
                     {handleDislikeCounter()}
                 </Box>
-                <Box display="flex">
+                <Box display="flex" sx={{ pb: 2 }}>
                     <Button 
                         variant="contained"
                         sx={{ color: 'white', mr: 1 }} 
                         style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px'}} 
                         disableRipple
                         color='razzmatazz'
+                        onClick={handleJSON}
                     >
                         JSON
                     </Button>
@@ -207,6 +240,7 @@ export default function MapView({ mapid }) {
                         style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px'}} 
                         disableRipple
                         color='razzmatazz'
+                        onClick={handlePNG}
                     >
                         PNG
                     </Button>
@@ -216,6 +250,7 @@ export default function MapView({ mapid }) {
                         style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px'}} 
                         disableRipple
                         color='razzmatazz'
+                        onClick={handleJPG}
                     >
                         JPG
                     </Button>
@@ -232,13 +267,14 @@ export default function MapView({ mapid }) {
                     </Button>
                 </Box>
                 <Box 
-                    style={{backgroundColor: '#FFFFFF', borderRadius: '8px'}}
-                    sx={{ p: 2, my: 2 }}
+                    style={{backgroundColor: '#FFFFFF'}}
+                    sx={{ p: 2 }}
                     display="flex"
                     height='50vh'
                     flexDirection="row"
                     alignItems="center"
                     ref={mapRef}
+                    id="map"
                 >
                 </Box>
                 <Box 

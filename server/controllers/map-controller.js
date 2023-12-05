@@ -102,14 +102,21 @@ updateMapInfoById = async (req, res) => {
             if (!map) {
                 return res.status(404).json({ error: 'Map not found.' });
             }
-            map.title = req.body.title;
-            map.description = req.body.description;
-            map.isPublished = req.body.isPublished;
+            const { title, description, comments, likes, dislikes, likeUsers, dislikeUsers, isPublished, publishedDate } = req.body.map;
+            map.title = title;
+            map.description = description;
+            map.comments = comments;
+            map.likes = likes;
+            map.dislikes = dislikes;
+            map.likeUsers = likeUsers;
+            map.dislikeUsers = dislikeUsers;
+            map.isPublished = isPublished;
+            map.publishedDate = publishedDate;
             map.updateDate = Date.now();
             map.save().then(() => {
                 return res.status(200).json({
                     success: true,
-                    id: map._id,
+                    map: map,
                     message: 'Map updated!',
                 })
             }).catch(error => {

@@ -7,7 +7,7 @@ const upload = multer({ dest: 'uploads/' });
 router.post('/maps', MapController.createMap)
 router.delete('/maps/:id', MapController.deleteMapById)
 router.get('/maps/:id', MapController.getMapById)
-// router.put('/maps/:id', MapController.updateMapInfoById)
+router.put('/mapInfo/:id', MapController.updateMapInfoById)
 router.put('/maps/:id', MapController.updateMapFileById)
 router.get('/user/:id', MapController.getMapsByUser)
 router.get('/publishedmaps', MapController.getPublishedMaps)
