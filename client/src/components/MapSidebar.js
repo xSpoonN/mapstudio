@@ -29,7 +29,7 @@ export default function MapInfoSidebar({ mapData, mapSchema }) {
                 inputProps={{style: { textAlign: 'center'}}} // Do not ask why capitalization matters here...
                 InputProps={{ sx: { borderRadius: 3 } }}
                 onChange={(e) => setTitle(e.target.value)}
-                onBlur={async () => {store.setMapData({ ...mapInfo, title: title }); const resp = await store.updateMapData({ ...mapInfo, title: title }); console.log(resp)}}
+                onBlur={async () => {store.setMapData({ ...mapInfo, title: title }); const resp = await store.updateMapInfo({ ...mapInfo, title: title }); console.log(resp)}}
             />
             <Divider variant='middle' style={{ width: '80%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2}}/>
             <TextField
@@ -40,7 +40,7 @@ export default function MapInfoSidebar({ mapData, mapSchema }) {
                 style={{margin: '10px', width: '80%'}}
                 InputProps={{ sx: { borderRadius: 3 } }}
                 onChange={(e) => setDescription(e.target.value)}
-                onBlur={async () => {store.setMapData({ ...mapInfo, description: description }); const resp = await store.updateMapData({ ...mapInfo, description: description }); console.log(resp)}}
+                onBlur={async () => {store.setMapData({ ...mapInfo, description: description }); const resp = await store.updateMapInfo({ ...mapInfo, description: description }); console.log(resp)}}
             />
             <Divider variant='middle' style={{ width: '80%', margin: '5px', marginTop: 'auto', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2}}/>
             <FormControlLabel
