@@ -163,10 +163,10 @@ export default function AppBanner() {
 	}
 
 	function handleCreate() {
-		if(auth.user) {
+		if(true /*auth.user*/) {
 			store.changeToEditMap()
-		} else {
-			store.changeToLogin()
+		//} else {
+		//	store.changeToLogin()
 		}
 	}
 
