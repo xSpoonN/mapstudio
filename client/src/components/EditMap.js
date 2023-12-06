@@ -378,7 +378,7 @@ export default function EditMap({ mapid }) {
             }).addTo(mapRef.current); // Add Google Satellite tiles
             mapInitializedRef.current = true; // Mark map as initialized
         }
-        fetch(map?.mapFile ? `${map.mapFile}?${SASTOKEN}` : "brazil-states.json", {mode: "cors"})
+        fetch(`${map?.mapFile}?${SASTOKEN}`, {mode: "cors"})
             .then((response) =>  response.json())
             .then((geojson) => {
                 if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); // Remove existing GeoJSON layer

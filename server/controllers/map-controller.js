@@ -111,8 +111,9 @@ updateMapInfoById = async (req, res) => {
             if (!map) {
                 return res.status(404).json({ error: 'Map not found.' });
             }
-            const { title, description, comments, likes, dislikes, likeUsers, dislikeUsers, isPublished, publishedDate } = req.body.map;
+            const { title, author, description, comments, likes, dislikes, likeUsers, dislikeUsers, isPublished, publishedDate } = req.body.map;
             map.title = title;
+            map.author = author;
             map.description = description;
             map.comments = comments;
             map.likes = likes;
@@ -281,7 +282,7 @@ getLandingMaps = async (req, res) => {
             .sort({ publishedDate: 'desc' })
             .limit(4);
 
-        authorIds = popularMaps.map(map => map.author);
+        authorIds = newMaps.map(map => map.author);
         const newMapsAuthors = await Promise.all(authorIds.map(authorId =>
             User.findOne({ _id: authorId })
         ));

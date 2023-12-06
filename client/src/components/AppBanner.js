@@ -162,6 +162,14 @@ export default function AppBanner() {
 		store.changeToSearch();
 	}
 
+	function handleCreate() {
+		if(auth.user) {
+			store.changeToEditMap()
+		} else {
+			store.changeToLogin()
+		}
+	}
+
 	function handleDiscuss() {
 		store.changeToDiscussionHome();
 	}
@@ -190,7 +198,7 @@ export default function AppBanner() {
 						sx={{ my: 2, color: 'white', display: 'block',  mx: 6}}
 						style={{fontSize:'16pt', backgroundColor: 'transparent'}}
 						disableRipple
-                        onClick={() => store.changeToEditMap()}
+                        onClick={handleCreate}
 					>
 						Create
 					</Button>

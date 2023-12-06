@@ -190,6 +190,45 @@ export default function MapView({ mapid }) {
         saveAs(`${map?.mapFile}?${SASTOKENMAP}`, map.title + ".json")
     }
 
+    async function handleForkMap() {
+        let mapJSON = null
+        await fetch(`${map?.mapFile}?${SASTOKENMAP}`, {mode: "cors"})
+            .then((response) => response.json())
+            .then((data) => {
+                mapJSON = data;
+            }).catch((error) => {
+                mapJSON = null
+            });
+        let schema = null
+        if(map?.mapSchema) {
+            schema = await store.getSchema(map?.mapSchema);
+            if(schema) {
+                delete schema._id
+                delete schema.__v
+            }
+        }
+        let mapId = await store.forkMap(map, mapJSON, schema)
+        if(mapId) {
+            store.changeToEditMap(mapId)
+        }
+    }
+
+    let forkButton
+    if(auth.user) {
+        forkButton =
+            <Button
+                variant="contained"
+                sx={{ color: 'white', marginLeft: 'auto' }}
+                style={{ fontSize: '16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px' }}
+                disableRipple
+                color='razzmatazz'
+                alignItems='right'
+                onClick={handleForkMap}
+            >
+                Fork
+            </Button>
+    }
+
     return (
         <Box display="flex" flexDirection="row">
             <Box 
@@ -254,17 +293,7 @@ export default function MapView({ mapid }) {
                     >
                         JPG
                     </Button>
-                    <Button 
-                        variant="contained"
-                        sx={{ color: 'white', marginLeft: 'auto' }} 
-                        style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px'}} 
-                        disableRipple
-                        color='razzmatazz'
-                        alignItems='right'
-                        onClick={() => store.changeToEditMap()}
-                    >
-                        Fork
-                    </Button>
+                    {forkButton}
                 </Box>
                 <Box 
                     style={{backgroundColor: '#FFFFFF'}}
