@@ -276,7 +276,7 @@ function GlobalStoreContextProvider(props) {
                         }
                     });
                 }
-                store.changeToEditMap(response.data.id);
+                return response.data.id;
             }
         } catch (error) {
             console.log("Create New Map error")
@@ -312,7 +312,7 @@ function GlobalStoreContextProvider(props) {
                             currentMapId : response.data.id
                         }
                     });
-                    store.changeToEditMap(response.data.id);
+                    //store.changeToEditMap(response.data.id);
                 }
             }
         } catch (error) {
@@ -716,6 +716,32 @@ function GlobalStoreContextProvider(props) {
                 mapData : mapData
             }
         });
+    }
+
+    store.forkMap = async function(map, mapJSON, mapSchema) {
+        //Create new map
+        const authReq = await auth.getUserData(auth.user.email);
+        const newMapId = await store.createNewMap(authReq.user._id, 'New Map', 'Description');
+        //Overwrite relevant fields
+        let forkedMap = map
+        forkedMap.author = authReq.user._id
+        forkedMap.isPublished = false
+        forkedMap.title = forkedMap.title + " (copy)"
+        forkedMap.likes = 0
+        forkedMap.dislikes = 0
+        forkedMap.likeUsers = []
+        forkedMap.dislikeUsers = []
+        forkedMap.comments = []
+        forkedMap.publishedDate = null
+        const response = await mapAPI.updateMapInfoById(newMapId, forkedMap);
+        //Copy the map file and schema file
+        if(mapJSON !== null) {
+            await store.updateMapFile(newMapId, mapJSON)
+        }
+        if(mapSchema !== null) {
+            await store.updateMapSchema(newMapId, mapSchema);
+        }
+        return response.data.map._id
     }
 
     return (
