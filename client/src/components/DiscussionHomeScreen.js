@@ -44,14 +44,16 @@ export default function DiscussionHomeScreen(props) {
             sorted = posts.sort((a, b) => b.comments.length - a.comments.length);
         }
         return sorted.filter(post => {
-            const tags = filter.split(' ');
+            const tags = filter?.toLowerCase().split(' ');
             if(tags[0]?.startsWith('author:')) {
                 let author = tags[0].slice('author:'.length)
                 tags.shift()
                 let title = tags.join(" ")
-                return post.title.includes(title) && post.author === author
+                return post.title.toLowerCase().includes(title.toLowerCase())
+                        && post.author.toLowerCase() === author.toLowerCase()
             }
-            return post.title.includes(filter) || post.author.includes(filter)
+            return post.title.toLowerCase().includes(filter?.toLowerCase())
+                    || post.author.toLowerCase().includes(filter?.toLowerCase())
         });
     }
 

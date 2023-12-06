@@ -15,8 +15,117 @@ import TemplateSidebar from './TemplateSidebar';
 import ConfirmModal from './ConfirmModal';
 import togeojson from 'togeojson';
 import * as shapefile from 'shapefile';
+const Ajv = require('ajv');
+const ajv = new Ajv();
 
 const SASTOKEN = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
+const SCHEMA = {  
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+      "bin": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "color": { "type": "string", "default": "#000000" },
+          "subdivisions": {
+            "type": "array",
+            "items": { "type": "string" },
+            "uniqueItems": true
+          }
+        },
+        "required": [ "name" ]
+      },
+      "subdivision": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "weight": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "default": 1
+          },
+          "color": { "type": "string", "default": "#000000" }
+        },
+        "required": [ "name" ],
+        "additionalProperties": {
+          "type": "object",
+          "properties": {
+            "data": {
+              "type": "object",
+              "additionalProperties": { "type": "number"  }
+            }
+          }
+        }
+      },
+      "point": {
+        "type": "object",
+        "properties": {
+          "location": {
+            "type": "object",
+            "properties": {
+              "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+              "lon": { "type": "number", "minimum": -180, "maximum": 180 }
+            },
+            "required": [ "lat", "lon" ]
+          },
+          "weight": {
+            "type": "number",
+            "maximum": 1,
+            "minimum": 0,
+            "default": 1
+          }
+        },
+        "required": [ "location" ]
+      },
+      "gradient": {
+        "type": "object",
+        "properties": {
+          "dataField": { "type": "string" },
+          "minColor": { "type": "string", "default": "#000000" },
+          "maxColor": { "type": "string", "default": "#E3256B" },
+          "affectedBins": {
+            "type": "array",
+            "items": { "type": "string" },
+            "uniqueItems": true
+          }
+        },
+        "required": [ "dataField" ]
+      }
+    },
+    "type": "object",
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": [ "bin", "gradient", "heatmap", "point", "satellite" ]
+      },
+      "bins": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/bin" },
+        "uniqueItems": true
+      },
+      "subdivisions": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/subdivision" },
+        "uniqueItems": true
+      },
+      "points": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/point" },
+        "uniqueItems": true
+      },
+      "gradients": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/gradient" },
+        "uniqueItems": true
+      },
+      "showSatellite": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "required": [ "type" ]
+}
 
 export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
@@ -27,6 +136,8 @@ export default function EditMap({ mapid }) {
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
+    const satelliteLayerRef = useRef(null); // Track satellite layer instance
+    const [showSatellite, setShowSatellite] = useState(false);
     const { store } = useContext(GlobalStoreContext); // eslint-disable-line
     L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png',
@@ -85,14 +196,14 @@ export default function EditMap({ mapid }) {
     };
 
     function onEachFeature(feature, layer) {
-        var popupcontent = [];
+        /* var popupcontent = [];
         for (var prop in feature.properties) {
             popupcontent.push(prop + ": " + feature.properties[prop]);
         }
         if (popupcontent.length !== 0) {
             layer.bindPopup(popupcontent.join("<br/>"), { maxHeight: 200, maxWidth: 200 });
 
-        }
+        } */
         // Add mouseover and mouseout event listeners
         layer.on('click', function () {
             console.log(feature.properties);
@@ -116,7 +227,6 @@ export default function EditMap({ mapid }) {
         }
     }
     const handleFileUpload = async (event) => {
-        console.log('entering handleFileUpload ');
         const files = Array.from(event.target.files);
         if (!files.length) return;
         let geojsonData;
@@ -134,7 +244,31 @@ export default function EditMap({ mapid }) {
             else if (file.name.endsWith('.json') || file.name.endsWith('.geojson')) {
                 // Parse GeoJSON file
                 geojsonData = JSON.parse(await file.text());
-                RenderNewGeoJSON(geojsonData);// render the geojsonData to map
+                console.log(geojsonData);
+                const validate = ajv.compile(SCHEMA);
+                if (!validate(geojsonData)) { // Does not match map schema, is a geojson file
+                    RenderNewGeoJSON(geojsonData);// render the geojsonData to map
+                    console.log(validate.errors);
+                } else {
+                    // Is a map schema file
+                    setData(geojsonData);
+                    await store.updateMapSchema(mapid, geojsonData);
+                    if (geoJSONLayerRef.current)
+                        geoJSONLayerRef.current.eachLayer((layer) => {
+                            const existing = geojsonData?.subdivisions?.find(subdivision => 
+                                subdivision.name === layer.feature.properties.name || 
+                                subdivision.name === layer.feature.properties.NAME || 
+                                subdivision.name === layer.feature.properties.Name
+                            );
+                            console.log("existing", existing);
+                            if (existing) {
+                                layer.setStyle({fillColor: existing.color || '#DDDDDD', fillOpacity: existing.weight || 0.5});
+                            } else {
+                                layer.setStyle({fillColor: '#DDDDDD', fillOpacity: 0.5});
+                            }
+                        });
+                }
+                return;
             }
             else if (file.name.endsWith('.shp')) {
                 const shpReader = new FileReader();
@@ -149,9 +283,7 @@ export default function EditMap({ mapid }) {
                 };
                 shpReader.readAsArrayBuffer(file);
             }
-        }
-
-        if (files.length === 2) {
+        }else if (files.length === 2) {
             const validExtensions = ['shp', 'shx', 'dbf'];
             const fileExtensions = Array.from(files).map(file => file.name.split('.').pop().toLowerCase());
             if (!fileExtensions.every(ext => validExtensions.includes(ext))) {
@@ -181,13 +313,32 @@ export default function EditMap({ mapid }) {
             };
             shpReader.readAsArrayBuffer(shpFile);
         } else {
-            alert('not supported files');
+            alert('not supported importing');
+        }
+    }
+
+    const drawSubdivisions = (resp2) => {
+        if (geoJSONLayerRef.current){
+            /* console.log("drawing subdivisions with data", resp2?.subdivisions); */
+            geoJSONLayerRef.current.eachLayer((layer) => {
+                const existing = resp2?.subdivisions?.find(subdivision => 
+                    subdivision.name === layer.feature.properties.name || 
+                    subdivision.name === layer.feature.properties.NAME || 
+                    subdivision.name === layer.feature.properties.Name
+                );
+                /* console.log("existing", existing); */
+                if (existing) {
+                    layer.setStyle({fillColor: existing.color || '#DDDDDD', fillOpacity: existing.weight || 0.5});
+                } else {
+                    layer.setStyle({fillColor: '#DDDDDD', fillOpacity: 0.5});
+                }
+            } );
         }
     }
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
-            console.log(resp)
+            /* console.log(resp) */
             if (resp) {
                 setMap(resp);
                 if (!resp.mapSchema) return setData({
@@ -210,50 +361,46 @@ export default function EditMap({ mapid }) {
                 });
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
-                if (geoJSONLayerRef.current)
-                    geoJSONLayerRef.current.eachLayer((layer) => {
-                        const existing = resp2?.subdivisions?.find(subdivision => 
-                            subdivision.name === layer.feature.properties.name || 
-                            subdivision.name === layer.feature.properties.NAME || 
-                            subdivision.name === layer.feature.properties.Name
-                        );
-                        console.log("existing", existing);
-                        if (existing) {
-                            layer.setStyle({fillColor: existing.color || '#DDDDDD', fillOpacity: existing.weight || 0.5});
-                        } else {
-                            layer.setStyle({fillColor: '#DDDDDD', fillOpacity: 0.5});
-                        }
-                    } );
-
+                drawSubdivisions(resp2);
+                setShowSatellite(resp2?.satelliteView);
+    
             }
         }
         fetchMap();
-    }, [store, mapid]);
+    }, [store, mapid]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
             mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
-            L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ subdomains:['mt0','mt1','mt2','mt3']}).addTo(mapRef.current); // Add Google Satellite tiles
+            //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
+            satelliteLayerRef.current = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ 
+                subdomains:['mt0','mt1','mt2','mt3']
+            }).addTo(mapRef.current); // Add Google Satellite tiles
             mapInitializedRef.current = true; // Mark map as initialized
         }
-
         fetch(map?.mapFile ? `${map.mapFile}?${SASTOKEN}` : "brazil-states.json", {mode: "cors"})
             .then((response) =>  response.json())
             .then((geojson) => {
-                console.log(geojson);
                 if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); // Remove existing GeoJSON layer
                 else geoJSONLayerRef.current = L.geoJSON(geojson,{onEachFeature:onEachFeature}).addTo(mapRef.current); // Add new GeoJSON layer
                 geoJSONLayerRef.current.addData(geojson); // Add GeoJSON data to layer
+                if (data) drawSubdivisions(data);
             }).catch((error) => {
                 console.error('Error reading GeoJSON', error);
             });
-
-        return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); }; // Remove GeoJSON layer on unmount
-    }, [map]); // eslint-disable-line react-hooks/exhaustive-deps
+        /* console.log(showSatellite); */
+        satelliteLayerRef?.current?.setOpacity(showSatellite ? 1 : 0);
+        return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers();  }; // Remove GeoJSON layer on unmount
+    }, [map?.mapFile, showSatellite]); // eslint-disable-line react-hooks/exhaustive-deps
 
     function handlePublishModal() {
         store.openModal();
+    }
+
+    const handleDelete = async () => {
+        console.log('delete map called on ' + mapid);
+        const resp = await store.deleteMap(mapid);
+        console.log(resp);
     }
 
     return (
@@ -269,7 +416,7 @@ export default function EditMap({ mapid }) {
                             
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={handlePublishModal}>Publish</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Delete</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={handleDelete}>Delete</Button>
                         </Box>
                         <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px' }}>
                             <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => {setSidebar('map'); store.setMapData(map);}}>Map Info</Button>
@@ -317,7 +464,7 @@ export default function EditMap({ mapid }) {
                 onClose={() => setOpenDrawer(false)}
             >
                 <Toolbar style={{marginTop: '25px'}}/>
-                {sidebar === 'map' && <MapSidebar mapData={map}/>}
+                {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data}/>}
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
                 {sidebar === 'point' && <PointSidebar />}
                 {sidebar === 'bin' && <BinSidebar />}

@@ -15,7 +15,7 @@ export default function SearchScreen(props) {
     const [filter, setFilter] = useState('None');
     const [sort, setSort] = useState('Newest');
     const [maps, setMaps] = useState([]);
-    let search = props.search || ""
+    let search = props.search || null;
 
     useEffect(() => {
         const fetchMaps = async () => {
@@ -46,15 +46,18 @@ export default function SearchScreen(props) {
         } else if(sort === "Most Commented") {
             sorted = maps.sort((a, b) => b.map.comments.length - a.map.comments.length);
         }
+        if (!search) return sorted;
         sorted = sorted.filter(map => {
-            const tags = search.split(' ');
+            const tags = search.toLowerCase().split(' ');
             if(tags[0]?.startsWith('author:')) {
                 let author = tags[0].slice('author:'.length)
                 tags.shift()
                 let title = tags.join(" ")
-                return map.map.title.includes(title) && map.author.username === author
+                return map.map.title.toLowerCase().includes(title.toLowerCase())
+                        && map.author.username.toLowerCase() === author.toLowerCase()
             }
-            return map.map.title.includes(search) || map.author.username.includes(search)
+            return map.map.title.toLowerCase().includes(search.toLowerCase())
+                    || map.author.username.toLowerCase().includes(search.toLowerCase())
         });
         return sorted
     }
@@ -63,7 +66,7 @@ export default function SearchScreen(props) {
         <Box>
             <Box display="flex" flexDirection="row" alignItems="center">
                 <Typography variant="h2" align="left" sx={{ m: 6 }} color='#E3256B'>
-                    Search Results for "{search}"
+                    {!search ? "All Maps" : `Maps matching '${search}':`}
                 </Typography>
                 <Typography variant="h3" align="left" sx={{ m: 6 }} color='#000000' flexGrow={1}>
                     {handleSortAndFilter(maps).length}
