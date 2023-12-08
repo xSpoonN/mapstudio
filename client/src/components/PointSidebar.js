@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
-import { Button, TextField, /* FormControl, Select, MenuItem, */ IconButton, Divider, Box, Typography } from '@mui/material';
+import { Button, TextField, ClickAwayListener, /* FormControl, Select, MenuItem, */ IconButton, Divider, Box, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 // import DeleteIcon from '@mui/icons-material/Delete';
@@ -12,7 +12,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema}) {
     const [mapInfo, setMapInfo] = useState(mapSchema);
     const [name, setName] = useState('');
     const [weight, setWeight] = useState(0.5); 
-    const [color, setColor] = useState('#DDDDDD');
+    const [color, setColor] = useState('#000000');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
     
@@ -22,21 +22,23 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema}) {
             console.log(currentPoint);
             console.log(mapSchema);
             if (currentPoint) {
-                setName(currentPoint.name);
-                setWeight(currentPoint?.weight ? currentPoint.weight : 0.5);
-                setColor(currentPoint?.color ? currentPoint.color : '#DDDDDD');
+                const match = mapSchema.points.find(point => point.name === currentPoint.name);
+                setName(match.name);
+                setWeight(match?.weight ? match.weight : 0.5);
+                setColor(match?.color ? match.color : '#DDDDDD');
             }
         }
         retrieveData();
     }, [/* store,  */currentPoint, /* mapData, */ mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const updateSchema = async (updatedSchema, newpoint) => {
+    const updateSchema = async (updatedSchema, newPoint) => {
         /* const resp =  */await store.updateMapSchema(mapData._id, updatedSchema);
         /* console.log(resp); */
         setMapInfo(updatedSchema);
-        setName(newpoint.name);
-        setWeight(newpoint.weight ? newpoint.weight : 0.5);
-        setColor(newpoint.color ? newpoint.color : '#E3256B');
+        const match = updatedSchema.points.find(point => point.name === newPoint.name || point.name === currentPoint.name);
+        setName(match.name);
+        setWeight(match.weight ? match.weight : 0.5);
+        setColor(match.color ? match.color : '#E3256B');
     }
 
     return (
@@ -85,7 +87,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema}) {
                         <RemoveIcon />
                         </IconButton>
 
-                        <TextField value={weight} sx={{ width: '100px', margin: '2px' }} 
+                        <TextField value={weight.toFixed(2)} sx={{ width: '100px', margin: '2px' }} 
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
                         onChange={e => setWeight(Number(e.target.value))}
                         onBlur={() => {
@@ -119,9 +121,20 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema}) {
                     </Box>
 
                     {/* Color Picker */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
-                        {displayColorPicker && (<TwitterPicker color={color} onChangeComplete={color => setColor(color.hex)} sx={{ marginLeft: 'auto'}} triangle='hide'/>)}
-                    </Box>
+                    {displayColorPicker && 
+                        <ClickAwayListener onClickAway={() => setDisplayColorPicker(false)}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
+                                <TwitterPicker color={color} onChangeComplete={color => {
+                                    setColor(color.hex);
+                                    updateSchema({...mapInfo, points: mapInfo.points.map(point => {
+                                        return point.name === currentPoint.name 
+                                        ? {...point, color: color.hex} : point;
+                                    })}, {...currentPoint, name: color.hex})
+                                }} 
+                                sx={{ marginLeft: 'auto'}} triangle='hide'/>
+                            </Box>
+                        </ClickAwayListener>
+                    }
 
                     {/* Add New Property */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', justifyContent: 'center' }}>

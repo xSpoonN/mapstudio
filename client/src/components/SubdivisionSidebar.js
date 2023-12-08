@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { GlobalStoreContext } from '../store';
-import { Button, TextField, FormControl, Select, MenuItem, IconButton, Divider, Box, Typography } from '@mui/material';
+import { Button, TextField, ClickAwayListener, FormControl, Select, MenuItem, IconButton, Divider, Box, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -220,25 +220,29 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                     </Box>
 
                     {/* Color Pickers */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
-                        {displayColorPicker && (<TwitterPicker color={color} onChangeComplete={color => {
-                            setColor(color.hex);
-                            const existing = mapInfo?.subdivisions?.find(subdivision => 
-                                subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
-                            );
-                            /* console.log("existing", existing); */
-                            if (existing) {
-                                updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
-                                    return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
-                                    ? {...subdivision, color: color.hex} : subdivision;
-                                })})
-                            } else {
-                                updateSchema({...mapInfo,
-                                    subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, color: color.hex}]
-                                })
-                            }
-                        }} sx={{ marginLeft: 'auto'}} triangle='hide'/>)}
-                    </Box>
+                    {displayColorPicker && 
+                        <ClickAwayListener onClickAway={() => setDisplayColorPicker(false)}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
+                                <TwitterPicker color={color} onChangeComplete={color => {
+                                    setColor(color.hex);
+                                    const existing = mapInfo?.subdivisions?.find(subdivision => 
+                                        subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
+                                    );
+                                    /* console.log("existing", existing); */
+                                    if (existing) {
+                                        updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
+                                            return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
+                                            ? {...subdivision, color: color.hex} : subdivision;
+                                        })})
+                                    } else {
+                                        updateSchema({...mapInfo,
+                                            subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, color: color.hex}]
+                                        })
+                                    }
+                                }} sx={{ marginLeft: 'auto'}} triangle='hide'/>
+                            </Box>
+                        </ClickAwayListener>
+                    }
 
                     {/* Add New Property */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', justifyContent: 'center' }}>
