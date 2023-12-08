@@ -10,7 +10,7 @@ import { TwitterPicker } from 'react-color';
 export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSchema }) {
     const { store } = useContext(GlobalStoreContext);
     /* const [sdData, setSdData] = useState({}); */
-    const [mapInfo, setMapInfo] = useState(mapSchema); // eslint-disable-line
+    const [mapInfo, setMapInfo] = useState(mapSchema);
     const [name, setName] = useState('');
     const [dropdownOptions, setDropdownOptions] = useState([]);
     const [dropdownValue, setDropdownValue] = useState('');

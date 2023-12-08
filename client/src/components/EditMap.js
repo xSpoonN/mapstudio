@@ -61,6 +61,9 @@ const SCHEMA = {
       "point": {
         "type": "object",
         "properties": {
+          "name" : { 
+            "type": "string" 
+          },
           "location": {
             "type": "object",
             "properties": {
@@ -126,13 +129,60 @@ const SCHEMA = {
     },
     "required": [ "type" ]
 }
+const styles = {
+    standardButton: {
+        fontSize: '14pt',
+        maxWidth: '105px',
+        maxHeight: '45px',
+        minWidth: '105px',
+        minHeight: '45px'
+    },
+    bigButton: {
+        fontSize: '14pt',
+        maxWidth: '200px',
+        maxHeight: '45px',
+        minWidth: '105px',
+        minHeight: '45px'
+    },
+    toolbarButton: {
+        position: 'absolute',
+        fontSize: '14pt',
+        left: '-5px',
+        maxWidth: '45px',
+        maxHeight: '45px',
+        minWidth: '45px',
+        minHeight: '45px',
+        zIndex: 1000
+    },
+    toolbarBG: {
+        position: 'absolute', 
+        top: '225px', 
+        left: '5.5px',
+        marginRight: 'auto', 
+        backgroundColor: '#DDDDDD',
+        border: '1px solid #333333',
+        borderRadius: '20px', 
+        minWidth: '40px', 
+        minHeight: '130px',
+        zIndex: 999
+    },
+    sxOverride: {
+        color: '#333333',
+        mx: 0.5,
+        '&:hover': {
+            color: '#E3256B'
+        }
+    }
+}
 
 export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
     const [sidebar, setSidebar] = useState('map');
-    const [map, setMap] = useState(null);
-    const [feature, setFeature] = useState(null);
-    const [data, setData] = useState(null); // Schema data
+    const [map, setMap] = useState(null); // Map metadata from database
+    const [feature, setFeature] = useState(null); // Current feature selected on map (for subdivisions)
+    const [currentPoint, setCurrentPoint] = useState(null); // Current point selected on map
+    const [data, setData] = useState(null); // JSON schema containing all map data
+    const [markers, setMarkers] = useState([]); // Array of points to be rendered [lat, lon]
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
@@ -144,51 +194,7 @@ export default function EditMap({ mapid }) {
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png'
       });
-    const styles = {
-        standardButton: {
-            fontSize: '14pt',
-            maxWidth: '105px',
-            maxHeight: '45px',
-            minWidth: '105px',
-            minHeight: '45px'
-        },
-        bigButton: {
-            fontSize: '14pt',
-            maxWidth: '200px',
-            maxHeight: '45px',
-            minWidth: '105px',
-            minHeight: '45px'
-        },
-        toolbarButton: {
-            position: 'absolute',
-            fontSize: '14pt',
-            left: '-5px',
-            maxWidth: '45px',
-            maxHeight: '45px',
-            minWidth: '45px',
-            minHeight: '45px',
-            zIndex: 1000
-        },
-        toolbarBG: {
-            position: 'absolute', 
-            top: '225px', 
-            left: '5.5px',
-            marginRight: 'auto', 
-            backgroundColor: '#DDDDDD',
-            border: '1px solid #333333',
-            borderRadius: '20px', 
-            minWidth: '40px', 
-            minHeight: '130px',
-            zIndex: 999
-        },
-        sxOverride: {
-            color: '#333333',
-            mx: 0.5,
-            '&:hover': {
-                color: '#E3256B'
-            }
-        }
-    }
+    
     function RenderNewGeoJSON(geojsonData) {
         if (geoJSONLayerRef.current) { geoJSONLayerRef.current.clearLayers(); }
         geoJSONLayerRef.current = L.geoJSON(geojsonData, { onEachFeature: onEachFeature }).addTo(mapRef.current);
@@ -196,26 +202,13 @@ export default function EditMap({ mapid }) {
     };
 
     function onEachFeature(feature, layer) {
-        /* var popupcontent = [];
-        for (var prop in feature.properties) {
-            popupcontent.push(prop + ": " + feature.properties[prop]);
-        }
-        if (popupcontent.length !== 0) {
-            layer.bindPopup(popupcontent.join("<br/>"), { maxHeight: 200, maxWidth: 200 });
-
-        } */
-        // Add mouseover and mouseout event listeners
         layer.on('click', function () {
+            if (store.mapEditMode !== 'None') return;
             console.log(feature.properties);
             setFeature(feature.properties);
-            /* store.setSchemaData(data); */
             store.setMapData(map);
             setSidebar('subdivision');
-            /* layer.openPopup(); */
         });
-        /* layer.on('mouseout', function() {
-            layer.closePopup();
-        }); */
     }
 
     async function updateMapFileData(mapid, geojsonData) {
@@ -253,20 +246,7 @@ export default function EditMap({ mapid }) {
                     // Is a map schema file
                     setData(geojsonData);
                     await store.updateMapSchema(mapid, geojsonData);
-                    if (geoJSONLayerRef.current)
-                        geoJSONLayerRef.current.eachLayer((layer) => {
-                            const existing = geojsonData?.subdivisions?.find(subdivision => 
-                                subdivision.name === layer.feature.properties.name || 
-                                subdivision.name === layer.feature.properties.NAME || 
-                                subdivision.name === layer.feature.properties.Name
-                            );
-                            console.log("existing", existing);
-                            if (existing) {
-                                layer.setStyle({fillColor: existing.color || '#DDDDDD', fillOpacity: existing.weight || 0.5});
-                            } else {
-                                layer.setStyle({fillColor: '#DDDDDD', fillOpacity: 0.5});
-                            }
-                        });
+                    drawSubdivisions(geojsonData);
                 }
                 return;
             }
@@ -335,6 +315,43 @@ export default function EditMap({ mapid }) {
             } );
         }
     }
+    const loadPoints = (points) => {
+        points?.forEach(point => {
+            const marker = L.circleMarker([point.location.lat, point.location.lon], {
+                radius: point.weight * 15/* ,
+                icon: L.icon({
+                    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
+                    iconSize: [point.weight * 25 * 1.5, point.weight * 41 * 1.5],
+                    draggable: true
+                }) */
+            }).addTo(mapRef.current);
+            marker.setStyle({fillColor: point.color || '#000000', fillOpacity: 1, stroke: false});
+            marker.on('click', function () {
+                console.log(point);
+                setCurrentPoint(point);
+                store.setMapData(map);
+                setSidebar('point');
+            });
+            marker.on('dragend', async function (e) {
+                const lat = e.target.getLatLng().lat;
+                const lng = e.target.getLatLng().lng;
+                const newPoint = {location: {lat: lat, lon: lng}, weight: point.weight};
+                console.log(newPoint);
+                marker.setLatLng([lat, lng]);
+                const existing = data?.subdivisions?.find(subdivision => subdivision.name === currentPoint.name);
+                if (existing) { // Technically this should always be true
+                    const updatedSchema = {...data, points: data.points.map(point => {
+                        return point.name === currentPoint.name ? newPoint : point;
+                    })}
+                    await store.updateMapSchema(map._id, updatedSchema);
+                    setData(updatedSchema);
+                }
+            })
+
+
+            setMarkers([...markers, marker]);
+        })
+    }
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
@@ -362,6 +379,7 @@ export default function EditMap({ mapid }) {
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
                 drawSubdivisions(resp2);
+                loadPoints(resp2?.points);
                 setShowSatellite(resp2?.satelliteView);
     
             }
@@ -385,6 +403,17 @@ export default function EditMap({ mapid }) {
                 else geoJSONLayerRef.current = L.geoJSON(geojson,{onEachFeature:onEachFeature}).addTo(mapRef.current); // Add new GeoJSON layer
                 geoJSONLayerRef.current.addData(geojson); // Add GeoJSON data to layer
                 if (data) drawSubdivisions(data);
+                mapRef.current.on('click', async (e) => {
+                    console.log("click");
+                    if (store.mapEditMode !== 'AddPoint') return console.log(store.mapEditMode);
+                    const lat = e.latlng.lat;
+                    const lng = e.latlng.lng;
+                    const newPoint = {location: {lat: lat, lon: lng}, weight: 0.5};
+                    const newPoints = [...data?.points, newPoint];
+                    markers.forEach(marker => mapRef.current.removeLayer(marker));
+                    loadPoints(newPoints);
+                    store.setMapEditMode('None');
+                });
             }).catch((error) => {
                 console.error('Error reading GeoJSON', error);
             });
@@ -466,7 +495,7 @@ export default function EditMap({ mapid }) {
                 <Toolbar style={{marginTop: '25px'}}/>
                 {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data}/>}
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
-                {sidebar === 'point' && <PointSidebar />}
+                {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data}/>}
                 {sidebar === 'bin' && <BinSidebar />}
                 {sidebar === 'gradient' && <GradientSidebar />}
                 {sidebar === 'template' && <TemplateSidebar />}

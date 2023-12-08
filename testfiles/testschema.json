@@ -34,7 +34,26 @@
             "weight": 0.8999999999999999
         }
     ],
-    "points": [],
+    "points": [
+        {
+            "name": "Chicago",
+            "location": {
+                "lat": 41.8781136,
+                "lon": -87.6297982
+            },
+            "weight": 0.5,
+            "color": "#f56105"
+        },
+        {
+            "name": "New York City",
+            "location": {
+                "lat": 40.7127837,
+                "lon": -74.0059413
+            },
+            "weight": 0.8,
+            "color": "#fa0249"
+        }
+    ],
     "gradients": [],
     "satelliteView": true
 }
