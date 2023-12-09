@@ -31,7 +31,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
         retrieveData();
     }, [/* store,  */currentPoint, /* mapData, */ mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const updateSchema = async (updatedSchema, newPoint) => {
+    const updateSchema = async (updatedSchema, newPoint, isName) => {
         await store.updateMapSchema(mapData._id, updatedSchema);
         setMapInfo(updatedSchema);
         if (!newPoint) {
@@ -40,6 +40,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
             setColor('#000000');
             return;
         }
+        if (isName) currentPoint.name = newPoint.name;
         const match = updatedSchema.points.find(point => point.name === newPoint.name || point.name === currentPoint.name);
         setName(match.name);
         setWeight(match.weight ? match.weight : 0.5);
@@ -67,7 +68,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name
                                 ? {...point, name: name} : point;
-                            })}, {...currentPoint, name: name})
+                            })}, {...currentPoint, name: name}, true)
                         }}
                         />
 
