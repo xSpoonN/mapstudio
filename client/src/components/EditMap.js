@@ -202,11 +202,9 @@ export default function EditMap({ mapid }) {
          }).addTo(mapRef.current);
         updateMapFileData(mapid, geojsonData);
     };
-    console.log(mapEditMode);
 
     function onEachFeature(feature, layer, editMode) {
         layer.on('click', function() { 
-            console.log(editMode);
             if (editMode !== 'None') return;
             console.log(feature.properties);
             setFeature(feature.properties);
@@ -218,6 +216,13 @@ export default function EditMap({ mapid }) {
     useEffect(() => {
         console.log("map edit mode changed to " + mapEditMode);
         if (!mapRef.current || !geoJSONLayerRef.current) return;
+        if (mapEditMode === 'DeletePoint') {
+            setSidebar('map');
+            const newPoints = data?.points.filter(point => point.name !== currentPoint.name);
+            console.log(newPoints);
+            loadPoints(newPoints);
+            setMapEditMode('None');
+        }
         mapRef.current?.off('click');
         mapRef.current?.on('click', function(e) {
             if (mapEditMode !== 'AddPoint') return console.log(mapEditMode);
@@ -231,7 +236,6 @@ export default function EditMap({ mapid }) {
             const newPoints = [...data?.points, newPoint];
             markers.forEach(marker => {console.log("Removing ", marker); mapRef.current.removeLayer(marker)});
             loadPoints(newPoints);
-            console.log(newPoints);
             setMapEditMode('None');
             store.updateMapSchema(mapid, {...data, points: newPoints});
         });
@@ -261,7 +265,7 @@ export default function EditMap({ mapid }) {
             const newPoints = [...data?.points, newPoint];
             markers.forEach(marker => mapRef.current.removeLayer(marker));
             loadPoints(newPoints);
-            console.log(newPoints);
+            /* console.log(newPoints); */
             setMapEditMode('None');
             store.updateMapSchema(mapid, {...data, points: newPoints});
     }
@@ -367,6 +371,7 @@ export default function EditMap({ mapid }) {
     }
     const loadPoints = (points) => {
         let newMarkers = [];
+        markers.forEach(marker => {/* console.log("Removing ", marker);  */mapRef.current.removeLayer(marker)});
         points?.forEach(point => {
             const marker = L.circleMarker([point.location.lat, point.location.lon], {
                 radius: point.weight * 15

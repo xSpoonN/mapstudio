@@ -331,10 +331,10 @@ function GlobalStoreContextProvider(props) {
     store.updateMapSchema = async function(id, mapSchema) {
         try {  
             let response = await mapAPI.updateMapSchema(id, mapSchema);
-            console.log("updateMapSchema response: " + JSON.stringify(response));
+            /* console.log("updateMapSchema response: " + JSON.stringify(response)); */
             if (response.status === 200) {
                 if (response.data.success) {
-                    console.log("updateMapSchema response: " + response.data.id);
+                    /* console.log("updateMapSchema response: " + response.data.id); */
                     storeReducer({
                         type: GlobalStoreActionType.SET_SCHEMA_DATA,
                         payload: {

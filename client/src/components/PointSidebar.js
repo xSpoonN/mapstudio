@@ -34,6 +34,12 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
     const updateSchema = async (updatedSchema, newPoint) => {
         await store.updateMapSchema(mapData._id, updatedSchema);
         setMapInfo(updatedSchema);
+        if (!newPoint) {
+            setName('');
+            setWeight(0.5);
+            setColor('#000000');
+            return;
+        }
         const match = updatedSchema.points.find(point => point.name === newPoint.name || point.name === currentPoint.name);
         setName(match.name);
         setWeight(match.weight ? match.weight : 0.5);
@@ -179,6 +185,10 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                             style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '100px', minHeight: '20px'}} 
                             disableRipple
                             color='razzmatazz'
+                            onClick={() => { 
+                                updateSchema({...mapInfo, points: mapInfo.points.filter(point => point.name !== currentPoint.name)}, null);
+                                setMapEditMode('DeletePoint');
+                            }}
                         >
                             Delete
                         </Button>
