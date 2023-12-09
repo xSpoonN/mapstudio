@@ -146,7 +146,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', justifyContent: 'center' }}>
                         <Button 
                             variant="contained"
-                            sx={{ color: 'white', mx: 1, marginTop: 'auto', marginBottom: '10px' }} 
+                            sx={{ color: 'white', mx: 1, marginTop: 'auto', marginBottom: '10px', marginLeft: 'auto', marginRight: 'auto' }} 
                             style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '190px', minHeight: '20px'}} 
                             disableRipple
                             color='razzmatazz'
@@ -172,8 +172,8 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
 
                         <Button 
                             variant="contained"
-                            sx={{ color: 'black', mx: 1, marginTop: 'auto', marginBottom: '10px', marginRight: 'auto', backgroundColor: '#CCCCCC' }} 
-                            style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '135px', minHeight: '20px'}} 
+                            sx={{ color: 'black', mx: 1, marginTop: 'auto', marginBottom: '10px', marginRight: 'auto', marginLeft: 'auto', backgroundColor: '#CCCCCC' }} 
+                            style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '100px', minHeight: '20px'}} 
                             disableRipple
                             onClick={() => { setMapEditMode('MovePoint'); }}
                         >
