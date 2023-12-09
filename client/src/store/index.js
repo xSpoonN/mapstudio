@@ -17,7 +17,8 @@ export const GlobalStoreActionType = {
     SET_CURRENT_COMMENTS: "SET_CURRENT_COMMENTS",
     SET_FEATURE_DATA: "SET_FEATURE_DATA",
     SET_SCHEMA_DATA: "SET_SCHEMA_DATA",
-    SET_MAP_DATA: "SET_MAP_DATA"
+    SET_MAP_DATA: "SET_MAP_DATA",
+    SET_MAP_EDIT_MODE: "SET_MAP_EDIT_MODE"
 }
 
 function GlobalStoreContextProvider(props) {
@@ -33,7 +34,8 @@ function GlobalStoreContextProvider(props) {
         searchTerm: '',
         schemaData: null, // Used for storing our JSON schema map data.
         featureData: null, // Used for switching sidebars to a certain feature.
-        mapData: null // Used for storing our map data during editing.
+        mapData: null, // Used for storing our map data during editing.
+        mapEditMode: 'None', // Add Point, Edit Point, Add subdivisions to bins/gradients
     });
 
     const storeReducer = (action) => {
@@ -106,6 +108,12 @@ function GlobalStoreContextProvider(props) {
                     ...store,
                     modal : null,
                     mapData : payload.mapData
+                });
+            }
+            case GlobalStoreActionType.SET_MAP_EDIT_MODE: {
+                return setStore({
+                    ...store,
+                    mapEditMode : payload.mapEditMode
                 });
             }
             default:
@@ -323,10 +331,10 @@ function GlobalStoreContextProvider(props) {
     store.updateMapSchema = async function(id, mapSchema) {
         try {  
             let response = await mapAPI.updateMapSchema(id, mapSchema);
-            console.log("updateMapSchema response: " + JSON.stringify(response));
+            /* console.log("updateMapSchema response: " + JSON.stringify(response)); */
             if (response.status === 200) {
                 if (response.data.success) {
-                    console.log("updateMapSchema response: " + response.data.id);
+                    /* console.log("updateMapSchema response: " + response.data.id); */
                     storeReducer({
                         type: GlobalStoreActionType.SET_SCHEMA_DATA,
                         payload: {
@@ -696,6 +704,15 @@ function GlobalStoreContextProvider(props) {
             type: GlobalStoreActionType.SET_FEATURE_DATA,
             payload: {
                 featureData : feature.name
+            }
+        });
+    }
+
+    store.setMapEditMode = function(mode) {
+        storeReducer({
+            type: GlobalStoreActionType.SET_MAP_EDIT_MODE,
+            payload: {
+                mapEditMode : mode
             }
         });
     }
