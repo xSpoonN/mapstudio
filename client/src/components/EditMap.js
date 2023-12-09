@@ -221,35 +221,73 @@ export default function EditMap({ mapid }) {
             const newPoints = data?.points.filter(point => point.name !== currentPoint.name);
             console.log(newPoints);
             loadPoints(newPoints);
-            setMapEditMode('None');
-        }
-        mapRef.current?.off('click');
-        mapRef.current?.on('click', function(e) {
-            if (mapEditMode !== 'AddPoint') return console.log(mapEditMode);
-            console.log(e.latlng.lat, e.latlng.lng);
-            const lat = e.latlng.lat;
-            const lng = e.latlng.lng;
-            const newPoint = {
-                name: lat.toFixed(4) + ', ' + lng.toFixed(4),
-                location: {lat: lat, lon: lng}, 
-                weight: 0.5};
-            const newPoints = [...data?.points, newPoint];
-            markers.forEach(marker => {console.log("Removing ", marker); mapRef.current.removeLayer(marker)});
-            loadPoints(newPoints);
-            setMapEditMode('None');
-            store.updateMapSchema(mapid, {...data, points: newPoints});
-        });
-        geoJSONLayerRef.current?.eachLayer((layer) => {
-            layer.off('click');
-            layer.on('click', function() { 
-                console.log(mapEditMode);
-                if (mapEditMode !== 'None') return;
-                console.log(layer.feature.properties);
-                setFeature(layer.feature.properties);
-                store.setMapData(map);
-                setSidebar('subdivision');
+            return setMapEditMode('None');
+        } else if (mapEditMode === 'MovePoint') {
+            mapRef.current?.off('click');
+            mapRef.current?.on('click', async function(e) {
+                if (mapEditMode !== 'MovePoint') return console.log(mapEditMode);
+                console.log(e.latlng.lat, e.latlng.lng);
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                const newPoint = {
+                    name: currentPoint.name,
+                    location: {lat: lat, lon: lng}, 
+                    weight: currentPoint.weight
+                };
+                console.log(newPoint);
+                const existing = data?.points?.find(point => point.name === currentPoint.name);
+                if (existing) { // Technically this should always be true
+                    const newPoints = data.points.map(point => {
+                        return point.name === currentPoint.name ? newPoint : point;
+                    });
+                    const updatedSchema = {...data, points: newPoints};
+                    await store.updateMapSchema(mapid, updatedSchema);
+                    loadPoints(newPoints);
+                    /* console.log(newPoints); */
+                    /* setData(updatedSchema); */
+                    return setMapEditMode('None');
+                }
             });
-        });
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click');
+                layer.on('click', function() { 
+                    console.log(mapEditMode);
+                    if (mapEditMode !== 'None') return;
+                    console.log(layer.feature.properties);
+                    setFeature(layer.feature.properties);
+                    store.setMapData(map);
+                    setSidebar('subdivision');
+                });
+            });
+        } else {
+            mapRef.current?.off('click');
+            mapRef.current?.on('click', function(e) {
+                if (mapEditMode !== 'AddPoint') return console.log(mapEditMode);
+                console.log(e.latlng.lat, e.latlng.lng);
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                const newPoint = {
+                    name: lat.toFixed(4) + ', ' + lng.toFixed(4),
+                    location: {lat: lat, lon: lng}, 
+                    weight: 0.5};
+                const newPoints = [...data?.points, newPoint];
+                markers.forEach(marker => {console.log("Removing ", marker); mapRef.current.removeLayer(marker)});
+                loadPoints(newPoints);
+                setMapEditMode('None');
+                store.updateMapSchema(mapid, {...data, points: newPoints});
+            });
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click');
+                layer.on('click', function() { 
+                    console.log(mapEditMode);
+                    if (mapEditMode !== 'None') return;
+                    console.log(layer.feature.properties);
+                    setFeature(layer.feature.properties);
+                    store.setMapData(map);
+                    setSidebar('subdivision');
+                });
+            });
+        }
     }, [mapEditMode]) // eslint-disable-line react-hooks/exhaustive-deps
 
     function addPointCallback (e) {
