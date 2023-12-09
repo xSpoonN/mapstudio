@@ -35,7 +35,7 @@ function GlobalStoreContextProvider(props) {
         schemaData: null, // Used for storing our JSON schema map data.
         featureData: null, // Used for switching sidebars to a certain feature.
         mapData: null, // Used for storing our map data during editing.
-        mapEditMode: '' // Add Point, Edit Point, Add subdivisions to bins/gradients
+        mapEditMode: 'None', // Add Point, Edit Point, Add subdivisions to bins/gradients
     });
 
     const storeReducer = (action) => {
@@ -113,7 +113,6 @@ function GlobalStoreContextProvider(props) {
             case GlobalStoreActionType.SET_MAP_EDIT_MODE: {
                 return setStore({
                     ...store,
-                    modal : null,
                     mapEditMode : payload.mapEditMode
                 });
             }

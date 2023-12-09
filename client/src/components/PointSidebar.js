@@ -7,7 +7,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import { TwitterPicker } from 'react-color';
 import { GlobalStoreContext } from '../store';
 
-export default function PointInfoSidebar({mapData, currentPoint, mapSchema}) {
+export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setMapEditMode}) {
     const { store } = useContext(GlobalStoreContext);
     const [mapInfo, setMapInfo] = useState(mapSchema);
     const [name, setName] = useState('');
@@ -19,26 +19,25 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema}) {
     useEffect(() => {
         const retrieveData = async () => {
             setMapInfo(mapSchema);
-            console.log(currentPoint);
-            console.log(mapSchema);
+            /* console.log(currentPoint);
+            console.log(mapSchema); */
             if (currentPoint) {
                 const match = mapSchema.points.find(point => point.name === currentPoint.name);
                 setName(match.name);
                 setWeight(match?.weight ? match.weight : 0.5);
-                setColor(match?.color ? match.color : '#DDDDDD');
+                setColor(match?.color ? match.color : '#000000');
             }
         }
         retrieveData();
     }, [/* store,  */currentPoint, /* mapData, */ mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
 
     const updateSchema = async (updatedSchema, newPoint) => {
-        /* const resp =  */await store.updateMapSchema(mapData._id, updatedSchema);
-        /* console.log(resp); */
+        await store.updateMapSchema(mapData._id, updatedSchema);
         setMapInfo(updatedSchema);
         const match = updatedSchema.points.find(point => point.name === newPoint.name || point.name === currentPoint.name);
         setName(match.name);
         setWeight(match.weight ? match.weight : 0.5);
-        setColor(match.color ? match.color : '#E3256B');
+        setColor(match.color ? match.color : '#000000');
     }
 
     return (
@@ -158,8 +157,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema}) {
                             disableRipple
                             color='razzmatazz'
                             onClick={() => { 
-                                /* console.log(store);  */
-                                store.setMapEditMode(/* store.mapEditMode === "AddPoint" ? "None" :  */'AddPoint'); 
+                                setMapEditMode('AddPoint'); 
                             }}
                         >
                             Add
@@ -170,7 +168,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema}) {
                             sx={{ color: 'black', mx: 1, marginTop: 'auto', marginBottom: '10px', marginRight: 'auto', backgroundColor: '#CCCCCC' }} 
                             style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '135px', minHeight: '20px'}} 
                             disableRipple
-                            onClick={() => { store.setMapEditMode('MovePoint'); }}
+                            onClick={() => { setMapEditMode('MovePoint'); }}
                         >
                             Move
                         </Button>

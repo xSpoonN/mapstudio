@@ -183,6 +183,7 @@ export default function EditMap({ mapid }) {
     const [currentPoint, setCurrentPoint] = useState(null); // Current point selected on map
     const [data, setData] = useState(null); // JSON schema containing all map data
     const [markers, setMarkers] = useState([]); // Array of points to be rendered [lat, lon]
+    const [mapEditMode, setMapEditMode] = useState('None'); // Current map edit mode ['None', 'AddPoint', ]
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
@@ -193,22 +194,76 @@ export default function EditMap({ mapid }) {
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png',
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png'
-      });
-    
+    });
     function RenderNewGeoJSON(geojsonData) {
         if (geoJSONLayerRef.current) { geoJSONLayerRef.current.clearLayers(); }
-        geoJSONLayerRef.current = L.geoJSON(geojsonData, { onEachFeature: onEachFeature }).addTo(mapRef.current);
+        geoJSONLayerRef.current = L.geoJSON(geojsonData, { 
+            onEachFeature: (feature, layer) => onEachFeature(feature, layer, mapEditMode)
+         }).addTo(mapRef.current);
         updateMapFileData(mapid, geojsonData);
     };
+    console.log(mapEditMode);
 
-    function onEachFeature(feature, layer) {
-        layer.on('click', function () {
-            if (store.mapEditMode !== 'None') return;
+    function onEachFeature(feature, layer, editMode) {
+        layer.on('click', function() { 
+            console.log(editMode);
+            if (editMode !== 'None') return;
             console.log(feature.properties);
             setFeature(feature.properties);
             store.setMapData(map);
             setSidebar('subdivision');
         });
+    }
+
+    useEffect(() => {
+        console.log("map edit mode changed to " + mapEditMode);
+        if (!mapRef.current || !geoJSONLayerRef.current) return;
+        mapRef.current?.off('click');
+        mapRef.current?.on('click', function(e) {
+            if (mapEditMode !== 'AddPoint') return console.log(mapEditMode);
+            console.log(e.latlng.lat, e.latlng.lng);
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            const newPoint = {
+                name: lat.toFixed(4) + ', ' + lng.toFixed(4),
+                location: {lat: lat, lon: lng}, 
+                weight: 0.5};
+            const newPoints = [...data?.points, newPoint];
+            markers.forEach(marker => {console.log("Removing ", marker); mapRef.current.removeLayer(marker)});
+            loadPoints(newPoints);
+            console.log(newPoints);
+            setMapEditMode('None');
+            store.updateMapSchema(mapid, {...data, points: newPoints});
+        });
+        geoJSONLayerRef.current?.eachLayer((layer) => {
+            layer.off('click');
+            layer.on('click', function() { 
+                console.log(mapEditMode);
+                if (mapEditMode !== 'None') return;
+                console.log(layer.feature.properties);
+                setFeature(layer.feature.properties);
+                store.setMapData(map);
+                setSidebar('subdivision');
+            });
+        });
+    }, [mapEditMode]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    function addPointCallback (e) {
+            /* console.log("click"); */
+            if (mapEditMode !== 'AddPoint') return console.log(mapEditMode);
+            console.log(e.latlng.lat, e.latlng.lng);
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            const newPoint = {
+                name: lat.toFixed(4) + ', ' + lng.toFixed(4),
+                location: {lat: lat, lon: lng}, 
+                weight: 0.5};
+            const newPoints = [...data?.points, newPoint];
+            markers.forEach(marker => mapRef.current.removeLayer(marker));
+            loadPoints(newPoints);
+            console.log(newPoints);
+            setMapEditMode('None');
+            store.updateMapSchema(mapid, {...data, points: newPoints});
     }
 
     async function updateMapFileData(mapid, geojsonData) {
@@ -306,24 +361,15 @@ export default function EditMap({ mapid }) {
                     subdivision.name === layer.feature.properties.NAME || 
                     subdivision.name === layer.feature.properties.Name
                 );
-                /* console.log("existing", existing); */
-                if (existing) {
-                    layer.setStyle({fillColor: existing.color || '#DDDDDD', fillOpacity: existing.weight || 0.5});
-                } else {
-                    layer.setStyle({fillColor: '#DDDDDD', fillOpacity: 0.5});
-                }
+                layer.setStyle({fillColor: existing?.color || '#DDDDDD', fillOpacity: existing?.weight || 0.5});
             } );
         }
     }
     const loadPoints = (points) => {
+        let newMarkers = [];
         points?.forEach(point => {
             const marker = L.circleMarker([point.location.lat, point.location.lon], {
-                radius: point.weight * 15/* ,
-                icon: L.icon({
-                    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
-                    iconSize: [point.weight * 25 * 1.5, point.weight * 41 * 1.5],
-                    draggable: true
-                }) */
+                radius: point.weight * 15
             }).addTo(mapRef.current);
             marker.setStyle({fillColor: point.color || '#000000', fillOpacity: 1, stroke: false});
             marker.on('click', function () {
@@ -347,15 +393,13 @@ export default function EditMap({ mapid }) {
                     setData(updatedSchema);
                 }
             })
-
-
-            setMarkers([...markers, marker]);
+            newMarkers = [...newMarkers, marker];
         })
+        setMarkers(newMarkers);
     }
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
-            /* console.log(resp) */
             if (resp) {
                 setMap(resp);
                 if (!resp.mapSchema) return setData({
@@ -400,31 +444,18 @@ export default function EditMap({ mapid }) {
             .then((response) =>  response.json())
             .then((geojson) => {
                 if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); // Remove existing GeoJSON layer
-                else geoJSONLayerRef.current = L.geoJSON(geojson,{onEachFeature:onEachFeature}).addTo(mapRef.current); // Add new GeoJSON layer
+                else geoJSONLayerRef.current = L.geoJSON(geojson,{
+                    onEachFeature: function(feature, layer) {onEachFeature(feature, layer, mapEditMode)}
+                }).addTo(mapRef.current); // Add new GeoJSON layer
                 geoJSONLayerRef.current.addData(geojson); // Add GeoJSON data to layer
                 if (data) drawSubdivisions(data);
-                mapRef.current.on('click', async (e) => {
-                    console.log("click");
-                    if (store.mapEditMode !== 'AddPoint') return console.log(store.mapEditMode);
-                    const lat = e.latlng.lat;
-                    const lng = e.latlng.lng;
-                    const newPoint = {location: {lat: lat, lon: lng}, weight: 0.5};
-                    const newPoints = [...data?.points, newPoint];
-                    markers.forEach(marker => mapRef.current.removeLayer(marker));
-                    loadPoints(newPoints);
-                    store.setMapEditMode('None');
-                });
+                mapRef.current.on('click', addPointCallback);
             }).catch((error) => {
                 console.error('Error reading GeoJSON', error);
             });
-        /* console.log(showSatellite); */
         satelliteLayerRef?.current?.setOpacity(showSatellite ? 1 : 0);
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers();  }; // Remove GeoJSON layer on unmount
     }, [map?.mapFile, showSatellite]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    function handlePublishModal() {
-        store.openModal();
-    }
 
     const handleDelete = async () => {
         console.log('delete map called on ' + mapid);
@@ -444,7 +475,7 @@ export default function EditMap({ mapid }) {
 
                             
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={handlePublishModal}>Publish</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => store.openModal()}>Publish</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={handleDelete}>Delete</Button>
                         </Box>
                         <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px' }}>
@@ -467,7 +498,6 @@ export default function EditMap({ mapid }) {
                     ref={mapRef}
                 >
                 </Box>
-
                 
                 <Box sx={styles.toolbarBG}>
                     <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton}}><ReplayIcon/></IconButton>
@@ -495,7 +525,7 @@ export default function EditMap({ mapid }) {
                 <Toolbar style={{marginTop: '25px'}}/>
                 {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data}/>}
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
-                {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data}/>}
+                {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'bin' && <BinSidebar />}
                 {sidebar === 'gradient' && <GradientSidebar />}
                 {sidebar === 'template' && <TemplateSidebar />}

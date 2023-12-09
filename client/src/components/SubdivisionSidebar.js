@@ -22,8 +22,8 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
     useEffect(() => {
         const retrieveData = async () => {
             setMapInfo(mapSchema);
-            console.log(currentFeature);
-            console.log(mapSchema);
+            /* console.log(currentFeature);
+            console.log(mapSchema); */
             if (currentFeature) {
                 const match = mapSchema?.subdivisions?.find(subdivision => 
                     subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
