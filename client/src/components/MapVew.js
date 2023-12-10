@@ -251,9 +251,12 @@ export default function MapView({ mapid }) {
                         <Box display="flex" flexDirection="row" alignItems="center" sx={{ mt: 1}}>
                             <Avatar 
                                 alt="Kenna McRichard" 
-                                src={user?.pfp ? `${user.pfp}?${SASTOKENICON}` : "/static/images/avatar/2.jpg" }
-                                sx={{ bgcolor: "#E3256B", width: '32px', height: '32px', mr: 1 }} 
-                            /> 
+                                src={`${user?.pfp}?${SASTOKENICON}`}
+                                sx={{ bgcolor: "#E3256B", width: '32px', height: '32px', mr: 1 }}
+                                onClick={user ? () => store.changeToProfile(user) : () => {}} 
+                            >
+                                {user?.username[0]}
+                            </Avatar>
                             <Typography>
                                 {user?.username} | Published {formatDate(map?.publishedDate)}
                             </Typography>

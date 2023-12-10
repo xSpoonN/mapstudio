@@ -11,7 +11,7 @@ import AuthContext from '../auth';
 
 const SASTOKEN = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D';
 
-export default function Profile() {
+export default function Profile({userData}) {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
     const [file, setFile] = useState(null); // eslint-disable-line
@@ -56,7 +56,7 @@ export default function Profile() {
     useEffect(() => {
         const fetchUser = async () => {
             /* if (user) return; */
-            const resp = await auth.getUserData(auth.getUser().email);
+            const resp = await auth.getUserData(userData.email);
             /* console.log(resp); */
             if (resp.success) setUser(resp.user);
             const posts = await store.getPostsData(resp.user);
@@ -67,7 +67,7 @@ export default function Profile() {
             setMaps(maps);
         }
         /* if (user === null)  */fetchUser();
-    }, [auth, store])
+    }, [auth, store, userData])
 
     const handleUpload = async () => {
         /* console.log(fileRef.current.files[0]); */
@@ -103,7 +103,7 @@ export default function Profile() {
         if(maps?.length > 3) {
             return (
                 <Box display="flex" alignItems="center">
-                    <ArrowRightIcon style={{ color:'grey', fontSize: '40px' }} mx={1} onClick={() => store.changeToPersonal()} />
+                    <ArrowRightIcon style={{ color:'grey', fontSize: '40px' }} mx={1} onClick={auth.user?.email === userData.email ? () => store.changeToPersonal() : () => store.changeToSearch("author:" + user.username)} />
                 </Box>
             )
         } else {
@@ -121,14 +121,14 @@ export default function Profile() {
                             <Card style={styles.card}>
                                 <CardMedia
                                     style={styles.media}
-                                    image={user?.pfp ? `${user.pfp}?${SASTOKEN}` : "/static/images/avatar/2.jpg"}
+                                    image={user?.pfp ? `${user.pfp}?${SASTOKEN}` : `https://placehold.jp/48/e3256b/ffffff/256x256.png?text=${user?.username[0]}`}
                                     title="Profile Picture"
-                                    onClick={() => fileRef.current.click()}
+                                    onClick={auth.user?.email === userData.email ? () => fileRef.current.click() : () => {}}
                                 />
                                 <CardContent>
                                     <Typography variant="h3" align="center" style={styles.profilename}>{user?.username || ''}</Typography>
                                     <Typography variant="body1" align='center' style={styles.profilebio}>
-                                    {isEditing ? (
+                                    {auth.user?.email === userData.email && isEditing ? (
                                         <input type="text" value={bio} onChange={(e) => setBio(e.target.value)} onBlur={handleBio}/>
                                     ) : (<div onDoubleClick={()=>setIsEditing(true)}>
                                             {bio || user?.bio || 'No Bio Set.'}

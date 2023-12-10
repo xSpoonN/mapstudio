@@ -49,7 +49,7 @@ export default function AppBanner() {
 
 	const handleProfileScreen = () => {
 		setAnchorElUser(null);
-		store.changeToProfile();
+		store.changeToProfile(auth.getUser());
 	}
 
 	function handleLoginScreen() {
@@ -78,8 +78,10 @@ export default function AppBanner() {
 			<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }} className='account-circle'>
 				<Avatar 
 					alt="Kenna McRichard" 
-					src={user?.pfp ? `${user.pfp}?${SASTOKEN}` : "/static/images/avatar/2.jpg" }
-				/>
+					src={`${user?.pfp}?${SASTOKEN}`}
+				>
+					{user?.username[0]}
+				</Avatar>
 			</IconButton>
 			<Menu
 				id="menu-appbar"

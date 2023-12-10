@@ -33,7 +33,8 @@ function GlobalStoreContextProvider(props) {
         searchTerm: '',
         schemaData: null, // Used for storing our JSON schema map data.
         featureData: null, // Used for switching sidebars to a certain feature.
-        mapData: null // Used for storing our map data during editing.
+        mapData: null, // Used for storing our map data during editing.
+        currentProfile: null
     });
 
     const storeReducer = (action) => {
@@ -50,7 +51,8 @@ function GlobalStoreContextProvider(props) {
                     currentComments : payload.currentComments || [],
                     currentMap : payload.currentMapId,
                     currentFilter : payload.filter || '',
-                    searchTerm : payload.searchTerm || ''
+                    searchTerm : payload.searchTerm || '',
+                    currentProfile: payload.profile
                 });
             }
             case GlobalStoreActionType.CLOSE_MODAL: {
@@ -184,12 +186,13 @@ function GlobalStoreContextProvider(props) {
         });
     }
     
-    store.changeToProfile = function() {
+    store.changeToProfile = function(user) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
                 screen: 'profile',
-                discussionPosts: store.discussionPosts
+                discussionPosts: store.discussionPosts,
+                profile: user
             }
         });
     }

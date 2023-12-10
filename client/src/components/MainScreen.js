@@ -61,7 +61,7 @@ export default function MainScreen() {
             Content = <MapView mapid={store.currentMap}/>
             break;
         case 'profile':
-            Content = <Profile />
+            Content = <Profile userData={store.currentProfile}/>
             break;
         case 'editMap':
             Content = <EditMap mapid={store.currentMap} />
