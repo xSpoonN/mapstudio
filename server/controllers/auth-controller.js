@@ -128,6 +128,16 @@ registerUser = async (req, res) => {
                     errorMessage: "An account with this username already exists."
                 })
         }
+        const existingUser2 = await User.findOne({ email: email });
+        console.log("existingUser: " + existingUser2);
+        if (existingUser2) {
+            return res
+                .status(400)
+                .json({
+                    success: false,
+                    errorMessage: "An account with this email already exists."
+                })
+        }
 
         const saltRounds = 10;
         const salt = await bcrypt.genSalt(saltRounds);

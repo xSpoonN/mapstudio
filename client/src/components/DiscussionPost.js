@@ -137,9 +137,12 @@ export default function DiscussionPost(props) {
                 >
                     <Avatar 
                         alt="Kenna McRichard" 
-                        src={user?.pfp ? `${user.pfp}?${SASTOKEN}` : "/static/images/avatar/2.jpg" }
-                        sx={{ bgcolor: "#E3256B", width: '35%', height: '35%' }} 
-                    />
+                        src={`${user?.pfp}?${SASTOKEN}`}
+                        sx={{ bgcolor: "#E3256B", width: '35%', height: '35%' }}
+                        onClick={user ? () => store.changeToProfile(user) : () => {}} 
+                    >
+                        {post.author[0]}
+                    </Avatar>
                     <Typography variant="h4" sx={{ mt: 4 }} style={{ textAlign: 'center' }} color='#E3256B'>
                         {post.author}
                     </Typography>
