@@ -1,25 +1,58 @@
-import { useState } from 'react';
-import { Button, TextField, FormControl, Select, MenuItem, IconButton, Divider, Box, Typography } from '@mui/material';
+import { useState, useContext, useEffect } from 'react';
+import { Button, TextField, ClickAwayListener, /* FormControl, Select, MenuItem, */ IconButton, Divider, Box, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import DeleteIcon from '@mui/icons-material/Delete';
+// import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import { TwitterPicker } from 'react-color';
+import { GlobalStoreContext } from '../store';
 
-export default function PointInfoSidebar() {
-    const [name, setName] = useState('Paris');
-    const [dropdownValue, setDropdownValue] = useState('Option 1');
-    const [value, setValue] = useState('55');
-    const [size, setSize] = useState(10); 
-    const [color, setColor] = useState('#E3256B');
+export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setMapEditMode}) {
+    const { store } = useContext(GlobalStoreContext);
+    const [mapInfo, setMapInfo] = useState(mapSchema);
+    const [name, setName] = useState('');
+    const [weight, setWeight] = useState(0.5); 
+    const [color, setColor] = useState('#000000');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
+
+    
+    useEffect(() => {
+        const retrieveData = async () => {
+            setMapInfo(mapSchema);
+            /* console.log(currentPoint);
+            console.log(mapSchema); */
+            if (currentPoint) {
+                const match = mapSchema.points.find(point => point.name === currentPoint.name);
+                setName(match.name);
+                setWeight(match?.weight ? match.weight : 0.5);
+                setColor(match?.color ? match.color : '#000000');
+            }
+        }
+        retrieveData();
+    }, [/* store,  */currentPoint, /* mapData, */ mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    const updateSchema = async (updatedSchema, newPoint, isName) => {
+        await store.updateMapSchema(mapData._id, updatedSchema);
+        setMapInfo(updatedSchema);
+        if (!newPoint) {
+            setName('');
+            setWeight(0.5);
+            setColor('#000000');
+            return;
+        }
+        if (isName) currentPoint.name = newPoint.name;
+        const match = updatedSchema.points.find(point => point.name === newPoint.name || point.name === currentPoint.name);
+        setName(match.name);
+        setWeight(match.weight ? match.weight : 0.5);
+        setColor(match.color ? match.color : '#000000');
+    }
 
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
             {/* Map Info Header */}
-            <Typography variant="h6" style={{ margin: '10px' }}>Map of the Pacific Ocean</Typography>
+            <Typography variant="h6" style={{ margin: '10px' }}>{mapData?.title ? mapData.title : ''}</Typography>
             <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
-            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>A graphic showing the amount of water in the Pacific Ocean. It's a lot.</Typography>
+            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>{mapData?.description ? mapData.description : ''}</Typography>
             <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '80px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
 
             {/* Point Data */}
@@ -29,29 +62,19 @@ export default function PointInfoSidebar() {
                     {/* Point Name */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <Typography sx={{ mr: 1, ml: '10%' }}>Name</Typography>  
-                        <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} onChange={e => setName(e.target.value)} />
+                        <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} 
+                        onChange={e => setName(e.target.value)}
+                        onBlur={() => {
+                            updateSchema({...mapInfo, points: mapInfo.points.map(point => {
+                                return point.name === currentPoint.name
+                                ? {...point, name: name} : point;
+                            })}, {...currentPoint, name: name}, true)
+                        }}
+                        />
 
                         {/* Placeholder to take up space for alignment */}
                         <IconButton disabled={true}>
                         <CheckIcon  sx={{ marginLeft: 'auto', color: 'white' }} />  
-                        </IconButton>
-                    </Box>
-
-                    {/* Point Properties */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                        <FormControl sx={{ mr: 1, ml: '10%' }}>
-                        <Select value={dropdownValue} onChange={e => setDropdownValue(e.target.value)} sx={{ borderRadius: 3 }}>
-                            <MenuItem value="Option 1">Option 1</MenuItem>
-                            <MenuItem value="Option 2">Option 2</MenuItem>
-                        </Select>
-                        </FormControl>
-
-                        <TextField value={value} sx={{ margin: '2px', marginLeft: 'auto', width: '100px' }}
-                        inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
-                        onChange={e => setValue(e.target.value)}/>
-                        
-                        <IconButton>
-                        <DeleteIcon  sx={{ marginLeft: 'auto' }} />  
                         </IconButton>
                     </Box>
 
@@ -60,15 +83,34 @@ export default function PointInfoSidebar() {
                         <Typography sx={{ mr: 1, ml: '10%' }}>Size</Typography>
 
 
-                        <IconButton sx={{ marginLeft: 'auto'}} onClick={() => setSize(size - 1)}>
+                        <IconButton sx={{ marginLeft: 'auto'}} onClick={() => {
+                            setWeight(weight - 0.1);
+                            updateSchema({...mapInfo, points: mapInfo.points.map(point => {
+                                return point.name === currentPoint.name 
+                                ? {...point, weight: Number(weight - 0.1)} : point;
+                            })}, {...currentPoint, name: Number(weight - 0.1)})
+                        }}>
                         <RemoveIcon />
                         </IconButton>
 
-                        <TextField value={size} sx={{ width: '50px', margin: '2px' }} 
+                        <TextField value={weight.toFixed(2)} sx={{ width: '100px', margin: '2px' }} 
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
-                        onChange={e => setSize(Number(e.target.value))}/>
+                        onChange={e => setWeight(Number(e.target.value))}
+                        onBlur={() => {
+                            updateSchema({...mapInfo, points: mapInfo.points.map(point => {
+                                return point.name === currentPoint.name
+                                ? {...point, weight: Number(weight)} : point;
+                            })}, {...currentPoint, name: Number(weight)})
+                        }}
+                        />
 
-                        <IconButton  onClick={() => setSize(size + 1)}>
+                        <IconButton  onClick={() => {
+                            setWeight(weight + 0.1);
+                            updateSchema({...mapInfo, points: mapInfo.points.map(point => {
+                                return point.name === currentPoint.name 
+                                ? {...point, weight: Number(weight + 0.1)} : point;
+                            })}, {...currentPoint, name: Number(weight + 0.1)})
+                        }}>
                         <AddIcon />
                         </IconButton>
                     </Box>
@@ -85,15 +127,26 @@ export default function PointInfoSidebar() {
                     </Box>
 
                     {/* Color Picker */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
-                        {displayColorPicker && (<TwitterPicker color={color} onChangeComplete={color => setColor(color.hex)} sx={{ marginLeft: 'auto'}} triangle='hide'/>)}
-                    </Box>
+                    {displayColorPicker && 
+                        <ClickAwayListener onClickAway={() => setDisplayColorPicker(false)}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
+                                <TwitterPicker color={color} onChangeComplete={color => {
+                                    setColor(color.hex);
+                                    updateSchema({...mapInfo, points: mapInfo.points.map(point => {
+                                        return point.name === currentPoint.name 
+                                        ? {...point, color: color.hex} : point;
+                                    })}, {...currentPoint, name: color.hex})
+                                }} 
+                                sx={{ marginLeft: 'auto'}} triangle='hide'/>
+                            </Box>
+                        </ClickAwayListener>
+                    }
 
                     {/* Add New Property */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', justifyContent: 'center' }}>
                         <Button 
                             variant="contained"
-                            sx={{ color: 'white', mx: 1, marginTop: 'auto', marginBottom: '10px' }} 
+                            sx={{ color: 'white', mx: 1, marginTop: 'auto', marginBottom: '10px', marginLeft: 'auto', marginRight: 'auto' }} 
                             style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '190px', minHeight: '20px'}} 
                             disableRipple
                             color='razzmatazz'
@@ -106,21 +159,39 @@ export default function PointInfoSidebar() {
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '80%' }}>  
                         <Button 
                             variant="contained"
-                            sx={{ color: 'black', mx: 1, marginTop: 'auto', marginBottom: '10px', marginRight: 'auto', backgroundColor: '#CCCCCC' }} 
-                            style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '135px', minHeight: '20px'}} 
+                            sx={{ color: 'white', mx: 1, marginTop: 'auto', marginBottom: '10px', marginLeft: 'auto' }} 
+                            style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '100px', minHeight: '20px'}} 
                             disableRipple
+                            color='razzmatazz'
+                            onClick={() => { 
+                                setMapEditMode('AddPoint'); 
+                            }}
                         >
-                            Move Point
+                            Add
+                        </Button>
+
+                        <Button 
+                            variant="contained"
+                            sx={{ color: 'black', mx: 1, marginTop: 'auto', marginBottom: '10px', marginRight: 'auto', marginLeft: 'auto', backgroundColor: '#CCCCCC' }} 
+                            style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '100px', minHeight: '20px'}} 
+                            disableRipple
+                            onClick={() => { setMapEditMode('MovePoint'); }}
+                        >
+                            Move
                         </Button>
 
                         <Button 
                             variant="contained"
                             sx={{ color: 'white', mx: 1, marginTop: 'auto', marginBottom: '10px', marginLeft: 'auto' }} 
-                            style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '150px', minHeight: '20px'}} 
+                            style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '100px', minHeight: '20px'}} 
                             disableRipple
                             color='razzmatazz'
+                            onClick={() => { 
+                                updateSchema({...mapInfo, points: mapInfo.points.filter(point => point.name !== currentPoint.name)}, null);
+                                setMapEditMode('DeletePoint');
+                            }}
                         >
-                            Delete Point
+                            Delete
                         </Button>
                     </Box>
                 </Box>

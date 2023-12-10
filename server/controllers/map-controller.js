@@ -365,6 +365,9 @@ updateMapSchema = async (req, res) => {
           "point": {
             "type": "object",
             "properties": {
+              "name" : { 
+                "type": "string" 
+              },
               "location": {
                 "type": "object",
                 "properties": {

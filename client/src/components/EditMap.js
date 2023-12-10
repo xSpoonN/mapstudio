@@ -61,6 +61,9 @@ const SCHEMA = {
       "point": {
         "type": "object",
         "properties": {
+          "name" : { 
+            "type": "string" 
+          },
           "location": {
             "type": "object",
             "properties": {
@@ -126,13 +129,61 @@ const SCHEMA = {
     },
     "required": [ "type" ]
 }
+const styles = {
+    standardButton: {
+        fontSize: '14pt',
+        maxWidth: '105px',
+        maxHeight: '45px',
+        minWidth: '105px',
+        minHeight: '45px'
+    },
+    bigButton: {
+        fontSize: '14pt',
+        maxWidth: '200px',
+        maxHeight: '45px',
+        minWidth: '105px',
+        minHeight: '45px'
+    },
+    toolbarButton: {
+        position: 'absolute',
+        fontSize: '14pt',
+        left: '-5px',
+        maxWidth: '45px',
+        maxHeight: '45px',
+        minWidth: '45px',
+        minHeight: '45px',
+        zIndex: 1000
+    },
+    toolbarBG: {
+        position: 'absolute', 
+        top: '225px', 
+        left: '5.5px',
+        marginRight: 'auto', 
+        backgroundColor: '#DDDDDD',
+        border: '1px solid #333333',
+        borderRadius: '20px', 
+        minWidth: '40px', 
+        minHeight: '130px',
+        zIndex: 999
+    },
+    sxOverride: {
+        color: '#333333',
+        mx: 0.5,
+        '&:hover': {
+            color: '#E3256B'
+        }
+    }
+}
 
 export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
     const [sidebar, setSidebar] = useState('map');
-    const [map, setMap] = useState(null);
-    const [feature, setFeature] = useState(null);
-    const [data, setData] = useState(null); // Schema data
+    const [map, setMap] = useState(null); // Map metadata from database
+    const [feature, setFeature] = useState(null); // Current feature selected on map (for subdivisions)
+    const [currentPoint, setCurrentPoint] = useState(null); // Current point selected on map
+    const [data, setData] = useState(null); // JSON schema containing all map data
+    const [markers, setMarkers] = useState([]); // Array of points to be rendered [lat, lon]
+    const [mapEditMode, setMapEditMode] = useState('None'); // Current map edit mode ['None', 'AddPoint', ]
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
@@ -143,79 +194,118 @@ export default function EditMap({ mapid }) {
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png',
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png'
-      });
-    const styles = {
-        standardButton: {
-            fontSize: '14pt',
-            maxWidth: '105px',
-            maxHeight: '45px',
-            minWidth: '105px',
-            minHeight: '45px'
-        },
-        bigButton: {
-            fontSize: '14pt',
-            maxWidth: '200px',
-            maxHeight: '45px',
-            minWidth: '105px',
-            minHeight: '45px'
-        },
-        toolbarButton: {
-            position: 'absolute',
-            fontSize: '14pt',
-            left: '-5px',
-            maxWidth: '45px',
-            maxHeight: '45px',
-            minWidth: '45px',
-            minHeight: '45px',
-            zIndex: 1000
-        },
-        toolbarBG: {
-            position: 'absolute', 
-            top: '225px', 
-            left: '5.5px',
-            marginRight: 'auto', 
-            backgroundColor: '#DDDDDD',
-            border: '1px solid #333333',
-            borderRadius: '20px', 
-            minWidth: '40px', 
-            minHeight: '130px',
-            zIndex: 999
-        },
-        sxOverride: {
-            color: '#333333',
-            mx: 0.5,
-            '&:hover': {
-                color: '#E3256B'
-            }
-        }
-    }
+    });
     function RenderNewGeoJSON(geojsonData) {
         if (geoJSONLayerRef.current) { geoJSONLayerRef.current.clearLayers(); }
-        geoJSONLayerRef.current = L.geoJSON(geojsonData, { onEachFeature: onEachFeature }).addTo(mapRef.current);
+        geoJSONLayerRef.current = L.geoJSON(geojsonData, { 
+            onEachFeature: (feature, layer) => onEachFeature(feature, layer, mapEditMode)
+         }).addTo(mapRef.current);
         updateMapFileData(mapid, geojsonData);
     };
 
-    function onEachFeature(feature, layer) {
-        /* var popupcontent = [];
-        for (var prop in feature.properties) {
-            popupcontent.push(prop + ": " + feature.properties[prop]);
-        }
-        if (popupcontent.length !== 0) {
-            layer.bindPopup(popupcontent.join("<br/>"), { maxHeight: 200, maxWidth: 200 });
-
-        } */
-        // Add mouseover and mouseout event listeners
-        layer.on('click', function () {
+    function onEachFeature(feature, layer, editMode) {
+        layer.on('click', function() { 
+            if (editMode !== 'None') return;
             console.log(feature.properties);
             setFeature(feature.properties);
-            /* store.setSchemaData(data); */
             store.setMapData(map);
             setSidebar('subdivision');
-            /* layer.openPopup(); */
         });
-        /* layer.on('mouseout', function() {
-            layer.closePopup();
-        }); */
+    }
+
+    useEffect(() => {
+        console.log("map edit mode changed to " + mapEditMode);
+        if (!mapRef.current || !geoJSONLayerRef.current) return;
+        if (mapEditMode === 'DeletePoint') {
+            setSidebar('map');
+            const newPoints = data?.points.filter(point => point.name !== currentPoint.name);
+            console.log(newPoints);
+            loadPoints(newPoints);
+            return setMapEditMode('None');
+        } else if (mapEditMode === 'MovePoint') {
+            mapRef.current?.off('click');
+            mapRef.current?.on('click', async function(e) {
+                if (mapEditMode !== 'MovePoint') return console.log(mapEditMode);
+                console.log(e.latlng.lat, e.latlng.lng);
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                const newPoint = {
+                    name: currentPoint.name,
+                    location: {lat: lat, lon: lng}, 
+                    weight: currentPoint.weight
+                };
+                console.log(newPoint);
+                const existing = data?.points?.find(point => point.name === currentPoint.name);
+                if (existing) { // Technically this should always be true
+                    const newPoints = data.points.map(point => {
+                        return point.name === currentPoint.name ? newPoint : point;
+                    });
+                    const updatedSchema = {...data, points: newPoints};
+                    await store.updateMapSchema(mapid, updatedSchema);
+                    loadPoints(newPoints);
+                    /* console.log(newPoints); */
+                    /* setData(updatedSchema); */
+                    return setMapEditMode('None');
+                }
+            });
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click');
+                layer.on('click', function() { 
+                    console.log(mapEditMode);
+                    if (mapEditMode !== 'None') return;
+                    console.log(layer.feature.properties);
+                    setFeature(layer.feature.properties);
+                    store.setMapData(map);
+                    setSidebar('subdivision');
+                });
+            });
+        } else {
+            mapRef.current?.off('click');
+            mapRef.current?.on('click', function(e) {
+                if (mapEditMode !== 'AddPoint') return console.log(mapEditMode);
+                console.log(e.latlng.lat, e.latlng.lng);
+                const lat = e.latlng.lat;
+                const lng = e.latlng.lng;
+                const newPoint = {
+                    name: lat.toFixed(4) + ', ' + lng.toFixed(4),
+                    location: {lat: lat, lon: lng}, 
+                    weight: 0.5};
+                const newPoints = [...data?.points, newPoint];
+                markers.forEach(marker => {console.log("Removing ", marker); mapRef.current.removeLayer(marker)});
+                loadPoints(newPoints);
+                setMapEditMode('None');
+                store.updateMapSchema(mapid, {...data, points: newPoints});
+            });
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click');
+                layer.on('click', function() { 
+                    console.log(mapEditMode);
+                    if (mapEditMode !== 'None') return;
+                    console.log(layer.feature.properties);
+                    setFeature(layer.feature.properties);
+                    store.setMapData(map);
+                    setSidebar('subdivision');
+                });
+            });
+        }
+    }, [mapEditMode]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    function addPointCallback (e) {
+            /* console.log("click"); */
+            if (mapEditMode !== 'AddPoint') return console.log(mapEditMode);
+            console.log(e.latlng.lat, e.latlng.lng);
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            const newPoint = {
+                name: lat.toFixed(4) + ', ' + lng.toFixed(4),
+                location: {lat: lat, lon: lng}, 
+                weight: 0.5};
+            const newPoints = [...data?.points, newPoint];
+            markers.forEach(marker => mapRef.current.removeLayer(marker));
+            loadPoints(newPoints);
+            /* console.log(newPoints); */
+            setMapEditMode('None');
+            store.updateMapSchema(mapid, {...data, points: newPoints});
     }
 
     async function updateMapFileData(mapid, geojsonData) {
@@ -253,20 +343,7 @@ export default function EditMap({ mapid }) {
                     // Is a map schema file
                     setData(geojsonData);
                     await store.updateMapSchema(mapid, geojsonData);
-                    if (geoJSONLayerRef.current)
-                        geoJSONLayerRef.current.eachLayer((layer) => {
-                            const existing = geojsonData?.subdivisions?.find(subdivision => 
-                                subdivision.name === layer.feature.properties.name || 
-                                subdivision.name === layer.feature.properties.NAME || 
-                                subdivision.name === layer.feature.properties.Name
-                            );
-                            console.log("existing", existing);
-                            if (existing) {
-                                layer.setStyle({fillColor: existing.color || '#DDDDDD', fillOpacity: existing.weight || 0.5});
-                            } else {
-                                layer.setStyle({fillColor: '#DDDDDD', fillOpacity: 0.5});
-                            }
-                        });
+                    drawSubdivisions(geojsonData);
                 }
                 return;
             }
@@ -326,19 +403,46 @@ export default function EditMap({ mapid }) {
                     subdivision.name === layer.feature.properties.NAME || 
                     subdivision.name === layer.feature.properties.Name
                 );
-                /* console.log("existing", existing); */
-                if (existing) {
-                    layer.setStyle({fillColor: existing.color || '#DDDDDD', fillOpacity: existing.weight || 0.5});
-                } else {
-                    layer.setStyle({fillColor: '#DDDDDD', fillOpacity: 0.5});
-                }
+                layer.setStyle({fillColor: existing?.color || '#DDDDDD', fillOpacity: existing?.weight || 0.5});
             } );
         }
+    }
+    const loadPoints = (points) => {
+        let newMarkers = [];
+        markers.forEach(marker => {/* console.log("Removing ", marker);  */mapRef.current.removeLayer(marker)});
+        points?.forEach(point => {
+            const marker = L.circleMarker([point.location.lat, point.location.lon], {
+                radius: point.weight * 15
+            }).addTo(mapRef.current);
+            marker.setStyle({fillColor: point.color || '#000000', fillOpacity: 1, stroke: false});
+            marker.on('click', function () {
+                console.log(point);
+                setCurrentPoint(point);
+                store.setMapData(map);
+                setSidebar('point');
+            });
+            marker.on('dragend', async function (e) {
+                const lat = e.target.getLatLng().lat;
+                const lng = e.target.getLatLng().lng;
+                const newPoint = {location: {lat: lat, lon: lng}, weight: point.weight};
+                console.log(newPoint);
+                marker.setLatLng([lat, lng]);
+                const existing = data?.subdivisions?.find(subdivision => subdivision.name === currentPoint.name);
+                if (existing) { // Technically this should always be true
+                    const updatedSchema = {...data, points: data.points.map(point => {
+                        return point.name === currentPoint.name ? newPoint : point;
+                    })}
+                    await store.updateMapSchema(map._id, updatedSchema);
+                    setData(updatedSchema);
+                }
+            })
+            newMarkers = [...newMarkers, marker];
+        })
+        setMarkers(newMarkers);
     }
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
-            /* console.log(resp) */
             if (resp) {
                 setMap(resp);
                 if (!resp.mapSchema) return setData({
@@ -362,6 +466,7 @@ export default function EditMap({ mapid }) {
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
                 drawSubdivisions(resp2);
+                loadPoints(resp2?.points);
                 setShowSatellite(resp2?.satelliteView);
     
             }
@@ -382,20 +487,18 @@ export default function EditMap({ mapid }) {
             .then((response) =>  response.json())
             .then((geojson) => {
                 if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); // Remove existing GeoJSON layer
-                else geoJSONLayerRef.current = L.geoJSON(geojson,{onEachFeature:onEachFeature}).addTo(mapRef.current); // Add new GeoJSON layer
+                else geoJSONLayerRef.current = L.geoJSON(geojson,{
+                    onEachFeature: function(feature, layer) {onEachFeature(feature, layer, mapEditMode)}
+                }).addTo(mapRef.current); // Add new GeoJSON layer
                 geoJSONLayerRef.current.addData(geojson); // Add GeoJSON data to layer
                 if (data) drawSubdivisions(data);
+                mapRef.current.on('click', addPointCallback);
             }).catch((error) => {
                 console.error('Error reading GeoJSON', error);
             });
-        /* console.log(showSatellite); */
         satelliteLayerRef?.current?.setOpacity(showSatellite ? 1 : 0);
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers();  }; // Remove GeoJSON layer on unmount
     }, [map?.mapFile, showSatellite]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    function handlePublishModal() {
-        store.openModal();
-    }
 
     const handleDelete = async () => {
         console.log('delete map called on ' + mapid);
@@ -415,7 +518,7 @@ export default function EditMap({ mapid }) {
 
                             
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={handlePublishModal}>Publish</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => store.openModal()}>Publish</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={handleDelete}>Delete</Button>
                         </Box>
                         <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px' }}>
@@ -438,7 +541,6 @@ export default function EditMap({ mapid }) {
                     ref={mapRef}
                 >
                 </Box>
-
                 
                 <Box sx={styles.toolbarBG}>
                     <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton}}><ReplayIcon/></IconButton>
@@ -466,7 +568,7 @@ export default function EditMap({ mapid }) {
                 <Toolbar style={{marginTop: '25px'}}/>
                 {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data}/>}
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
-                {sidebar === 'point' && <PointSidebar />}
+                {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'bin' && <BinSidebar />}
                 {sidebar === 'gradient' && <GradientSidebar />}
                 {sidebar === 'template' && <TemplateSidebar />}
