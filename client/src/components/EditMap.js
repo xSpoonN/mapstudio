@@ -571,8 +571,16 @@ export default function EditMap({ mapid }) {
                 </Box>
                 
                 <Box sx={styles.toolbarBG}>
-                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton}}><ReplayIcon/></IconButton>
-                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'40px'}}><ReplayIcon sx={{ transform: 'scaleX(-1)' }} /></IconButton>
+                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton}}
+                        onClick={() => {
+                            store.undo();
+                        }}
+                    ><ReplayIcon/></IconButton>
+                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'40px'}}
+                        onClick={() => {
+                            store.redo();
+                        }}
+                    ><ReplayIcon sx={{ transform: 'scaleX(-1)' }} /></IconButton>
                     <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'80px'}}
                         onClick={async () => {
                             await store.saveMapSchema(mapid, store.getSchema(mapid));

@@ -25,7 +25,7 @@ class TransactionHandler {
     constructor() {
         this.transactions = [];
         this.maxTransactions = 30;
-        this.currentTransaction = -1;
+        this.currentTransaction = -1; // Will increment to 0 on first fetch from server
         this.redoQueue = [];
     }
 
@@ -390,7 +390,7 @@ function GlobalStoreContextProvider(props) {
         console.log("============== UPDATE SCHEMA ==============");
         console.log(mapSchema);
         console.log("--------------------------------------------");
-        storeReducer({
+        storeReducer({ // This is a hacky way to force a rerender
             type: GlobalStoreActionType.SET_SCHEMA_DATA,
             payload: {
                 schemaData : mapSchema
@@ -423,6 +423,30 @@ function GlobalStoreContextProvider(props) {
 
     store.clearHistory = function() {
         txnHandler.clear();
+    }
+
+    store.undo = function() {
+        let newSchema = txnHandler.undo();
+        if (newSchema) {
+            storeReducer({ // This is a hacky way to force a rerender
+                type: GlobalStoreActionType.SET_SCHEMA_DATA,
+                payload: {
+                    schemaData : newSchema
+                }
+            });
+        }
+    }
+
+    store.redo = function() {
+        let newSchema = txnHandler.redo();
+        if (newSchema) {
+            storeReducer({ // This is a hacky way to force a rerender
+                type: GlobalStoreActionType.SET_SCHEMA_DATA,
+                payload: {
+                    schemaData : newSchema
+                }
+            });
+        }
     }
 
     store.getSchema = async function(id) {
