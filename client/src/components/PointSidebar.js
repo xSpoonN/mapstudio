@@ -199,7 +199,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
             <>
                 <Typography variant="h6" style={{ margin: '10px' }}>All Points</Typography>
                 <List sx={{ width: '90%' }}>
-                    {mapInfo.points.map((point) => (
+                    {mapInfo?.points?.map((point) => (
                             <ListItem onClick={() => setCurrentPoint(point)}>
                                 <Typography variant="h6" sx={{mr: 8}}>{point.name}</Typography>
                                 <Typography sx={{mr: 4}}>{point.location.lat.toFixed(2)},{point.location.lon.toFixed(2)}</Typography>
