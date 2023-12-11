@@ -237,14 +237,13 @@ export default function EditMap({ mapid }) {
                 console.log(e.latlng.lat, e.latlng.lng);
                 const lat = e.latlng.lat;
                 const lng = e.latlng.lng;
-                const newPoint = {
-                    name: currentPoint.name,
-                    location: {lat: lat, lon: lng}, 
-                    weight: currentPoint.weight
-                };
-                console.log(newPoint);
                 const existing = data?.points?.find(point => point.name === currentPoint.name);
                 if (existing) { // Technically this should always be true
+                    const newPoint = {
+                        ...existing,
+                        location: {lat: lat, lon: lng}, 
+                    };
+                    console.log(newPoint);
                     const newPoints = data.points.map(point => {
                         return point.name === currentPoint.name ? newPoint : point;
                     });
@@ -253,6 +252,7 @@ export default function EditMap({ mapid }) {
                     loadPoints(newPoints);
                     /* console.log(newPoints); */
                     /* setData(updatedSchema); */
+                    setCurrentPoint(newPoint);
                     return setMapEditMode('None');
                 }
             });
@@ -448,22 +448,6 @@ export default function EditMap({ mapid }) {
                 store.setMapData(map);
                 setSidebar('point');
             });
-            marker.on('dragend', async function (e) {
-                L.DomEvent.stopPropagation(e)
-                const lat = e.target.getLatLng().lat;
-                const lng = e.target.getLatLng().lng;
-                const newPoint = {location: {lat: lat, lon: lng}, weight: point.weight};
-                console.log(newPoint);
-                marker.setLatLng([lat, lng]);
-                const existing = data?.subdivisions?.find(subdivision => subdivision.name === currentPoint.name);
-                if (existing) { // Technically this should always be true
-                    const updatedSchema = {...data, points: data.points.map(point => {
-                        return point.name === currentPoint.name ? newPoint : point;
-                    })}
-                    await store.updateMapSchema(map._id, updatedSchema);
-                    setData(updatedSchema);
-                }
-            })
             newMarkers = [...newMarkers, marker];
         })
         setMarkers(newMarkers);
