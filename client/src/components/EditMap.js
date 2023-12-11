@@ -318,6 +318,7 @@ export default function EditMap({ mapid }) {
             if (mapEditMode === 'None') {   
                 return setCurrentPoint(null)
             }
+            if (mapEditMode !== 'AddPoint') return console.log(mapEditMode);
             console.log(e.latlng.lat, e.latlng.lng);
             const lat = e.latlng.lat;
             const lng = e.latlng.lng;
