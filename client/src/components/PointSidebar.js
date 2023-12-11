@@ -1,13 +1,14 @@
 import { useState, useContext, useEffect } from 'react';
-import { Button, TextField, ClickAwayListener, /* FormControl, Select, MenuItem, */ IconButton, Divider, Box, Typography } from '@mui/material';
+import { Button, TextField, ClickAwayListener, /* FormControl, Select, MenuItem, */ IconButton, Divider, Box, Typography, ListItem } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 // import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
+import List from '@mui/material/List';
 import { TwitterPicker } from 'react-color';
 import { GlobalStoreContext } from '../store';
 
-export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setMapEditMode}) {
+export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setMapEditMode, setCurrentPoint}) {
     const { store } = useContext(GlobalStoreContext);
     const [mapInfo, setMapInfo] = useState(mapSchema);
     const [name, setName] = useState('');
@@ -47,14 +48,10 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
         setColor(match.color ? match.color : '#000000');
     }
 
-    return (
-        <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
-            {/* Map Info Header */}
-            <Typography variant="h6" style={{ margin: '10px' }}>{mapData?.title ? mapData.title : ''}</Typography>
-            <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
-            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>{mapData?.description ? mapData.description : ''}</Typography>
-            <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '80px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
-
+    let content = <></>
+    if(currentPoint) {
+        content = 
+            <>
             {/* Point Data */}
             <Typography variant="h6" style={{ margin: '10px' }}>Point Data</Typography>
             <Box sx={{ p: 0, width: '100%', display: 'flex', justifyContent: 'center', height: '100%' }}>
@@ -196,6 +193,47 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                     </Box>
                 </Box>
             </Box>
+            </>
+    } else {
+        content = 
+            <>
+                <Typography variant="h6" style={{ margin: '10px' }}>All Points</Typography>
+                <List sx={{ width: '90%' }}>
+                    {mapInfo.points.map((point) => (
+                            <ListItem onClick={() => setCurrentPoint(point)}>
+                                <Typography variant="h6" sx={{mr: 8}}>{point.name}</Typography>
+                                <Typography sx={{mr: 4}}>{point.location.lat.toFixed(2)},{point.location.lon.toFixed(2)}</Typography>
+                                <Typography>Weight: {point.weight.toFixed(2)}</Typography>
+                                <Box sx={{ width: 30, height: 30, borderRadius: '5px', backgroundColor: point.color ? point.color : "#000000", marginLeft: 'auto' }} />
+                            </ListItem>
+                        ))
+                    }
+                </List>
+                <Box sx={{ display: 'flex', width: '80%', justifyContent: 'center', mt: 2 }}>  
+                        <Button 
+                            variant="contained"
+                            sx={{ color: 'white', }} 
+                            style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '100px', minHeight: '20px'}} 
+                            disableRipple
+                            color='razzmatazz'
+                            onClick={() => { 
+                                setMapEditMode('AddPoint'); 
+                            }}
+                        >
+                            Add
+                        </Button>
+                </Box>
+            </>
+    }
+
+    return (
+        <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
+            {/* Map Info Header */}
+            <Typography variant="h6" style={{ margin: '10px' }}>{mapData?.title ? mapData.title : ''}</Typography>
+            <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
+            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>{mapData?.description ? mapData.description : ''}</Typography>
+            <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '80px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
+            {content}
         </Box>
     );
 }

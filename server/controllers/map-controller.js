@@ -217,7 +217,8 @@ updateMapFileById = async (req, res) => {
 }
 
 getMapsByUser = async (req, res) => {
-    Map.find({ author: req.params.id })
+    if(req.userId === req.params.id) {
+        Map.find({ author: req.params.id })
         .then(maps => {
             maps.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate));
             return res.status(200).json({
@@ -232,6 +233,23 @@ getMapsByUser = async (req, res) => {
                 message: 'Maps not found',
             })
         })
+    } else {
+        Map.find({ author: req.params.id, isPublished: true })
+        .then(maps => {
+            maps.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate));
+            return res.status(200).json({
+                success: true,
+                maps: maps,
+                message: 'Maps retrieved!'
+            })
+        }).catch(error => {
+            console.log("FAILURE: " + JSON.stringify(error));
+            return res.status(404).json({
+                error,
+                message: 'Maps not found',
+            })
+        })
+    }   
 }
 
 getPublishedMaps = async (req, res) => {

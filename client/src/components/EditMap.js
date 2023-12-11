@@ -144,6 +144,14 @@ const styles = {
         minWidth: '105px',
         minHeight: '45px'
     },
+    bigButtonSelected: {
+        fontSize: '14pt',
+        maxWidth: '200px',
+        maxHeight: '45px',
+        minWidth: '105px',
+        minHeight: '45px',
+        color: '#E3256B'
+    },
     toolbarButton: {
         position: 'absolute',
         fontSize: '14pt',
@@ -259,7 +267,7 @@ export default function EditMap({ mapid }) {
                     setSidebar('subdivision');
                 });
             });
-        } else {
+        } else if (mapEditMode === 'AddPoint') {
             mapRef.current?.off('click');
             mapRef.current?.on('click', function(e) {
                 if (mapEditMode !== 'AddPoint') return console.log(mapEditMode);
@@ -274,8 +282,23 @@ export default function EditMap({ mapid }) {
                 markers.forEach(marker => {console.log("Removing ", marker); mapRef.current.removeLayer(marker)});
                 loadPoints(newPoints);
                 setMapEditMode('None');
+                console.log("wow" + mapEditMode)
                 store.updateMapSchema(mapid, {...data, points: newPoints});
             });
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click');
+                layer.on('click', function() { 
+                    console.log(mapEditMode);
+                    if (mapEditMode !== 'None') return;
+                    console.log(layer.feature.properties);
+                    setFeature(layer.feature.properties);
+                    store.setMapData(map);
+                    setSidebar('subdivision');
+                });
+            });
+        } else {
+            mapRef.current?.off('click');
+            mapRef.current?.on('click');
             geoJSONLayerRef.current?.eachLayer((layer) => {
                 layer.off('click');
                 layer.on('click', function() { 
@@ -292,6 +315,9 @@ export default function EditMap({ mapid }) {
 
     function addPointCallback (e) {
             /* console.log("click"); */
+            if (mapEditMode === 'None') {   
+                return setCurrentPoint(null)
+            }
             if (mapEditMode !== 'AddPoint') return console.log(mapEditMode);
             console.log(e.latlng.lat, e.latlng.lng);
             const lat = e.latlng.lat;
@@ -415,13 +441,15 @@ export default function EditMap({ mapid }) {
                 radius: point.weight * 15
             }).addTo(mapRef.current);
             marker.setStyle({fillColor: point.color || '#000000', fillOpacity: 1, stroke: false});
-            marker.on('click', function () {
+            marker.on('click', function (e) {
+                L.DomEvent.stopPropagation(e)
                 console.log(point);
                 setCurrentPoint(point);
                 store.setMapData(map);
                 setSidebar('point');
             });
             marker.on('dragend', async function (e) {
+                L.DomEvent.stopPropagation(e)
                 const lat = e.target.getLatLng().lat;
                 const lng = e.target.getLatLng().lng;
                 const newPoint = {location: {lat: lat, lon: lng}, weight: point.weight};
@@ -522,12 +550,12 @@ export default function EditMap({ mapid }) {
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={handleDelete}>Delete</Button>
                         </Box>
                         <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px' }}>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => {setSidebar('map'); store.setMapData(map);}}>Map Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('subdivision')}>Subdivision Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('point')}>Point Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('bin')}>Bin Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('gradient')}>Gradient Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.bigButton} disableRipple onClick={() => setSidebar('template')}>Templates</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'map' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('map'); store.setMapData(map);}}>Map Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('subdivision')}>Subdivision Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'point' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('point'); setCurrentPoint(null)}}>Point Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'bin' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('bin')}>Bin Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'gradient' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('gradient')}>Gradient Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'template' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('template')}>Templates</Button>
                         </Box>
                     </Toolbar>
                 </AppBar>
@@ -573,7 +601,7 @@ export default function EditMap({ mapid }) {
                 <Toolbar style={{marginTop: '25px'}}/>
                 {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data}/>}
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
-                {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode}/>}
+                {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint}/>}
                 {sidebar === 'bin' && <BinSidebar />}
                 {sidebar === 'gradient' && <GradientSidebar />}
                 {sidebar === 'template' && <TemplateSidebar />}

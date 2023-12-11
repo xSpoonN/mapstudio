@@ -135,9 +135,12 @@ export default function Comment(props) {
                     <Box sx={{ display: 'flex', p: 1, flexGrow: 1 }} alignItems="center">
                         <Avatar 
                             alt="Kenna McRichard" 
-                            src={user?.pfp ? `${user.pfp}?${SASTOKEN}` : "/static/images/avatar/2.jpg" }
-                            sx={{ bgcolor: "#E3256B", width: '32px', height: '32px', mr: 2 }} 
-                        /> 
+                            src={`${user?.pfp}?${SASTOKEN}`}
+                            sx={{ bgcolor: "#E3256B", width: '32px', height: '32px', mr: 2 }}
+                            onClick={user ? () => store.changeToProfile(user) : () => {}} 
+                        >
+					        {comment?.author[0]}
+                        </Avatar> 
                         <Typography color='#e3256b'>
                             {comment?.author}
                         </Typography>
