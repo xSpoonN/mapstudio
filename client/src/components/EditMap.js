@@ -190,10 +190,11 @@ export default function EditMap({ mapid }) {
     const [feature, setFeature] = useState(null); // Current feature selected on map (for subdivisions)
     const [currentPoint, setCurrentPoint] = useState(null); // Current point selected on map
     const [data, setData] = useState(null); // JSON schema containing all map data
-    const [markers, setMarkers] = useState([]); // Array of points to be rendered [lat, lon]
+    const [markers, setMarkers] = useState([]); // eslint-disable-line
     const [mapEditMode, setMapEditMode] = useState('None'); // Current map edit mode ['None', 'AddPoint', ]
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
+    const markerLayerRef = useRef(null); // Track marker featuregroup instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
     const satelliteLayerRef = useRef(null); // Track satellite layer instance
     const [showSatellite, setShowSatellite] = useState(false);
@@ -279,7 +280,7 @@ export default function EditMap({ mapid }) {
                     location: {lat: lat, lon: lng}, 
                     weight: 0.5};
                 const newPoints = [...data?.points, newPoint];
-                markers.forEach(marker => {console.log("Removing ", marker); mapRef.current.removeLayer(marker)});
+                /* markers.forEach(marker => {console.log("Removing ", marker); geoJSONLayerRef.current.removeLayer(marker)}); */
                 loadPoints(newPoints);
                 setMapEditMode('None');
                 console.log("wow" + mapEditMode)
@@ -327,7 +328,7 @@ export default function EditMap({ mapid }) {
                 location: {lat: lat, lon: lng}, 
                 weight: 0.5};
             const newPoints = [...data?.points, newPoint];
-            markers.forEach(marker => mapRef.current.removeLayer(marker));
+            /* markers.forEach(marker => mapRef.current.removeLayer(marker)); */
             loadPoints(newPoints);
             /* console.log(newPoints); */
             setMapEditMode('None');
@@ -432,14 +433,16 @@ export default function EditMap({ mapid }) {
                 layer.setStyle({fillColor: existing?.color || '#DDDDDD', fillOpacity: existing?.weight || 0.5});
             } );
         }
+        if (markerLayerRef?.current) markerLayerRef.current.bringToFront();
     }
     const loadPoints = (points) => {
         let newMarkers = [];
-        markers.forEach(marker => {/* console.log("Removing ", marker);  */mapRef.current.removeLayer(marker)});
+        /* markers.forEach(marker => {console.log("Removing ", marker);  */markerLayerRef.current.clearLayers();/* }); */
         points?.forEach(point => {
             const marker = L.circleMarker([point.location.lat, point.location.lon], {
                 radius: point.weight * 15
-            }).addTo(mapRef.current);
+            }).addTo(markerLayerRef.current);
+            /* console.log("Adding ", marker); */
             marker.setStyle({fillColor: point.color || '#000000', fillOpacity: 1, stroke: false});
             marker.on('click', function (e) {
                 L.DomEvent.stopPropagation(e)
@@ -448,7 +451,8 @@ export default function EditMap({ mapid }) {
                 store.setMapData(map);
                 setSidebar('point');
             });
-            newMarkers = [...newMarkers, marker];
+            /* newMarkers =  */newMarkers.push(marker);
+            /* newMarkers = [...newMarkers, marker]; */
         })
         setMarkers(newMarkers);
     }
@@ -495,6 +499,7 @@ export default function EditMap({ mapid }) {
             }).addTo(mapRef.current); // Add Google Satellite tiles
             mapInitializedRef.current = true; // Mark map as initialized
         }
+        if (!markerLayerRef.current) markerLayerRef.current = L.featureGroup().addTo(mapRef.current); // Initialize marker layer
         fetch(`${map?.mapFile}?${SASTOKEN}`, {mode: "cors"})
             .then((response) =>  response.json())
             .then((geojson) => {
