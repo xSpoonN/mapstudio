@@ -21,6 +21,60 @@ export const GlobalStoreActionType = {
     SET_MAP_EDIT_MODE: "SET_MAP_EDIT_MODE"
 }
 
+class TransactionHandler {
+    constructor() {
+        this.transactions = [];
+        this.maxTransactions = 30;
+        this.currentTransaction = -1;
+        this.redoQueue = [];
+    }
+
+    addTransaction(transaction) {
+        if (this.transactions.length >= this.maxTransactions) {
+            this.transactions.shift();
+            this.currentTransaction--;
+        }
+        this.transactions.push(transaction);
+        this.currentTransaction++;
+
+        if (this.redoQueue.length) this.redoQueue = []; // Clear redo queue
+    }
+
+    undo() {
+        if (this.currentTransaction > 0) {
+            const undoed = this.transactions.pop();
+            this.currentTransaction--;
+            this.redoQueue.push(undoed);
+            return undoed;
+        }
+    }
+
+    redo() {
+        if (this.redoQueue.length) {
+            const redone = this.redoQueue.pop();
+            this.transactions.push(redone);
+            this.currentTransaction = Math.min(this.currentTransaction + 1, 30);
+            return redone;
+        }
+    }
+
+    getCurrent() {
+        return this.transactions[this.currentTransaction];
+    }
+
+    getLength() {
+        return this.transactions.length;
+    }
+
+    clear() {
+        this.transactions = [];
+        this.currentTransaction = -1;
+        this.redoQueue = [];
+    }
+}
+
+const txnHandler = new TransactionHandler();
+
 function GlobalStoreContextProvider(props) {
     const { auth } = useContext(AuthContext);
     const [store, setStore] = useState({
@@ -328,9 +382,25 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
-    store.updateMapSchema = async function(id, mapSchema) {
+    store.updateMapSchema = async function(id, mapSchema){
+        txnHandler.addTransaction(mapSchema);
+        console.log("============== UPDATE SCHEMA ==============");
+        console.log(mapSchema);
+        console.log("--------------------------------------------");
+        storeReducer({
+            type: GlobalStoreActionType.SET_SCHEMA_DATA,
+            payload: {
+                schemaData : mapSchema
+            }
+        });
+    }
+
+    store.saveMapSchema = async function(id, mapSchema) {
+        console.log("============== SAVE SCHEMA ==============");
+        console.log(txnHandler.getCurrent());
+        console.log("--------------------------------------------");
         try {  
-            let response = await mapAPI.updateMapSchema(id, mapSchema);
+            let response = await mapAPI.updateMapSchema(id, txnHandler.getCurrent());
             /* console.log("updateMapSchema response: " + JSON.stringify(response)); */
             if (response.status === 200) {
                 if (response.data.success) {
@@ -348,7 +418,19 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
+    store.clearHistory = function() {
+        txnHandler.clear();
+    }
+
     store.getSchema = async function(id) {
+        if (txnHandler.getLength() === 0) {
+            let schema = await store.getSchemaFromServer(id);
+            txnHandler.addTransaction(schema);
+        }
+        return txnHandler.getCurrent();
+    }
+
+    store.getSchemaFromServer = async function(id) {
         try {
             let response = await mapAPI.getMapSchema(id);
             /* console.log("getSchema response: " + JSON.stringify(response)); */
