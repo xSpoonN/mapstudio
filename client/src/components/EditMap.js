@@ -528,6 +528,54 @@ export default function EditMap({ mapid }) {
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers();  }; // Remove GeoJSON layer on unmount
     }, [map?.mapFile, showSatellite]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            switch (e.key) {
+                case 'Escape': {
+                    setMapEditMode('None');
+                    break;
+                }
+                case 's': {
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        console.log('saving');
+                        store.saveMapSchema(mapid, store.getSchema(mapid));
+                        alert('Map saved');
+                    }
+                    break;
+                }
+                case 'z': {
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        store.undo();
+                    }
+                    break;
+                }
+                case 'Z': {
+                    if (e.ctrlKey && e.shiftKey) {
+                        e.preventDefault();
+                        store.redo();
+                    }
+                    break;
+                }
+                case 'y': {
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        store.redo();
+                    }
+                    break;
+                }
+                default: {}
+            }
+        }
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            store.clearHistory();
+        }
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
     const handleDelete = async () => {
         console.log('delete map called on ' + mapid);
         const resp = await store.deleteMap(mapid);
@@ -571,9 +619,22 @@ export default function EditMap({ mapid }) {
                 </Box>
                 
                 <Box sx={styles.toolbarBG}>
-                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton}}><ReplayIcon/></IconButton>
-                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'40px'}}><ReplayIcon sx={{ transform: 'scaleX(-1)' }} /></IconButton>
-                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'80px'}}><SaveIcon/></IconButton>
+                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton}}
+                        onClick={() => {
+                            store.undo();
+                        }}
+                    ><ReplayIcon/></IconButton>
+                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'40px'}}
+                        onClick={() => {
+                            store.redo();
+                        }}
+                    ><ReplayIcon sx={{ transform: 'scaleX(-1)' }} /></IconButton>
+                    <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'80px'}}
+                        onClick={async () => {
+                            await store.saveMapSchema(mapid, store.getSchema(mapid));
+                            alert('Map saved');
+                        }}
+                    ><SaveIcon/></IconButton>
                 </Box>
             </Box>
 

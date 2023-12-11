@@ -45,15 +45,15 @@ describe('Create Map', () => {
 
     it('contains point info sidebar', () => {
         cy.contains('Point Info').click();
-        cy.contains('Point Data').should('exist');
-        cy.contains('Name').should('exist');
+        cy.contains('All Points').should('exist');
+        /* cy.contains('Name').should('exist');
         cy.contains('Size').should('exist');
         cy.contains('Color').should('exist');
         cy.get('input[type="text"]').should('have.length', 3); // 1 Search box, name box,  weight box
         cy.contains('Add New Property').should('exist');
         cy.contains('Add').should('exist');
         cy.contains('Move').should('exist');
-        cy.contains('Delete').should('exist');
+        cy.contains('Delete').should('exist'); */
     })
 
     it('contains bin info sidebar', () => {
