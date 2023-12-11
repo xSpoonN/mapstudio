@@ -528,6 +528,54 @@ export default function EditMap({ mapid }) {
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers();  }; // Remove GeoJSON layer on unmount
     }, [map?.mapFile, showSatellite]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            switch (e.key) {
+                case 'Escape': {
+                    setMapEditMode('None');
+                    break;
+                }
+                case 's': {
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        console.log('saving');
+                        store.saveMapSchema(mapid, store.getSchema(mapid));
+                        alert('Map saved');
+                    }
+                    break;
+                }
+                case 'z': {
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        store.undo();
+                    }
+                    break;
+                }
+                case 'Z': {
+                    if (e.ctrlKey && e.shiftKey) {
+                        e.preventDefault();
+                        store.redo();
+                    }
+                    break;
+                }
+                case 'y': {
+                    if (e.ctrlKey) {
+                        e.preventDefault();
+                        store.redo();
+                    }
+                    break;
+                }
+                default: {}
+            }
+        }
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+            store.clearHistory();
+        }
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
     const handleDelete = async () => {
         console.log('delete map called on ' + mapid);
         const resp = await store.deleteMap(mapid);
