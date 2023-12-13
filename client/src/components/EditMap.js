@@ -12,6 +12,7 @@ import SubdivisionSidebar from './SubdivisionSidebar';
 import BinSidebar from './BinSidebar';
 import GradientSidebar from './GradientSidebar';
 import TemplateSidebar from './TemplateSidebar';
+import HeatMapSidebar from './HeatSidebar';
 import ConfirmModal from './ConfirmModal';
 import togeojson from 'togeojson';
 import * as shapefile from 'shapefile';
@@ -571,6 +572,25 @@ export default function EditMap({ mapid }) {
         console.log(resp);
     }
 
+    const handleTemplateSelect = (templateName) => {
+        if (templateName === 'Heat Map') {
+            setSidebar('heatmap');
+        }
+        // if (templateName === 'Point Map') {
+        //     setSidebar('point');
+        // }
+        // if (templateName === 'Satellite Map') {
+        //     setSidebar('satellite');
+        // }
+
+        // if (templateName === 'Bin Map') {
+        //     setSidebar('bin');
+        // }
+        // if (templateName === 'Gradient Map') {
+        //     setSidebar('gradient');
+        // }
+    };
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Box height='80vh' width='100vw' style={{ flex: 1 }} >
@@ -649,7 +669,8 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint}/>}
                 {sidebar === 'bin' && <BinSidebar />}
                 {sidebar === 'gradient' && <GradientSidebar />}
-                {sidebar === 'template' && <TemplateSidebar />}
+                {sidebar === 'template' && <TemplateSidebar onTemplateSelect={handleTemplateSelect} />}
+                {sidebar === 'heatmap' && <HeatMapSidebar />}
             </Drawer>
             <ConfirmModal map={map}/>
         </Box>
