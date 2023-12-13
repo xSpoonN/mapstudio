@@ -647,7 +647,7 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data}/>}
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
                 {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint}/>}
-                {sidebar === 'bin' && <BinSidebar />}
+                {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data}/>}
                 {sidebar === 'gradient' && <GradientSidebar />}
                 {sidebar === 'template' && <TemplateSidebar />}
             </Drawer>
