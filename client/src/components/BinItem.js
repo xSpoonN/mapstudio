@@ -12,10 +12,9 @@ export default function Bin({bin, mapSchema, mapData, setMapEditMode}) {
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
     const { store } = useContext(GlobalStoreContext);
 
+    // Handles updating the bin data when something changes elsewhere, and on initial load
     useEffect(() => {
         const retrieveData = async () => {
-            /* console.log(currentPoint);
-            console.log(mapSchema); */
             if (bin) {
                 const match = mapSchema.bins.find(bin2 => bin2.name === bin.name);
                 setName(match.name);
@@ -23,15 +22,14 @@ export default function Bin({bin, mapSchema, mapData, setMapEditMode}) {
             }
         }
         retrieveData();
-    }, [/* store,  */bin, /* mapData, */ mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [bin, mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Handles pushing the updated map schema to store
     const updateSchema = async (updatedSchema) => {
-        /* const resp =  */await store.updateMapSchema(mapData._id, updatedSchema);
-        /* console.log(resp); */
-        /* setMapInfo(updatedSchema); */
+        await store.updateMapSchema(mapData._id, updatedSchema);
         console.log(updatedSchema)
-        const match = updatedSchema?.bins?.find(bin2 => bin2.name === name );
-        
-        if (match) {
+        const match = updatedSchema?.bins?.find(bin2 => bin2.name === name ); // Find the bin that was just updated
+        if (match) { // If it exists, update the current name and color
             setName(match.name);
             setColor(match.color ? match.color : '#E3256B');
         }
@@ -58,16 +56,15 @@ export default function Bin({bin, mapSchema, mapData, setMapEditMode}) {
 
                 {/* Bin Color */}
                 <Box sx={{ width: 30, height: 30, backgroundColor: color, borderRadius: '5px', marginLeft: '5px', marginRight: '2px' }} onClick={() => setDisplayColorPicker(!displayColorPicker)} />
-                {/* <Typography>Bin</Typography> */}
                 
                 {/* Bin Name */}
                 <TextField value={name} sx={{ marginLeft: 'auto', maxWidth: '200px' }} InputProps={{ sx: { borderRadius: 3 } }} 
                     onChange={e => setName(e.target.value)} 
                     onBlur={async () => {
-                        const nameExists = mapSchema.bins.some(bin2 => bin2.name === name);
-                        if (!nameExists) {
+                        const nameExists = mapSchema.bins.some(bin2 => bin2.name === name); // Check if the name already exists
+                        if (!nameExists) { // If it doesn't, update the schema
                             await updateSchema({...mapSchema, bins: mapSchema.bins.map(bin2 => bin2.name === bin.name ? {...bin2, name: name} : bin2)});
-                        } else {
+                        } else { // If it does, reset the name
                             setName(bin.name);
                             console.log('Name already exists');
                         }
@@ -77,11 +74,12 @@ export default function Bin({bin, mapSchema, mapData, setMapEditMode}) {
                 {/* Delete Bin */}
                 <IconButton 
                     onClick={() => {
-                        console.log('removing ', bin.name);
-                        console.log('from ', mapSchema.bins);
+                        // Finds any subdivisions that were in the bin, and resets their color and weight
                         const newSubdivisions = mapSchema.subdivisions.map(subdivision => {
                             return bin.subdivisions?.includes(subdivision.name) ? {...subdivision, color: '#DDDDDD', weight: 0.5} : subdivision;
                         });
+
+                        // Updates the schema to remove the bin
                         updateSchema({...mapSchema, subdivisions: newSubdivisions, bins: mapSchema.bins.filter(bin2 => bin2.name !== bin.name)});
                     }}
                 >
@@ -94,13 +92,17 @@ export default function Bin({bin, mapSchema, mapData, setMapEditMode}) {
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
                         <TwitterPicker color={color} onChangeComplete={color => {
                             setColor(color.hex);
+
+                            // Finds any subdivisions that are in the bin, and updates their color and weight
                             const newSubdivisions = mapSchema.subdivisions.map(subdivision => {
                                 return bin.subdivisions?.includes(subdivision.name) ? {...subdivision, color: color.hex, weight: 0.5} : subdivision;
                             });
+
+                            // Updates the schema to update the bin color
                             updateSchema({...mapSchema, subdivisions: newSubdivisions, bins: mapSchema.bins.map(bin2 => {
                                 return bin2.name === bin.name 
                                 ? {...bin2, color: color.hex} : bin2;
-                            })}, {...bin, name: color.hex})
+                            })})
                         }} 
                         sx={{ marginLeft: 'auto'}} triangle='hide'/>
                     </Box>

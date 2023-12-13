@@ -5,26 +5,12 @@ import CheckIcon from '@mui/icons-material/Check';
 import Bin from './BinItem';
 
 export default function BinInfoSidebar({mapData, mapSchema, setMapEditMode}) {
-    /* const [bins, setBins] = useState([
-        {color: '#E3256B', value: 'French'},
-        {color: '#A23B13', value: 'Communist'}
-    ]); */
-
     const { store } = useContext(GlobalStoreContext);
-    /* const [mapInfo, setMapInfo] = useState(mapSchema);
 
-    useEffect(() => {
-        const retrieveData = async () => {
-            setMapInfo(mapSchema);
-        }
-        retrieveData();
-    }, [ mapSchema]) */ // eslint-disable-line react-hooks/exhaustive-deps
-
+    // The only reason we need to update the schema here is to add a new bin
     const updateSchema = async () => {
         const updatedSchema = {...mapSchema, bins: [...mapSchema.bins, {name: 'New Bin', color: '#E3256B', subdivisions: []}]};
-        /* const resp =  */await store.updateMapSchema(mapData._id, updatedSchema);
-        /* console.log(resp); */
-        /* setMapInfo(updatedSchema); */
+        await store.updateMapSchema(mapData._id, updatedSchema);
     }
 
     return (

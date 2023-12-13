@@ -19,19 +19,18 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
     const [color, setColor] = useState('#DDDDDD');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
+    // Handles updating the map schema when something changes elsewhere, and on initial load
     useEffect(() => {
         const retrieveData = async () => {
             setMapInfo(mapSchema);
-            /* console.log(currentFeature);
-            console.log(mapSchema); */
-            if (currentFeature) {
-                const match = mapSchema?.subdivisions?.find(subdivision => 
+            if (currentFeature) { // If a subdivision is selected
+                // Find the subdivision in the map schema
+                const match = mapSchema?.subdivisions?.find(subdivision => // Need to check all possible name fields because of inconsistencies in the geojson data
                     subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                 );
-                /* console.log(match) */
                 setName(currentFeature.name || currentFeature.NAME || currentFeature.Name);
                 if (match?.data) {
-                    const options = Object.getOwnPropertyNames(match.data);
+                    const options = Object.getOwnPropertyNames(match.data); // Get the object properties of the subdivision as an array
                     setDropdownOptions(options)
                     setDropdownValue(options ? options[0] : '');
                     setValue(options ? match.data[options[0]] : '');
@@ -45,13 +44,14 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
             }
         }
         retrieveData();
-    }, [/* store,  */currentFeature, /* mapData, */ mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [currentFeature, mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Handles pushing the updated map schema to store
     const updateSchema = async (updatedSchema) => {
-        /* const resp =  */await store.updateMapSchema(mapData._id, updatedSchema);
-        /* console.log(resp); */
+        await store.updateMapSchema(mapData._id, updatedSchema);
         setMapInfo(updatedSchema);
-        const match = updatedSchema?.subdivisions?.find(subdivision => 
+        // Find the subdivision in the map schema
+        const match = updatedSchema?.subdivisions?.find(subdivision => // Need to check all possible name fields because of inconsistencies in the geojson data
             subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
         );
         setName(currentFeature.name || currentFeature.NAME || currentFeature.Name);
@@ -59,7 +59,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
             setWeight(match.weight ? match.weight : 0.5);
             setColor(match.color ? match.color : '#E3256B');
             if (match.data) {
-                const options = Object.getOwnPropertyNames(match.data);
+                const options = Object.getOwnPropertyNames(match.data); // Get the object properties of the subdivision as an array
                 setDropdownOptions(options)
                 setDropdownValue(options ? options[0] : '');
                 setValue(options ? match.data[options[0]] : '');
@@ -102,11 +102,12 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                         <FormControl sx={{ mr: 1, ml: '10%' }}>
                         <Select value={dropdownValue} onChange={e => {
                             setDropdownValue(e.target.value);
+
+                            // Find the subdivision in the map schema
                             const existing = mapInfo?.subdivisions?.find(subdivision =>
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
-                            /* console.log("existing", existing); */
-                            setValue(existing?.data[e.target.value] ? existing.data[e.target.value] : '')
+                            setValue(existing?.data[e.target.value] ? existing.data[e.target.value] : '') // Set the value to the existing value if it exists, otherwise set it to empty string
                         }} sx={{ borderRadius: 3 }}>
                             {dropdownOptions.map(option => <MenuItem value={option}>{option}</MenuItem>)}
                         </Select>
@@ -118,16 +119,18 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             setValue(e.target.value); 
                         }}
                         onBlur={() => {
+                            // Find the subdivision in the map schema
                             const existing = mapInfo?.subdivisions?.find(subdivision => 
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
-                            /* console.log("existing", existing); */
                             if (existing) { // Technically this should always be true
+                                // Finds the matching subdivision in the data and updates the property's value
                                 updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
                                     return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
                                     ? {...subdivision, data: {...subdivision.data, [dropdownValue]: value}} : subdivision;
                                 })})
                             } else {
+                                // Adds a new subdivision to the data with the property's value
                                 updateSchema({...mapInfo, 
                                     subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, data: {[dropdownValue]: value}}]
                                 })
@@ -146,16 +149,19 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
 
                         <IconButton sx={{ marginLeft: 'auto'}} onClick={() => {
                             setWeight(weight - 0.1);
+
+                            // Find the subdivision in the map schema
                             const existing = mapInfo?.subdivisions?.find(subdivision => 
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
-                            /* console.log("existing", existing); */
                             if (existing) {
+                                // Finds the matching subdivision in the data and updates the weight value
                                 updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
                                     return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
                                     ? {...subdivision, weight: Number(weight - 0.1)} : subdivision;
                                 })})
                             } else {
+                                // Adds a new subdivision to the data with the weight value
                                 updateSchema({...mapInfo, 
                                     subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, weight: Number(weight - 0.1)}]
                                 })
@@ -170,16 +176,18 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             setWeight(e.target.value);
                         }}
                         onBlur={() => {
+                            // Find the subdivision in the map schema
                             const existing = mapInfo?.subdivisions?.find(subdivision => 
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
-                            /* console.log("existing", existing); */
                             if (existing) {
+                                // Finds the matching subdivision in the data and updates the weight value
                                 updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
                                     return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
                                     ? {...subdivision, weight: Number(weight)} : subdivision;
                                 })})
                             } else {
+                                // Adds a new subdivision to the data with the weight value
                                 updateSchema({...mapInfo,
                                     subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, weight: Number(weight)}]
                                 })
@@ -189,16 +197,19 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
 
                         <IconButton  onClick={() => {
                             setWeight(weight + 0.1);
+
+                            // Find the subdivision in the map schema
                             const existing = mapInfo?.subdivisions?.find(subdivision => 
                                 subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                             );
-                            /* console.log("existing", existing); */
                             if (existing) {
+                                // Finds the matching subdivision in the data and updates the weight value
                                 updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
                                     return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
                                     ? {...subdivision, weight: Number(weight + 0.1)} : subdivision;
                                 })})
                             } else {
+                                // Adds a new subdivision to the data with the weight value
                                 updateSchema({...mapInfo, 
                                     subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, weight: Number(weight + 0.1)}]
                                 })
@@ -225,16 +236,19 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
                                 <TwitterPicker color={color} onChangeComplete={color => {
                                     setColor(color.hex);
+
+                                    // Find the subdivision in the map schema
                                     const existing = mapInfo?.subdivisions?.find(subdivision => 
                                         subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                                     );
-                                    /* console.log("existing", existing); */
                                     if (existing) {
+                                        // Finds the matching subdivision in the data and updates the color value
                                         updateSchema({...mapInfo, subdivisions: mapInfo.subdivisions.map(subdivision => {
                                             return subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name 
                                             ? {...subdivision, color: color.hex} : subdivision;
                                         })})
                                     } else {
+                                        // Adds a new subdivision to the data with the color value
                                         updateSchema({...mapInfo,
                                             subdivisions: [...mapInfo.subdivisions, {name: currentFeature.name || currentFeature.NAME || currentFeature.Name, color: color.hex}]
                                         })
