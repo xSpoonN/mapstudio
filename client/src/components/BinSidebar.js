@@ -27,7 +27,7 @@ export default function BinInfoSidebar({mapData, mapSchema, setMapEditMode}) {
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>  
                         {/* Bin List */}
-                        {mapSchema.bins.map((bin, index) => (
+                        {mapSchema?.bins.map((bin, index) => (
                             <Bin key={index} bin={bin} mapSchema={mapSchema} mapData={mapData} setMapEditMode={setMapEditMode}/>
                         ))}
 
