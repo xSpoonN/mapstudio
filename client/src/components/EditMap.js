@@ -297,9 +297,76 @@ export default function EditMap({ mapid }) {
                     setSidebar('subdivision');
                 });
             });
+        } else if (mapEditMode.startsWith('AddToBin')) { 
+            const binName = mapEditMode.split('-').slice(1).join('-');
+            const binData = data?.bins?.find(bin => bin.name === binName);
+            mapRef.current?.off('click');
+            mapRef.current?.on('click', () => {});
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click');
+                layer.on('click', async function() { 
+                    console.log(mapEditMode);
+                    if (!mapEditMode.startsWith('AddToBin')) return;
+                    console.log(layer.feature.properties);
+                    let existing = data?.subdivisions?.find(subdivision => 
+                        subdivision.name === layer.feature.properties.name || subdivision.name === layer.feature.properties.NAME || subdivision.name === layer.feature.properties.Name
+                    );
+                    let newSubdivisions
+                    if (existing) {
+                        newSubdivisions = data.subdivisions.map(subdivision => {
+                            return subdivision.name === existing.name ? {...subdivision, color: binData.color, weight: 0.5} : subdivision;
+                        });
+                    } else {
+                        const newSubdivision = {
+                            name: layer.feature.properties.name || layer.feature.properties.NAME || layer.feature.properties.Name,
+                            color: binData.color,
+                            weight: 0.5
+                        }
+                        newSubdivisions = [...data.subdivisions, newSubdivision];
+                        existing = newSubdivision;
+                    }
+                    const newBins = data.bins.map(bin => {
+                        return bin.name === binName ? {...bin, subdivisions: [...(bin.subdivisions || []), existing.name]} : bin;
+                    });
+                    const updatedSchema = {...data, subdivisions: newSubdivisions, bins: newBins};
+                    await store.updateMapSchema(mapid, updatedSchema);
+                    setData(updatedSchema);
+                    drawSubdivisions(updatedSchema);
+                    return setMapEditMode('None');
+                });
+            });
+        } else if (mapEditMode.startsWith('DeleteFromBin')) { 
+            const binName = mapEditMode.split('-').slice(1).join('-');
+            mapRef.current?.off('click');
+            mapRef.current?.on('click', () => {});
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click');
+                layer.on('click', async function() { 
+                    console.log(mapEditMode);
+                    if (!mapEditMode.startsWith('DeleteFromBin')) return;
+                    console.log(layer.feature.properties);
+                    const existing = data?.subdivisions?.find(subdivision => 
+                        subdivision.name === layer.feature.properties.name || subdivision.name === layer.feature.properties.NAME || subdivision.name === layer.feature.properties.Name
+                    );
+                    if (existing) {
+                        const newSubdivisions = data.subdivisions.map(subdivision => {
+                            return subdivision.name === existing.name ? {...subdivision, color: '#DDDDDD', weight: 0.5} : subdivision;
+                        });
+                        const newBins = data.bins.map(bin => {
+                            return bin.name === binName ? {...bin, subdivisions: bin.subdivisions.filter(subdivision => subdivision !== existing.name)} : bin;
+                        });
+                        const updatedSchema = {...data, subdivisions: newSubdivisions, bins: newBins};
+                        await store.updateMapSchema(mapid, updatedSchema);
+                        setData(updatedSchema);
+                        drawSubdivisions(updatedSchema);
+                    }
+                    return setMapEditMode('None');
+                });
+            });
+            
         } else {
             mapRef.current?.off('click');
-            mapRef.current?.on('click');
+            mapRef.current?.on('click', () => {});
             geoJSONLayerRef.current?.eachLayer((layer) => {
                 layer.off('click');
                 layer.on('click', function() { 
@@ -647,7 +714,7 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data}/>}
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
                 {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint}/>}
-                {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data}/>}
+                {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'gradient' && <GradientSidebar />}
                 {sidebar === 'template' && <TemplateSidebar />}
             </Drawer>

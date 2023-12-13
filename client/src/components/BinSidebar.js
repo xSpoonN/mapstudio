@@ -4,7 +4,7 @@ import { Button, IconButton, Divider, Box, Typography } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import Bin from './BinItem';
 
-export default function BinInfoSidebar({mapData, mapSchema}) {
+export default function BinInfoSidebar({mapData, mapSchema, setMapEditMode}) {
     /* const [bins, setBins] = useState([
         {color: '#E3256B', value: 'French'},
         {color: '#A23B13', value: 'Communist'}
@@ -21,7 +21,7 @@ export default function BinInfoSidebar({mapData, mapSchema}) {
     }, [ mapSchema]) */ // eslint-disable-line react-hooks/exhaustive-deps
 
     const updateSchema = async () => {
-        const updatedSchema = {...mapSchema, bins: [...mapSchema.bins, {name: 'New Bin', color: '#E3256B'}]};
+        const updatedSchema = {...mapSchema, bins: [...mapSchema.bins, {name: 'New Bin', color: '#E3256B', subdivisions: []}]};
         /* const resp =  */await store.updateMapSchema(mapData._id, updatedSchema);
         /* console.log(resp); */
         /* setMapInfo(updatedSchema); */
@@ -42,7 +42,7 @@ export default function BinInfoSidebar({mapData, mapSchema}) {
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>  
                         {/* Bin List */}
                         {mapSchema.bins.map((bin, index) => (
-                            <Bin key={index} bin={bin} mapSchema={mapSchema} mapData={mapData}/>
+                            <Bin key={index} bin={bin} mapSchema={mapSchema} mapData={mapData} setMapEditMode={setMapEditMode}/>
                         ))}
 
                         {/* Add New Bin */}

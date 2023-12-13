@@ -1,12 +1,12 @@
 import { useState, useContext, useEffect } from 'react';
 import { GlobalStoreContext } from '../store';
-import { Box, Typography, IconButton, TextField, ClickAwayListener } from '@mui/material';
+import { Box, /* Typography, */ IconButton, TextField, ClickAwayListener } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { TwitterPicker } from 'react-color';
 
-export default function Bin({bin, mapSchema, mapData}) {
+export default function Bin({bin, mapSchema, mapData, setMapEditMode}) {
     const [name, setName] = useState(bin?.name);
     const [color, setColor] = useState(bin?.color);
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
@@ -40,17 +40,28 @@ export default function Bin({bin, mapSchema, mapData}) {
         <>
             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                 {/* Add/Remove from Bin */}
-                <IconButton sx={{ ml: '2%' }}>
-                <AddIcon />
-                <RemoveIcon />
+                <IconButton sx={{ ml: '5%', padding: 0.25 }}
+                    onClick={() => {
+                        setMapEditMode(`AddToBin-${bin.name}`);
+                    }}
+                >
+                    <AddIcon />
+                    {/* <RemoveIcon /> */}
+                </IconButton>
+                <IconButton sx={{ padding: 0.25 }}
+                    onClick={() => {
+                        setMapEditMode(`DeleteFromBin-${bin.name}`);
+                    }}
+                >
+                    <RemoveIcon />
                 </IconButton>
 
                 {/* Bin Color */}
-                <Box sx={{ width: 30, height: 30, backgroundColor: color, borderRadius: '5px', marginRight: '2px' }} onClick={() => setDisplayColorPicker(!displayColorPicker)} />
-                <Typography>Bin</Typography>
+                <Box sx={{ width: 30, height: 30, backgroundColor: color, borderRadius: '5px', marginLeft: '5px', marginRight: '2px' }} onClick={() => setDisplayColorPicker(!displayColorPicker)} />
+                {/* <Typography>Bin</Typography> */}
                 
                 {/* Bin Name */}
-                <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} 
+                <TextField value={name} sx={{ marginLeft: 'auto', maxWidth: '200px' }} InputProps={{ sx: { borderRadius: 3 } }} 
                     onChange={e => setName(e.target.value)} 
                     onBlur={async () => {
                         const nameExists = mapSchema.bins.some(bin2 => bin2.name === name);
@@ -68,7 +79,10 @@ export default function Bin({bin, mapSchema, mapData}) {
                     onClick={() => {
                         console.log('removing ', bin.name);
                         console.log('from ', mapSchema.bins);
-                        updateSchema({...mapSchema, bins: mapSchema.bins.filter(bin2 => bin2.name !== bin.name)});
+                        const newSubdivisions = mapSchema.subdivisions.map(subdivision => {
+                            return bin.subdivisions?.includes(subdivision.name) ? {...subdivision, color: '#DDDDDD', weight: 0.5} : subdivision;
+                        });
+                        updateSchema({...mapSchema, subdivisions: newSubdivisions, bins: mapSchema.bins.filter(bin2 => bin2.name !== bin.name)});
                     }}
                 >
                 <DeleteIcon  sx={{ marginLeft: 'auto' }} />  
@@ -80,7 +94,10 @@ export default function Bin({bin, mapSchema, mapData}) {
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
                         <TwitterPicker color={color} onChangeComplete={color => {
                             setColor(color.hex);
-                            updateSchema({...mapSchema, bins: mapSchema.bins.map(bin2 => {
+                            const newSubdivisions = mapSchema.subdivisions.map(subdivision => {
+                                return bin.subdivisions?.includes(subdivision.name) ? {...subdivision, color: color.hex, weight: 0.5} : subdivision;
+                            });
+                            updateSchema({...mapSchema, subdivisions: newSubdivisions, bins: mapSchema.bins.map(bin2 => {
                                 return bin2.name === bin.name 
                                 ? {...bin2, color: color.hex} : bin2;
                             })}, {...bin, name: color.hex})
