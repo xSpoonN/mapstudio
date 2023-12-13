@@ -16,12 +16,10 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
     const [color, setColor] = useState('#000000');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
-    
+    // Handles updating the map schema when something changes elsewhere, and on initial load
     useEffect(() => {
         const retrieveData = async () => {
             setMapInfo(mapSchema);
-            /* console.log(currentPoint);
-            console.log(mapSchema); */
             if (currentPoint) {
                 const match = mapSchema.points.find(point => point.name === currentPoint.name);
                 setName(match.name);
@@ -30,18 +28,19 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
             }
         }
         retrieveData();
-    }, [/* store,  */currentPoint, /* mapData, */ mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [currentPoint, mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Handles pushing the updated map schema to store
     const updateSchema = async (updatedSchema, newPoint, isName) => {
         await store.updateMapSchema(mapData._id, updatedSchema);
         setMapInfo(updatedSchema);
-        if (!newPoint) {
+        if (!newPoint) { // If there is no newPoint data, then reset to default since we are deleting the point
             setName('');
             setWeight(0.5);
             setColor('#000000');
             return;
         }
-        if (isName) currentPoint.name = newPoint.name;
+        if (isName) currentPoint.name = newPoint.name; // If we are updating the name, then update the currentPoint data to match
         const match = updatedSchema.points.find(point => point.name === newPoint.name || point.name === currentPoint.name);
         setName(match.name);
         setWeight(match.weight ? match.weight : 0.5);
@@ -62,10 +61,17 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} 
                         onChange={e => setName(e.target.value)}
                         onBlur={() => {
+                            const isNameExists = mapInfo.points.some(point => point.name === name); // Checks if the name already exists
+                            if (isNameExists) {
+                                // Handle the case when the name already exists
+                                console.log('Name already exists');
+                                return setName(currentPoint.name);
+                            }
+                            // Finds the point in the mapInfo and updates it with the new name
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name
                                 ? {...point, name: name} : point;
-                            })}, {...currentPoint, name: name}, true)
+                            })}, {...currentPoint, name: name}, true);
                         }}
                         />
 
@@ -82,6 +88,8 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
 
                         <IconButton sx={{ marginLeft: 'auto'}} onClick={() => {
                             setWeight(weight - 0.1);
+
+                            // Finds the point in the mapInfo and updates it with the new weight
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name 
                                 ? {...point, weight: Number(weight - 0.1)} : point;
@@ -94,6 +102,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
                         onChange={e => setWeight(Number(e.target.value))}
                         onBlur={() => {
+                            // Finds the point in the mapInfo and updates it with the new weight
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name
                                 ? {...point, weight: Number(weight)} : point;
@@ -103,6 +112,8 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
 
                         <IconButton  onClick={() => {
                             setWeight(weight + 0.1);
+
+                            // Finds the point in the mapInfo and updates it with the new weight
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name 
                                 ? {...point, weight: Number(weight + 0.1)} : point;
@@ -129,6 +140,8 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
                                 <TwitterPicker color={color} onChangeComplete={color => {
                                     setColor(color.hex);
+
+                                    // Finds the point in the mapInfo and updates it with the new color
                                     updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                         return point.name === currentPoint.name 
                                         ? {...point, color: color.hex} : point;
@@ -160,9 +173,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                             style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '100px', minHeight: '20px'}} 
                             disableRipple
                             color='razzmatazz'
-                            onClick={() => { 
-                                setMapEditMode('AddPoint'); 
-                            }}
+                            onClick={() => { setMapEditMode('AddPoint'); }}
                         >
                             Add
                         </Button>
@@ -184,6 +195,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                             disableRipple
                             color='razzmatazz'
                             onClick={() => { 
+                                // Deletse the point from the mapInfo
                                 updateSchema({...mapInfo, points: mapInfo.points.filter(point => point.name !== currentPoint.name)}, null);
                                 setMapEditMode('DeletePoint');
                             }}
