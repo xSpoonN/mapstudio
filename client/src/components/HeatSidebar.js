@@ -5,16 +5,13 @@ import L from 'leaflet';
 import 'leaflet.heat';
 
 export default function HeatMapSidebar({ map, handleFileUpload}) {
-
+    // trigger the handleFileUpload function from EditMap.js
     const triggerFileUpload = () => {
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.accept = '.csv';
         fileInput.onchange = (event) => {
             handleFileUpload(event);
-            // 您可能还需要在这里添加一些额外的处理，比如更新地图上的热力图层
-
-
         };
         fileInput.click();
     };

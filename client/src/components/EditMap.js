@@ -368,15 +368,13 @@ export default function EditMap({ mapid }) {
     function renderHeatMapOnMap(heatMapData) {
         console.log("rendering heatmap on map");
         const heatLayer = L.heatLayer(heatMapData, { radius: 25, blur: 15 }).addTo(mapRef.current);
-        
-        // 转换热力图数据为 GeoJSON
         console.log("converting heatmap data to geojson");
         const geojsonData = convertHeatMapDataToGeoJSON(heatMapData);
 
         console.log("converted geojson data:");
         console.log(geojsonData);
         
-        // 保存 GeoJSON 数据
+        // save the geojson data to database
         // updateMapFileData(mapid, geojsonData);
     }
 
@@ -452,7 +450,6 @@ export default function EditMap({ mapid }) {
                 const text = await file.text();
                 const heatMapData = parseCSVtoHeatMapData(text);
                 renderHeatMapOnMap(heatMapData);
-                
             }
 
         }else if (files.length === 2) {
