@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker } from 'react-leaflet'; // eslint-disab
 import { IconButton, Box, AppBar, Toolbar, Button, Drawer } from '@mui/material';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SaveIcon from '@mui/icons-material/Save';
-import L from 'leaflet';
+import L, { heatLayer } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import MapSidebar from './MapSidebar';
 import PointSidebar from './PointSidebar';
@@ -347,58 +347,95 @@ export default function EditMap({ mapid }) {
         }
     }
 
-    function parseCSVtoHeatMapData(csvText) {
+    // function parseCSVForHeatMap(csvText) {
+    //     console.log("entering parsing csv to heatmap data");
+    //     const heatMapData = [];
+    //     const lines = csvText.split('\n');
+    //     lines.forEach((line, index) => {
+    //         if (index > 0 && line) {
+    //             const parts = line.split(',');
+    //             const lat = parseFloat(parts[0]);
+    //             const lng = parseFloat(parts[1]);
+    //             const intensity = parseFloat(parts[2]) || 1; 
+    //             heatMapData.push([lat, lng, intensity]);
+    //         }
+    //     });
+    //     console.log(heatMapData);
+    //     console.log("parsing csv to heatmap data finished");
+    //     return heatMapData;
+    // }
+
+    function parseCSVForHeatMap(csvText) {
         console.log("entering parsing csv to heatmap data");
-        const heatMapData = [];
         const lines = csvText.split('\n');
-        lines.forEach((line, index) => {
-            if (index > 0 && line) {
-                const parts = line.split(',');
-                const lat = parseFloat(parts[0]);
-                const lng = parseFloat(parts[1]);
-                const intensity = parseFloat(parts[2]) || 1; // 默认强度值为 1
-                heatMapData.push([lat, lng, intensity]);
+        let latIndex = -1, lngIndex = -1;
+        let headers = lines[0].split(',');
+        let isHeaderDetected = false;
+    
+        const latPossibleNames = ['latitude', 'lat'];
+        const lngPossibleNames = ['longitude', 'long', 'lng'];
+    
+        // 尝试从头部行检测经纬度列
+        if (headers.length > 1) {
+            headers = headers.map(header => header.toLowerCase().trim());
+    
+            latIndex = headers.findIndex(header => latPossibleNames.some(name => header.includes(name)));
+            lngIndex = headers.findIndex(header => lngPossibleNames.some(name => header.includes(name)));
+    
+            isHeaderDetected = latIndex !== -1 && lngIndex !== -1;
+        }
+    
+        // 如果头部行没有检测到经纬度列，则尝试通过数据推测
+        if (!isHeaderDetected) {
+            const maxLat = 90, minLat = -90, maxLng = 180, minLng = -180;
+    
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                for (let j = 0; j < parts.length; j++) {
+                    const val = parseFloat(parts[j]);
+                    if (!isNaN(val)) {
+                        if (minLat <= val && val <= maxLat) {
+                            latIndex = j;
+                        } else if (minLng <= val && val <= maxLng) {
+                            lngIndex = j;
+                        }
+                    }
+                }
+    
+                if (latIndex !== -1 && lngIndex !== -1) break;
             }
-        });
-        console.log(heatMapData);
-        console.log("parsing csv to heatmap data finished");
-        return heatMapData;
+        }
+    
+        if (latIndex === -1 || lngIndex === -1) {
+            console.error('Latitude or longitude columns could not be detected.');
+            return [];
+        }
+    
+        // 解析 CSV 数据
+        const startIndex = isHeaderDetected ? 1 : 0;
+        return lines.slice(startIndex).reduce((acc, line) => {
+            const parts = line.split(',');
+            const lat = parseFloat(parts[latIndex]);
+            const lng = parseFloat(parts[lngIndex]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                acc.push([lat, lng, 1]); // 默认强度为 1
+            }
+            return acc;
+        }, []);
     }
 
     function renderHeatMapOnMap(heatMapData) {
         console.log("rendering heatmap on map");
-        const heatLayer = L.heatLayer(heatMapData, { radius: 25, blur: 15 }).addTo(mapRef.current);
-        console.log("converting heatmap data to geojson");
-        const geojsonData = convertHeatMapDataToGeoJSON(heatMapData);
 
-        console.log("converted geojson data:");
-        console.log(geojsonData);
-        
-        // save the geojson data to database
+        const heatLayer = L.heatLayer(heatMapData, { radius: 25, blur: 15 }).addTo(mapRef.current);
+
+        console.log("heat layer:");
+        console.log(heatLayer);
+
+        // save the heatMap data to database
         // updateMapFileData(mapid, geojsonData);
     }
 
-    function convertHeatMapDataToGeoJSON(heatMapData) {
-        console.log("converting heatmap data to geojson");
-        const features = heatMapData.map(([lat, lng, intensity]) => {
-            return {
-                type: 'Feature',
-                properties: {
-                    intensity
-                },
-                geometry: {
-                    type: 'Point',
-                    coordinates: [lng, lat]
-                }
-            };
-        });
-    
-        return {
-            type: 'FeatureCollection',
-            features: features
-        };
-    }
-    
     const handleFileUpload = async (event) => {
         console.log("file upload called");
         const files = Array.from(event.target.files);
@@ -447,8 +484,8 @@ export default function EditMap({ mapid }) {
             // if the file type is .csv
             else if(file.name.endsWith('.csv')){
                 console.log("csv file received");
-                const text = await file.text();
-                const heatMapData = parseCSVtoHeatMapData(text);
+                const csvText = await file.text();
+                const heatMapData = parseCSVForHeatMap(csvText);
                 renderHeatMapOnMap(heatMapData);
             }
 
