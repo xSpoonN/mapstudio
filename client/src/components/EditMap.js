@@ -205,6 +205,8 @@ export default function EditMap({ mapid }) {
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png'
     });
+    
+
     function RenderNewGeoJSON(geojsonData) {
         if (geoJSONLayerRef.current) { geoJSONLayerRef.current.clearLayers(); }
         geoJSONLayerRef.current = L.geoJSON(geojsonData, { 
@@ -344,7 +346,63 @@ export default function EditMap({ mapid }) {
             console.log('Error updating map file data in database');
         }
     }
+
+    function parseCSVtoHeatMapData(csvText) {
+        console.log("entering parsing csv to heatmap data");
+        const heatMapData = [];
+        const lines = csvText.split('\n');
+        lines.forEach((line, index) => {
+            if (index > 0 && line) {
+                const parts = line.split(',');
+                const lat = parseFloat(parts[0]);
+                const lng = parseFloat(parts[1]);
+                const intensity = parseFloat(parts[2]) || 1; // 默认强度值为 1
+                heatMapData.push([lat, lng, intensity]);
+            }
+        });
+        console.log(heatMapData);
+        console.log("parsing csv to heatmap data finished");
+        return heatMapData;
+    }
+
+    function renderHeatMapOnMap(heatMapData) {
+        console.log("rendering heatmap on map");
+        const heatLayer = L.heatLayer(heatMapData, { radius: 25, blur: 15 }).addTo(mapRef.current);
+        
+        // 转换热力图数据为 GeoJSON
+        console.log("converting heatmap data to geojson");
+        const geojsonData = convertHeatMapDataToGeoJSON(heatMapData);
+
+        console.log("converted geojson data:");
+        console.log(geojsonData);
+        
+        // 保存 GeoJSON 数据
+        // updateMapFileData(mapid, geojsonData);
+    }
+
+    function convertHeatMapDataToGeoJSON(heatMapData) {
+        console.log("converting heatmap data to geojson");
+        const features = heatMapData.map(([lat, lng, intensity]) => {
+            return {
+                type: 'Feature',
+                properties: {
+                    intensity
+                },
+                geometry: {
+                    type: 'Point',
+                    coordinates: [lng, lat]
+                }
+            };
+        });
+    
+        return {
+            type: 'FeatureCollection',
+            features: features
+        };
+    }
+    
     const handleFileUpload = async (event) => {
+        console.log("file upload called");
         const files = Array.from(event.target.files);
         if (!files.length) return;
         let geojsonData;
@@ -388,6 +446,15 @@ export default function EditMap({ mapid }) {
                 };
                 shpReader.readAsArrayBuffer(file);
             }
+            // if the file type is .csv
+            else if(file.name.endsWith('.csv')){
+                console.log("csv file received");
+                const text = await file.text();
+                const heatMapData = parseCSVtoHeatMapData(text);
+                renderHeatMapOnMap(heatMapData);
+                
+            }
+
         }else if (files.length === 2) {
             const validExtensions = ['shp', 'shx', 'dbf'];
             const fileExtensions = Array.from(files).map(file => file.name.split('.').pop().toLowerCase());
@@ -670,7 +737,7 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'bin' && <BinSidebar />}
                 {sidebar === 'gradient' && <GradientSidebar />}
                 {sidebar === 'template' && <TemplateSidebar onTemplateSelect={handleTemplateSelect} />}
-                {sidebar === 'heatmap' && <HeatMapSidebar />}
+                {sidebar === 'heatmap' && <HeatMapSidebar map={mapRef.current} handleFileUpload={handleFileUpload}/>}
             </Drawer>
             <ConfirmModal map={map}/>
         </Box>

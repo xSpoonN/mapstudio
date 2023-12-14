@@ -18,7 +18,8 @@ export const GlobalStoreActionType = {
     SET_FEATURE_DATA: "SET_FEATURE_DATA",
     SET_SCHEMA_DATA: "SET_SCHEMA_DATA",
     SET_MAP_DATA: "SET_MAP_DATA",
-    SET_MAP_EDIT_MODE: "SET_MAP_EDIT_MODE"
+    SET_MAP_EDIT_MODE: "SET_MAP_EDIT_MODE",
+    // SET_HEAT_LAYER: "SET_HEAT_LAYER"
 }
 
 class TransactionHandler {
@@ -77,6 +78,7 @@ const txnHandler = new TransactionHandler();
 
 function GlobalStoreContextProvider(props) {
     const { auth } = useContext(AuthContext);
+    // const [heatLayer, setHeatLayer] = useState(null);
     const [store, setStore] = useState({
         currentScreen: 'landing',
         modal: null,
@@ -123,6 +125,15 @@ function GlobalStoreContextProvider(props) {
                     modal : 1
                 });
             }
+            // /*------------------ HEAT MAP LAYER ------------------*/
+            // case GlobalStoreActionType.SET_HEAT_LAYER: {
+            //     return setStore({
+            //         ...store,
+            //         heatLayer : payload.heatLayer
+            //     });
+            // }
+
+            /*------------------  ------------------*/
             case GlobalStoreActionType.SET_CURRENT_POST: {
                 return setStore({
                     ...store,
@@ -186,6 +197,17 @@ function GlobalStoreContextProvider(props) {
             }
         });
     }
+
+    /*--- method to update heat layer ---*/
+    // store.setHeatLayer = function(newHeatLayer) {
+    //     storeReducer({
+    //         type: GlobalStoreActionType.SET_HEAT_LAYER,
+    //         payload: {
+    //             heatLayer : newHeatLayer
+    //         }
+    //     });
+    // }
+    /*--- method to update heat layer ---*/
 
     store.changeToLogin = function() {
         storeReducer({
@@ -872,7 +894,8 @@ function GlobalStoreContextProvider(props) {
 
     return (
         <GlobalStoreContext.Provider value={{
-            store
+            store,
+            // heatLayer
         }}>
             {props.children}
         </GlobalStoreContext.Provider>
