@@ -346,49 +346,24 @@ export default function EditMap({ mapid }) {
             console.log('Error updating map file data in database');
         }
     }
-
-    // function parseCSVForHeatMap(csvText) {
-    //     console.log("entering parsing csv to heatmap data");
-    //     const heatMapData = [];
-    //     const lines = csvText.split('\n');
-    //     lines.forEach((line, index) => {
-    //         if (index > 0 && line) {
-    //             const parts = line.split(',');
-    //             const lat = parseFloat(parts[0]);
-    //             const lng = parseFloat(parts[1]);
-    //             const intensity = parseFloat(parts[2]) || 1; 
-    //             heatMapData.push([lat, lng, intensity]);
-    //         }
-    //     });
-    //     console.log(heatMapData);
-    //     console.log("parsing csv to heatmap data finished");
-    //     return heatMapData;
-    // }
-
     function parseCSVForHeatMap(csvText) {
         console.log("entering parsing csv to heatmap data");
         const lines = csvText.split('\n');
         let latIndex = -1, lngIndex = -1;
         let headers = lines[0].split(',');
         let isHeaderDetected = false;
-    
         const latPossibleNames = ['latitude', 'lat'];
         const lngPossibleNames = ['longitude', 'long', 'lng'];
-    
-        // 尝试从头部行检测经纬度列
+        // detect header row
         if (headers.length > 1) {
             headers = headers.map(header => header.toLowerCase().trim());
-    
             latIndex = headers.findIndex(header => latPossibleNames.some(name => header.includes(name)));
             lngIndex = headers.findIndex(header => lngPossibleNames.some(name => header.includes(name)));
-    
             isHeaderDetected = latIndex !== -1 && lngIndex !== -1;
         }
-    
-        // 如果头部行没有检测到经纬度列，则尝试通过数据推测
+        // if header row is not detected, try to detect latitude and longitude columns
         if (!isHeaderDetected) {
             const maxLat = 90, minLat = -90, maxLng = 180, minLng = -180;
-    
             for (let i = 1; i < lines.length; i++) {
                 const parts = lines[i].split(',');
                 for (let j = 0; j < parts.length; j++) {
@@ -401,24 +376,21 @@ export default function EditMap({ mapid }) {
                         }
                     }
                 }
-    
                 if (latIndex !== -1 && lngIndex !== -1) break;
             }
         }
-    
         if (latIndex === -1 || lngIndex === -1) {
             console.error('Latitude or longitude columns could not be detected.');
             return [];
         }
-    
-        // 解析 CSV 数据
+        // parse csv data
         const startIndex = isHeaderDetected ? 1 : 0;
         return lines.slice(startIndex).reduce((acc, line) => {
             const parts = line.split(',');
             const lat = parseFloat(parts[latIndex]);
             const lng = parseFloat(parts[lngIndex]);
             if (!isNaN(lat) && !isNaN(lng)) {
-                acc.push([lat, lng, 1]); // 默认强度为 1
+                acc.push([lat, lng, 1]); // default weight is 1
             }
             return acc;
         }, []);
@@ -426,12 +398,9 @@ export default function EditMap({ mapid }) {
 
     function renderHeatMapOnMap(heatMapData) {
         console.log("rendering heatmap on map");
-
         const heatLayer = L.heatLayer(heatMapData, { radius: 25, blur: 15 }).addTo(mapRef.current);
-
         console.log("heat layer:");
         console.log(heatLayer);
-
         // save the heatMap data to database
         // updateMapFileData(mapid, geojsonData);
     }
@@ -486,6 +455,8 @@ export default function EditMap({ mapid }) {
                 console.log("csv file received");
                 const csvText = await file.text();
                 const heatMapData = parseCSVForHeatMap(csvText);
+                console.log("heat map data:");
+                console.log(heatMapData);
                 renderHeatMapOnMap(heatMapData);
             }
 
