@@ -29,10 +29,10 @@ export default function GradientInfoSidebar({mapData, mapSchema, setMapEditMode}
         console.log(unusedKey)
 
         // Get subdivisions that have the data field
-        const keySubdivisions = mapSchema.subdivisions.filter(subdivision => Object.keys(subdivision.data || {}).includes(unusedKey));
+        const keySubdivisions = mapSchema.subdivisions.filter(subdivision => Object.keys(subdivision.data || {}).includes(unusedKey)).map(subdivision => subdivision.name);
 
         // Add the new gradient
-        const updatedSchema = {...mapSchema, gradients: [...mapSchema.gradients, {dataField: unusedKey, minColor: '#DDDDDD', maxColor: '#E3256B', subdivisions: keySubdivisions}]};
+        const updatedSchema = {...mapSchema, gradients: [...mapSchema.gradients, {dataField: unusedKey, minColor: '#DDDDDD', maxColor: '#DDDDDD', subdivisions: keySubdivisions}]};
         await store.updateMapSchema(mapData._id, updatedSchema);
     }
 

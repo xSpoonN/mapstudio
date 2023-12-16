@@ -60,6 +60,7 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
     
     // Function to interpolate color based on the relative position of a value within a range
     function interpolateColor(value, min, max, minColor, maxColor) {
+        if (min === max) return maxColor;
         const normalizedValue = (value - min) / (max - min);
         const r = Math.round((1 - normalizedValue) * parseInt(minColor.slice(1, 3), 16) + normalizedValue * parseInt(maxColor.slice(1, 3), 16));
         const g = Math.round((1 - normalizedValue) * parseInt(minColor.slice(3, 5), 16) + normalizedValue * parseInt(maxColor.slice(3, 5), 16));
@@ -113,10 +114,6 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
                     onChange={e => {
                         setName(e.target.value)
 
-                        // Update the valueOptions to remove the selected value and add the old value back
-                        /* const newOptions = valueOptions.filter(opt => opt.value !== e.target.value)
-                        setValueOptions([...newOptions, {value: name, label: name}]) */
-
                         // Find subdivisions that have the data field
                         const {keySubdivisions, maxValue, minValue} = getKeySubdivisions();
 
@@ -130,7 +127,6 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
                         const combinedSubdivisions = mapSchema.subdivisions.map(subdivision => {
                             return newSubdivisions.find(subdivision2 => subdivision2.name === subdivision.name) || subdivision;
                         })
-
 
                         // Remove the old gradient from the schema
                         const newGradients = mapSchema.gradients.filter(grd => grd.dataField !== name);
@@ -147,19 +143,31 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
                 </Select>
 
                 {/* Delete Gradient */}
-                <IconButton>
+                <IconButton 
+                    onClick={() => {
+                        // Finds any subdivisions that were in the bin, and resets their color and weight
+                        const newSubdivisions = mapSchema.subdivisions.map(subdivision => {
+                            // Check if the subdivision is affetced by another gradient
+                            const otherGradient = mapSchema.gradients.find(grd => grd.dataField === name);
+                            if (otherGradient) return {...subdivision, color: '#DDDDDD', weight: 0.5}; // If so, reset the color and weight to the other gradient's color
+                            // Check if the subdivision is affected by a bin too
+                            const bin = mapSchema.bins.find(bin => bin.subdivisions?.includes(subdivision.name));
+                            console.log(bin); console.log(subdivision.name);
+                            if (bin) return {...subdivision, color: bin.color, weight: 0.5}; // If so, reset the color and weight to the bin's color
+
+                            // If not, reset the color and weight
+                            return gradient.subdivisions?.includes(subdivision.name) ? {...subdivision, color: '#DDDDDD', weight: 0.5} : subdivision;
+                        });
+
+                        // Updates the schema to remove the bin
+                        updateSchema({...mapSchema, subdivisions: newSubdivisions, gradients: mapSchema.gradients.filter(grd => grd.dataField !== gradient.dataField)});
+                    }}
+                >
                 <DeleteIcon  sx={{ marginLeft: 'auto' }} />  
                 </IconButton>
             </Box>
 
             {/* Color Pickers */}
-            {/* <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
-                {displayColorPicker && (<TwitterPicker color={color} onChangeComplete={color => setColor(color.hex)} sx={{ marginLeft: 'auto'}} triangle='hide'/>)}
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
-                {displayColorPicker2 && (<TwitterPicker color={color2} onChangeComplete={color => setColor2(color.hex)} sx={{ marginLeft: 'auto'}} triangle='hide'/>)}
-            </Box> */}
-
             {displayColorPicker && 
                 <ClickAwayListener onClickAway={() => setDisplayColorPicker(false)}>
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'right', justifyItems: 'right', marginRight: '15%' }}>  
