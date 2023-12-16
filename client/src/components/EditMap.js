@@ -214,13 +214,17 @@ export default function EditMap({ mapid }) {
 
     // Installs click handler for each subdivision feature
     function onEachFeature(feature, layer, editMode) {
-        layer.on('click', function() { 
+        layer.on('click', function(e) { 
+            L.DomEvent.stopPropagation(e)
             if (editMode !== 'None') return;
             console.log(feature.properties);
             setFeature(feature.properties);
             store.setMapData(map); // Forces a rerender by updating store
             setSidebar('subdivision');
         });
+        mapRef.current?.on('click', function(e) {
+            setFeature(null)
+        })
     }
 
     // Handles all map editing that deals with interaction with the map, and not the sidebar
@@ -381,10 +385,11 @@ export default function EditMap({ mapid }) {
             });
         } else { // None
             mapRef.current?.off('click'); // Remove existing click handler
-            mapRef.current?.on('click', () => {}); // Add empty click handler to prevent clicking on map from doing anything
+            mapRef.current?.on('click', () => setFeature(null)); // Add empty click handler to prevent clicking on map from doing anything
             geoJSONLayerRef.current?.eachLayer((layer) => {
                 layer.off('click'); // Remove existing click handler
-                layer.on('click', function() { 
+                layer.on('click', function(e) { 
+                    L.DomEvent.stopPropagation(e)
                     console.log(mapEditMode);
                     if (mapEditMode !== 'None') return;
                     console.log(layer.feature.properties);
@@ -579,7 +584,7 @@ export default function EditMap({ mapid }) {
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
             mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
-            //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
             satelliteLayerRef.current = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ 
                 subdomains:['mt0','mt1','mt2','mt3']
             }).addTo(mapRef.current); // Add Google Satellite tiles
@@ -658,6 +663,10 @@ export default function EditMap({ mapid }) {
         console.log(resp);
     }
 
+    function panToPoint(lat, lon) {
+        mapRef.current?.setView([lat, lon], mapRef.current?.getZoom() * 1.05);
+    }
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Box height='80vh' width='100vw' style={{ flex: 1 }} >
@@ -677,7 +686,7 @@ export default function EditMap({ mapid }) {
                         {/* Toolbar Buttons */}
                         <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px' }}>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'map' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('map'); store.setMapData(map);}}>Map Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('subdivision')}>Subdivision Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('subdivision'); setFeature(null)}}>Subdivision Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'point' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('point'); setCurrentPoint(null)}}>Point Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'bin' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('bin')}>Bin Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'gradient' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('gradient')}>Gradient Info</Button>
@@ -735,8 +744,8 @@ export default function EditMap({ mapid }) {
             >
                 <Toolbar style={{marginTop: '25px'}}/>
                 {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data}/>}
-                {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
-                {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint}/>}
+                {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data} setFeature={setFeature}/>}
+                {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint} panToPoint={panToPoint}/>}
                 {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'gradient' && <GradientSidebar />}
                 {sidebar === 'template' && <TemplateSidebar />}
