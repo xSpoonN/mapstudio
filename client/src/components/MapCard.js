@@ -1,5 +1,7 @@
-import { useContext } from 'react'
+import { useContext, useRef, useState, useEffect } from 'react'
 import { GlobalStoreContext } from '../store'
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 import { Card, CardMedia, CardContent, Typography, Box } from "@mui/material";
 import CommentIcon from '@mui/icons-material/Comment';
@@ -7,8 +9,54 @@ import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import EditIcon from '@mui/icons-material/Edit';
 
+const SASTOKENMAP = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
+
 export default function MapCard(props) {
     const { store } = useContext(GlobalStoreContext);
+    const mapRef = useRef(null); // Track map instance
+    const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
+    const mapInitializedRef = useRef(false); // Track whether map has been initialized
+    const [map, setMap] = useState(null);
+
+    useEffect(() => {
+        const fetchMap = async () => {
+            const resp = await store.getMap(props.mapID);
+            if(resp) {
+                setMap(resp);
+            }
+        }
+        fetchMap()
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
+            mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
+            mapInitializedRef.current = true; // Mark map as initialized
+        }
+
+        if(map?.mapFile !== undefined && map?.mapFile !== "" && map?.mapFile !== null   ) { 
+            fetch(`${map?.mapFile}?${SASTOKENMAP}`, {mode: "cors"})
+                .then((response) => response.json())
+                .then((geojson) => {
+                    if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); // Remove existing GeoJSON layer
+                    else geoJSONLayerRef.current = L.geoJSON(geojson).addTo(mapRef.current); // Add new GeoJSON layer
+                    geoJSONLayerRef.current.addData(geojson); // Add GeoJSON data to layer
+                }).catch((error) => {
+                    console.error('Error reading GeoJSON', error);
+                });
+        }
+
+        mapRef.current.setView([0, 0], 0);
+        mapRef.current.removeControl(mapRef.current.zoomControl);
+        mapRef.current.removeControl(mapRef.current.attributionControl);
+        mapRef.current.scrollWheelZoom.disable();
+        mapRef.current.doubleClickZoom.disable();
+        mapRef.current.dragging.disable();
+        mapRef.current.keyboard.disable();
+
+        return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); }; // Remove GeoJSON layer on unmount
+    }, [map]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const styles = {
         card: {
@@ -133,7 +181,7 @@ export default function MapCard(props) {
         <Card className="map-card" style={styles.card} onClick={handleCardClick}>
             <CardMedia
                 style={styles.media}
-                image='https://source.unsplash.com/random/500x300'
+                ref={mapRef}
                 title="Card Image"
             />
             <CardContent style={styles.content}>
