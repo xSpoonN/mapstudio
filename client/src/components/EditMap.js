@@ -218,6 +218,7 @@ export default function EditMap({ mapid }) {
     const satelliteLayerRef = useRef(null); // Track satellite layer instance
     const [showSatellite, setShowSatellite] = useState(false);
     const { store } = useContext(GlobalStoreContext); // eslint-disable-line
+    const heatLayerRef = useRef(null);
     L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png',
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
@@ -367,7 +368,7 @@ export default function EditMap({ mapid }) {
 
 /*-----------------------------heatmap-----------------------------------*/
 
-    // Parse csv data to heatmap points array data
+    // Parse csv data into heatmap points array data
     function parseCSVForHeatMap(csvText) {
         console.log("entering parsing csv to heatmap data");
         const lines = csvText.split('\n');
@@ -418,93 +419,101 @@ export default function EditMap({ mapid }) {
         }, []);
     }
 
-    // Create new heatmap object by using the heatmap points array data
+    // Create new heatmap object by points array data
     function createHeatMapObject(pointsArrayData, radius, blur) {
-        console.log("creating a new heatmap object");
+        // if radius, blur == null, use default values
+        if (radius === undefined) { radius = 26;}
+        if (blur === undefined) {blur = 19;}
+
+        // if radius, blur != null , use given values
         const heatMapObject = {
-            "radius": radius,
-            "blur": blur,
+            "radius": radius, "blur": blur,
             "points": pointsArrayData.map(([lat, lng], index) => ({
                 "name": "point" + index,
-                "location": {
-                    "lat": lat,
-                    "lon": lng
-                },
+                "location": {"lat": lat,"lon": lng},
                 "weight": 1
             }))
         };
-        console.log("new heatmap object:");
+        console.log("create new heatmap object:");
         console.log(heatMapObject);
-        // print the points of the heatmap object
-        console.log("new heat map object's points:");
-        console.log(heatMapObject.points);
-
-        // print the radius and blur of the heatmap object
-        console.log("new heat map object's radius and blur:");
-        console.log("radius:");
-        console.log(heatMapObject.radius);
-        console.log("blur:");
-        console.log(heatMapObject.blur);
-
-
-        // // print the current map data
-        // console.log("current map data:");
-        // console.log(data);
-        // // print the current map schema
-        // console.log("current map schema:");
-        // console.log(data.mapSchema);
-        // // print the current map schema's heatmaps
-        // console.log("current map schema's heatmaps:");
-        // console.log(data.mapSchema.heatmaps);
-        // // print the current map schema's heatmaps' points
-        // console.log("current map schema's heatmaps' points:");
-        // console.log(data.mapSchema.heatmaps[0].points);
         return heatMapObject;
     }
 
     // render parsed csv points data to heatmap
     function renderPArrayToHeatMap(pointsArrayData, radius, blur) {
-        console.log("rendering heatmap on map");
         // if the radius and blur are not specified, use default values
         if (radius === undefined || blur === undefined) {
-        const heatLayer = L.heatLayer(pointsArrayData, { radius: 25, blur: 15 }).addTo(mapRef.current);
-        console.log("heat layer:");
-        console.log(heatLayer);
+            const heatLayer = L.heatLayer(pointsArrayData, { radius: 26, blur: 19 }).addTo(mapRef.current);
+            console.log("Render points Array with unspecified radius or blur: heat layer:");
+            console.log(heatLayer);
+            heatLayerRef.current = heatLayer;
         }
         // if the radius and blur are specified, use the specified values
         else {
+            if (heatLayerRef.current) {
+                mapRef.current.removeLayer(heatLayerRef.current);
+            }
             const heatLayer = L.heatLayer(pointsArrayData, { radius: radius, blur: blur }).addTo(mapRef.current);
-            console.log("heat layer:");
+            console.log("Render points Array with given radius and blur: heat layer:");
             console.log(heatLayer);
+            heatLayerRef.current = heatLayer;
         }
     }
    // render current map schema's heatmap block to heatmap
     function renderHeatSchemaToHeatMap(mapSchema) {
+        console.log("Entering: renderHeatSchemaToHeatMap");
         if (mapSchema.type === 'heatmap' && mapSchema.heatmaps) {
-            console.log("process map schema, extract heat map's data:");
+            console.log("process map schema, extract heatmap's data:");
             const heatMap = mapSchema.heatmaps[0];
             console.log(heatMap);
-
-            console.log("heat map's points:");
-            const pointsArrayData = heatMap.points.map(
-                point => [point.location.lat, point.location.lon, point.weight]
-            );
-            console.log(pointsArrayData);
-
-            console.log("heat map's radius and blur:");
             const radius = heatMap.radius;
             const blur = heatMap.blur;
-            console.log("radius:");
-            console.log(radius);
-            console.log("blur:");
-            console.log(blur);
-
-            console.log("rendering parsed csv points data to heatmap by using  function renderPArrayToHeatMap: ");
+            const pointsArrayData = heatMap.points.map(point => [point.location.lat, point.location.lon, point.weight]);
+            console.log(" Transfer heatmap's data to 'renderPArrayToHeatMap': ");
             renderPArrayToHeatMap(pointsArrayData, radius, blur);
         }
         return null;
     }
 
+    const handleHeatMapChange = (radius, blur) => {
+        console.log("handle heatmap change called");
+
+        const updatedMapSchema = {...data};
+
+        if (!updatedMapSchema.heatmaps || updatedMapSchema.heatmaps.length === 0) {
+            console.log("Handle: no heatmap in current map schema");
+            updatedMapSchema.heatmaps = [{}];
+        }
+
+        updatedMapSchema.heatmaps[0] = {
+            ...updatedMapSchema.heatmaps[0],
+            ...radius,
+            ...blur
+        };
+
+        setData(updatedMapSchema);
+
+        if (heatLayerRef.current) {
+            heatLayerRef.current.setOptions({radius:radius, blur:blur});
+            heatLayerRef.current.redraw();
+        }
+
+
+
+
+        // if (data && data.heatmaps && data.heatmaps.length > 0) {
+        //     const updatedHeatmapSchema = { ...data.heatmaps[0], radius, blur };
+        //     console.log("Handle: updated heatmap schema:");
+        //     console.log(updatedHeatmapSchema);
+
+        //     const updatedData = { ...data, heatmaps: [updatedHeatmapSchema] };
+        //     console.log("Handle: updated map schema with heatmap:");
+        //     console.log(updatedData);
+
+        //     setData(updatedData);
+        //     renderHeatSchemaToHeatMap(updatedData);
+        // }
+    };
 /*-----------------------------heatmap-----------------------------------*/
     const handleFileUpload = async (event) => {
         console.log("file upload called");
@@ -554,42 +563,31 @@ export default function EditMap({ mapid }) {
             // if the file type is .csv
             else if(file.name.endsWith('.csv')){
                 console.log("csv file received");
-                // print the current map data
-                console.log("Using 'data' == current map data:");
-                console.log(data);
-                // print the current map schema
-                console.log("Using 'data.mapSchema' == current map schema:");
-                console.log(data.mapSchema);
-                // print the current map schema's heatmap
-                console.log("Using 'data.mapSchema.heatmap' == current map schema's heatmaps:");
-                console.log(data.mapSchema.heatmap);
-
-
-
-                const resp = await store.getMap(mapid);
-                const currentMapSchema = resp.mapSchema;
-                console.log("Using Store resp function == current map schema:");
-                console.log(currentMapSchema);
-
-
-                /*
-                    if current map schema's type != heatmap, heat object: null or empty ,
-                    then convert the parsed csv data to a heatmap object and save it to database.
-                    then render the parsed csv data to map immediately, by calling renderHeatMapOnMap()
-
-                    if current map schema's type == heatmap, heat object: not null or not empty,    
-                    then get the heatmap object from current map schema, and merge the parsed csv data to the heatmap object.   
+                const currentMapSchema = data;
+                /* if the current map schema is not a heatmap:
+                    1. parse the csv file to heatmap points array data
+                    2. create a new heatmap object by using the heatmap points array data
+                    3. update the current map schema with the new heatmap object
+                    4. render the new heatmap object to map 
                 */
-
+                
                 if (currentMapSchema.type !== "heatmap" || currentMapSchema.heatmaps.length === 0) {
+                    // change the map schema type to heatmap
+                    currentMapSchema.type = "heatmap";
                     const csvText = await file.text();
                     const heatMapData = parseCSVForHeatMap(csvText);
-                    console.log("Handle: heat map raw data after parsing csv:");
-                    console.log(heatMapData);
-                    // renderHeatMapOnMap(heatMapData);
+                    // renderPArrayToHeatMap(heatMapData);
                     const heatMapObject = createHeatMapObject(heatMapData);
                     console.log("Handle: created new heat object by raw data after parsing csv:");
-                    console.log(heatMapObject);
+                    data.heatmaps = []
+                    data.heatmaps.push(heatMapObject);
+
+                    // const updatedSchema = {...data, heatmaps: [heatMapObject]};
+                    // // store.updateMapSchema(mapid, updatedSchema);
+
+                    console.log("Handle: updated map schema with heatmap:");
+                    console.log(data);
+                    renderHeatSchemaToHeatMap(data);
                 
                 }
             }
@@ -876,7 +874,7 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'bin' && <BinSidebar />}
                 {sidebar === 'gradient' && <GradientSidebar />}
                 {sidebar === 'template' && <TemplateSidebar onTemplateSelect={handleTemplateSelect} />}
-                {sidebar === 'heatmap' && <HeatMapSidebar map={mapRef.current} handleFileUpload={handleFileUpload}/>}
+                {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange}/>}
             </Drawer>
             <ConfirmModal map={map}/>
         </Box>
