@@ -17,8 +17,63 @@ export const GlobalStoreActionType = {
     SET_CURRENT_COMMENTS: "SET_CURRENT_COMMENTS",
     SET_FEATURE_DATA: "SET_FEATURE_DATA",
     SET_SCHEMA_DATA: "SET_SCHEMA_DATA",
-    SET_MAP_DATA: "SET_MAP_DATA"
+    SET_MAP_DATA: "SET_MAP_DATA",
+    SET_MAP_EDIT_MODE: "SET_MAP_EDIT_MODE"
 }
+
+class TransactionHandler {
+    constructor() {
+        this.transactions = [];
+        this.maxTransactions = 30;
+        this.currentTransaction = -1; // Will increment to 0 on first fetch from server
+        this.redoQueue = [];
+    }
+
+    addTransaction(transaction) {
+        if (this.transactions.length >= this.maxTransactions) {
+            this.transactions.shift();
+            this.currentTransaction--;
+        }
+        this.transactions.push(transaction);
+        this.currentTransaction++;
+
+        if (this.redoQueue.length) this.redoQueue = []; // Clear redo queue
+    }
+
+    undo() {
+        if (this.currentTransaction > 0) {
+            const undoed = this.transactions.pop();
+            this.currentTransaction--;
+            this.redoQueue.push(undoed);
+            return undoed;
+        }
+    }
+
+    redo() {
+        if (this.redoQueue.length) {
+            const redone = this.redoQueue.pop();
+            this.transactions.push(redone);
+            this.currentTransaction = Math.min(this.currentTransaction + 1, 30);
+            return redone;
+        }
+    }
+
+    getCurrent() {
+        return this.transactions[this.currentTransaction];
+    }
+
+    getLength() {
+        return this.transactions.length;
+    }
+
+    clear() {
+        this.transactions = [];
+        this.currentTransaction = -1;
+        this.redoQueue = [];
+    }
+}
+
+const txnHandler = new TransactionHandler();
 
 function GlobalStoreContextProvider(props) {
     const { auth } = useContext(AuthContext);
@@ -33,7 +88,9 @@ function GlobalStoreContextProvider(props) {
         searchTerm: '',
         schemaData: null, // Used for storing our JSON schema map data.
         featureData: null, // Used for switching sidebars to a certain feature.
-        mapData: null // Used for storing our map data during editing.
+        mapData: null, // Used for storing our map data during editing.
+        mapEditMode: 'None', // Add Point, Edit Point, Add subdivisions to bins/gradients
+        currentProfile: null
     });
 
     const storeReducer = (action) => {
@@ -50,7 +107,8 @@ function GlobalStoreContextProvider(props) {
                     currentComments : payload.currentComments || [],
                     currentMap : payload.currentMapId,
                     currentFilter : payload.filter || '',
-                    searchTerm : payload.searchTerm || ''
+                    searchTerm : payload.searchTerm || '',
+                    currentProfile: payload.profile
                 });
             }
             case GlobalStoreActionType.CLOSE_MODAL: {
@@ -106,6 +164,12 @@ function GlobalStoreContextProvider(props) {
                     ...store,
                     modal : null,
                     mapData : payload.mapData
+                });
+            }
+            case GlobalStoreActionType.SET_MAP_EDIT_MODE: {
+                return setStore({
+                    ...store,
+                    mapEditMode : payload.mapEditMode
                 });
             }
             default:
@@ -184,12 +248,13 @@ function GlobalStoreContextProvider(props) {
         });
     }
     
-    store.changeToProfile = function() {
+    store.changeToProfile = function(user) {
         storeReducer({
             type: GlobalStoreActionType.CHANGE_CURRENT_SCREEN,
             payload: {
                 screen: 'profile',
-                discussionPosts: store.discussionPosts
+                discussionPosts: store.discussionPosts,
+                profile: user
             }
         });
     }
@@ -276,7 +341,7 @@ function GlobalStoreContextProvider(props) {
                         }
                     });
                 }
-                store.changeToEditMap(response.data.id);
+                return response.data.id;
             }
         } catch (error) {
             console.log("Create New Map error")
@@ -312,7 +377,7 @@ function GlobalStoreContextProvider(props) {
                             currentMapId : response.data.id
                         }
                     });
-                    store.changeToEditMap(response.data.id);
+                    //store.changeToEditMap(response.data.id);
                 }
             }
         } catch (error) {
@@ -320,13 +385,29 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
-    store.updateMapSchema = async function(id, mapSchema) {
+    store.updateMapSchema = async function(id, mapSchema){
+        txnHandler.addTransaction(mapSchema);
+        console.log("============== UPDATE SCHEMA ==============");
+        console.log(mapSchema);
+        console.log("--------------------------------------------");
+        storeReducer({ // This is a hacky way to force a rerender
+            type: GlobalStoreActionType.SET_SCHEMA_DATA,
+            payload: {
+                schemaData : mapSchema
+            }
+        });
+    }
+
+    store.saveMapSchema = async function(id, mapSchema) {
+        console.log("============== SAVE SCHEMA ==============");
+        console.log(txnHandler.getCurrent());
+        console.log("--------------------------------------------");
         try {  
-            let response = await mapAPI.updateMapSchema(id, mapSchema);
-            console.log("updateMapSchema response: " + JSON.stringify(response));
+            let response = await mapAPI.updateMapSchema(id, txnHandler.getCurrent());
+            /* console.log("updateMapSchema response: " + JSON.stringify(response)); */
             if (response.status === 200) {
                 if (response.data.success) {
-                    console.log("updateMapSchema response: " + response.data.id);
+                    /* console.log("updateMapSchema response: " + response.data.id); */
                     storeReducer({
                         type: GlobalStoreActionType.SET_SCHEMA_DATA,
                         payload: {
@@ -340,7 +421,43 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
+    store.clearHistory = function() {
+        txnHandler.clear();
+    }
+
+    store.undo = function() {
+        let newSchema = txnHandler.undo();
+        if (newSchema) {
+            storeReducer({ // This is a hacky way to force a rerender
+                type: GlobalStoreActionType.SET_SCHEMA_DATA,
+                payload: {
+                    schemaData : newSchema
+                }
+            });
+        }
+    }
+
+    store.redo = function() {
+        let newSchema = txnHandler.redo();
+        if (newSchema) {
+            storeReducer({ // This is a hacky way to force a rerender
+                type: GlobalStoreActionType.SET_SCHEMA_DATA,
+                payload: {
+                    schemaData : newSchema
+                }
+            });
+        }
+    }
+
     store.getSchema = async function(id) {
+        if (txnHandler.getLength() === 0) {
+            let schema = await store.getSchemaFromServer(id);
+            txnHandler.addTransaction(schema);
+        }
+        return txnHandler.getCurrent();
+    }
+
+    store.getSchemaFromServer = async function(id) {
         try {
             let response = await mapAPI.getMapSchema(id);
             /* console.log("getSchema response: " + JSON.stringify(response)); */
@@ -700,6 +817,15 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
+    store.setMapEditMode = function(mode) {
+        storeReducer({
+            type: GlobalStoreActionType.SET_MAP_EDIT_MODE,
+            payload: {
+                mapEditMode : mode
+            }
+        });
+    }
+
     store.setSchemaData = function(schema) {
         storeReducer({
             type: GlobalStoreActionType.SET_SCHEMA_DATA,
@@ -716,6 +842,32 @@ function GlobalStoreContextProvider(props) {
                 mapData : mapData
             }
         });
+    }
+
+    store.forkMap = async function(map, mapJSON, mapSchema) {
+        //Create new map
+        const authReq = await auth.getUserData(auth.user.email);
+        const newMapId = await store.createNewMap(authReq.user._id, 'New Map', 'Description');
+        //Overwrite relevant fields
+        let forkedMap = map
+        forkedMap.author = authReq.user._id
+        forkedMap.isPublished = false
+        forkedMap.title = forkedMap.title + " (copy)"
+        forkedMap.likes = 0
+        forkedMap.dislikes = 0
+        forkedMap.likeUsers = []
+        forkedMap.dislikeUsers = []
+        forkedMap.comments = []
+        forkedMap.publishedDate = null
+        const response = await mapAPI.updateMapInfoById(newMapId, forkedMap);
+        //Copy the map file and schema file
+        if(mapJSON !== null) {
+            await store.updateMapFile(newMapId, mapJSON)
+        }
+        if(mapSchema !== null) {
+            await store.updateMapSchema(newMapId, mapSchema);
+        }
+        return response.data.map._id
     }
 
     return (

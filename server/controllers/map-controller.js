@@ -111,8 +111,9 @@ updateMapInfoById = async (req, res) => {
             if (!map) {
                 return res.status(404).json({ error: 'Map not found.' });
             }
-            const { title, description, comments, likes, dislikes, likeUsers, dislikeUsers, isPublished, publishedDate } = req.body.map;
+            const { title, author, description, comments, likes, dislikes, likeUsers, dislikeUsers, isPublished, publishedDate } = req.body.map;
             map.title = title;
+            map.author = author;
             map.description = description;
             map.comments = comments;
             map.likes = likes;
@@ -216,7 +217,8 @@ updateMapFileById = async (req, res) => {
 }
 
 getMapsByUser = async (req, res) => {
-    Map.find({ author: req.params.id })
+    if(req.userId === req.params.id) {
+        Map.find({ author: req.params.id })
         .then(maps => {
             maps.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate));
             return res.status(200).json({
@@ -231,6 +233,23 @@ getMapsByUser = async (req, res) => {
                 message: 'Maps not found',
             })
         })
+    } else {
+        Map.find({ author: req.params.id, isPublished: true })
+        .then(maps => {
+            maps.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate));
+            return res.status(200).json({
+                success: true,
+                maps: maps,
+                message: 'Maps retrieved!'
+            })
+        }).catch(error => {
+            console.log("FAILURE: " + JSON.stringify(error));
+            return res.status(404).json({
+                error,
+                message: 'Maps not found',
+            })
+        })
+    }   
 }
 
 getPublishedMaps = async (req, res) => {
@@ -281,7 +300,7 @@ getLandingMaps = async (req, res) => {
             .sort({ publishedDate: 'desc' })
             .limit(4);
 
-        authorIds = popularMaps.map(map => map.author);
+        authorIds = newMaps.map(map => map.author);
         const newMapsAuthors = await Promise.all(authorIds.map(authorId =>
             User.findOne({ _id: authorId })
         ));
@@ -346,6 +365,9 @@ updateMapSchema = async (req, res) => {
           "point": {
             "type": "object",
             "properties": {
+              "name" : { 
+                "type": "string" 
+              },
               "location": {
                 "type": "object",
                 "properties": {

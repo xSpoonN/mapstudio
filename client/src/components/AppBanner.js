@@ -28,7 +28,7 @@ export default function AppBanner() {
 	useEffect(() => {
 		const fetchUser = async () => {
 			const resp = await auth.getUserData(auth.getUser()?.email);
-			console.log(resp);
+			/* console.log(resp); */
 			if (resp?.success) setUser(resp.user);
 		}
 		fetchUser();
@@ -49,7 +49,7 @@ export default function AppBanner() {
 
 	const handleProfileScreen = () => {
 		setAnchorElUser(null);
-		store.changeToProfile();
+		store.changeToProfile(auth.getUser());
 	}
 
 	function handleLoginScreen() {
@@ -78,8 +78,10 @@ export default function AppBanner() {
 			<IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }} className='account-circle'>
 				<Avatar 
 					alt="Kenna McRichard" 
-					src={user?.pfp ? `${user.pfp}?${SASTOKEN}` : "/static/images/avatar/2.jpg" }
-				/>
+					src={`${user?.pfp}?${SASTOKEN}`}
+				>
+					{user?.username[0]}
+				</Avatar>
 			</IconButton>
 			<Menu
 				id="menu-appbar"
@@ -162,6 +164,14 @@ export default function AppBanner() {
 		store.changeToSearch();
 	}
 
+	function handleCreate() {
+		if(true /*auth.user*/) {
+			store.changeToEditMap()
+		//} else {
+		//	store.changeToLogin()
+		}
+	}
+
 	function handleDiscuss() {
 		store.changeToDiscussionHome();
 	}
@@ -190,7 +200,7 @@ export default function AppBanner() {
 						sx={{ my: 2, color: 'white', display: 'block',  mx: 6}}
 						style={{fontSize:'16pt', backgroundColor: 'transparent'}}
 						disableRipple
-                        onClick={() => store.changeToEditMap()}
+                        onClick={handleCreate}
 					>
 						Create
 					</Button>
