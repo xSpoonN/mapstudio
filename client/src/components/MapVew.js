@@ -32,6 +32,11 @@ export default function MapView({ mapid }) {
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
+    const markerLayerRef = useRef(null); // Track marker featuregroup instance
+    const [data, setData] = useState(null); // eslint-disable-line
+    const [showSatellite, setShowSatellite] = useState(false);
+    const satelliteLayerRef = useRef(null); // Track satellite layer instance
+    const [markers, setMarkers] = useState([]); // eslint-disable-line
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
     const divRef = useRef(null);
@@ -40,6 +45,7 @@ export default function MapView({ mapid }) {
     const [user, setUser] = useState(null);
     const [mapComments, setMapComments] = useState([]);
     const [comment, setComment] = useState('');
+
     useEffect(() => {
         divRef.current.scrollIntoView({ behavior: 'smooth' });
     }, [mapComments.length]);
@@ -47,6 +53,9 @@ export default function MapView({ mapid }) {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
             mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
+            satelliteLayerRef.current = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ 
+                subdomains:['mt0','mt1','mt2','mt3']
+            }).addTo(mapRef.current); // Add Google Satellite tiles
             mapInitializedRef.current = true; // Mark map as initialized
         }
 
@@ -61,8 +70,9 @@ export default function MapView({ mapid }) {
                 console.error('Error reading GeoJSON', error);
             });
 
+        satelliteLayerRef?.current?.setOpacity(showSatellite ? 1 : 0);
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); }; // Remove GeoJSON layer on unmount
-    }, [map]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [map, showSatellite]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
@@ -75,10 +85,62 @@ export default function MapView({ mapid }) {
                 /* console.log(comments); */
                 if (comments?.data.success) setMapComments(comments.data.comments);
                 /* console.log(comments?.data.comments); */
+                if (!resp.mapSchema) return setData({ // If map has no schema, create a new one
+                    "type": "bin",
+                    "bins": [],
+                    "subdivisions": [],
+                    "points": [],
+                    "gradients": [],
+                    "showSatellite": true
+                });
+                const resp2 = await store.getSchema(resp.mapSchema);
+                console.log(resp2);
+                if (!resp2) return setData({ // If map has no schema, create a new one
+                    "type": "bin",
+                    "bins": [],
+                    "subdivisions": [],
+                    "points": [],
+                    "gradients": [],
+                    "showSatellite": true
+                });
+                /* store.setSchemaData(resp2?.schema); */
+                setData(resp2);
+
+                // Draw subdivisions and points
+                drawSubdivisions(resp2);
+                loadPoints(resp2?.points);
+                setShowSatellite(resp2?.satelliteView); // Set satellite view
             }
         }
         fetchMap();
     }, [store, auth, mapid]);
+
+    const drawSubdivisions = (resp2) => {
+        if (geoJSONLayerRef.current){
+            geoJSONLayerRef.current.eachLayer((layer) => {
+                const existing = resp2?.subdivisions?.find(subdivision => 
+                    subdivision.name === layer.feature.properties.name || // All of these are for different capitalizations of the same property
+                    subdivision.name === layer.feature.properties.NAME || // This is because different files use different capitalizations and javascript is case sensitive
+                    subdivision.name === layer.feature.properties.Name
+                );
+                layer.setStyle({fillColor: existing?.color || '#DDDDDD', fillOpacity: existing?.weight || 0.5}); // Set color and weight of subdivision
+            } );
+        }
+        if (markerLayerRef?.current) markerLayerRef.current.bringToFront(); // Bring marker featureGroup to render in front
+    }
+
+    const loadPoints = (points) => {
+        let newMarkers = []; // Store working set of markers, can't use state variable marker because it is snapshot
+        markerLayerRef?.current?.clearLayers(); // Clear existing markers
+        points?.forEach(point => {
+            const marker = L.circleMarker([point.location.lat, point.location.lon], {
+                radius: point.weight * 15
+            }).addTo(markerLayerRef.current); // Add new marker
+            marker.setStyle({fillColor: point.color || '#000000', fillOpacity: 1, stroke: false}); // Set color and size of marker
+            newMarkers.push(marker);
+        })
+        setMarkers(newMarkers); // Update state variable
+    }
 
     function handleLike() {
         if(auth.user !== null) {
@@ -188,6 +250,8 @@ export default function MapView({ mapid }) {
 
     async function handleJSON() {
         saveAs(`${map?.mapFile}?${SASTOKENMAP}`, map.title + ".json")
+        var blob = new Blob([JSON.stringify(data)], {type: "text/plain;charset=utf-8"});
+        saveAs(blob, map.title + "_schema.json")
     }
 
     async function handleForkMap() {
