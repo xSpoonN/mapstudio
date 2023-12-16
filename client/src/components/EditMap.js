@@ -87,7 +87,7 @@ const SCHEMA = {  // The Schema format to validate against
           "dataField": { "type": "string" },
           "minColor": { "type": "string", "default": "#000000" },
           "maxColor": { "type": "string", "default": "#E3256B" },
-          "affectedBins": {
+          "subdivisions": {
             "type": "array",
             "items": { "type": "string" },
             "uniqueItems": true
@@ -453,6 +453,7 @@ export default function EditMap({ mapid }) {
                     setData(geojsonData);
                     await store.updateMapSchema(mapid, geojsonData);
                     drawSubdivisions(geojsonData);
+                    loadPoints(geojsonData?.points);
                 }
                 return;
             }
@@ -738,7 +739,7 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
                 {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint}/>}
                 {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
-                {sidebar === 'gradient' && <GradientSidebar />}
+                {sidebar === 'gradient' && <GradientSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'template' && <TemplateSidebar />}
             </Drawer>
             <ConfirmModal map={map}/>
