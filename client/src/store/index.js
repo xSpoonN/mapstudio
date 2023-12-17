@@ -120,7 +120,7 @@ function GlobalStoreContextProvider(props) {
             case GlobalStoreActionType.OPEN_MODAL: {
                 return setStore({
                     ...store,
-                    modal : 1
+                    modal : payload.modalType
                 });
             }
             case GlobalStoreActionType.SET_CURRENT_POST: {
@@ -320,9 +320,12 @@ function GlobalStoreContextProvider(props) {
         });
     }
 
-    store.openModal = function() {
+    store.openModal = function(modalType) {
         storeReducer({
-            type: GlobalStoreActionType.OPEN_MODAL
+            type: GlobalStoreActionType.OPEN_MODAL,
+            payload: {
+                modalType: modalType
+            }
         });
     }
 
@@ -355,7 +358,7 @@ function GlobalStoreContextProvider(props) {
             if (response.status === 200) {
                 if (response.data.success) {
                     console.log("deleteMap response: " + response.data.id);
-                    store.changeToProfile();
+                    store.changeToProfile(auth.user);
                 }
             }
         } catch (error) {

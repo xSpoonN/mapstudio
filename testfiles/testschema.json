@@ -1,37 +1,100 @@
 {
     "type": "bin",
-    "bins": [],
+    "bins": [
+        {
+            "name": "Oranj",
+            "color": "#ff6900"
+        },
+        {
+            "name": "Republican",
+            "color": "#E3256B"
+        },
+        {
+            "name": "Leprechauns",
+            "color": "#7bdcb5",
+            "subdivisions": [
+                "Texas",
+                "Arkansas",
+                "Mississippi"
+            ]
+        }
+    ],
     "subdivisions": [
-        { 
-            "name": "Minnesota", 
-            "weight": 0.7, 
+        {
+            "name": "Minnesota",
+            "weight": 0.7,
             "color": "#ff6900",
             "data": {
                 "population": 59,
                 "area": 13434
             }
         },
-        { 
-            "name": "Wisconsin", 
-            "weight": 0.4
+        {
+            "name": "Wisconsin",
+            "weight": 0.4,
+            "data": {
+                "population": 12
+            }
         },
-        { 
-            "name": "North Dakota", 
-            "color": "#00d084", 
-            "weight": 0.6
+        {
+            "name": "North Dakota",
+            "color": "#00d084",
+            "weight": 0.6,
+            "data": {
+                "population": 23
+            }
         },
         {
             "name": "South Dakota",
             "weight": 0.30000000000000004,
-            "color": "#0693e3"
+            "color": "#0693e3",
+            "data": {
+                "population": 8
+            }
         },
-        { 
-            "name": "Iowa", 
+        {
+            "name": "Iowa",
+            "color": "#eb144c",
+            "weight": 0.5,
+            "data": {
+                "population": 89
+            }
+        },
+        {
+            "name": "Nebraska",
+            "weight": 0.8999999999999999
+        },
+        {
+            "name": "Kansas",
             "color": "#eb144c"
         },
-        { 
-            "name": "Nebraska", 
-            "weight": 0.8999999999999999
+        {
+            "name": "Wyoming",
+            "color": "#9900ef"
+        },
+        {
+            "name": "Montana",
+            "color": "#fcb900"
+        },
+        {
+            "name": "Texas",
+            "color": "#7bdcb5"
+        },
+        {
+            "name": "Alabama",
+            "color": "#DDDDDD"
+        },
+        {
+            "name": "Arkansas",
+            "color": "#7bdcb5"
+        },
+        {
+            "name": "Mississippi",
+            "color": "#7bdcb5"
+        },
+        {
+            "name": "Louisiana",
+            "color": "#DDDDDD"
         }
     ],
     "points": [
@@ -41,8 +104,8 @@
                 "lat": 41.8781136,
                 "lon": -87.6297982
             },
-            "weight": 0.5,
-            "color": "#f56105"
+            "weight": 0.6,
+            "color": "#9900ef"
         },
         {
             "name": "New York City",
@@ -52,6 +115,71 @@
             },
             "weight": 0.8,
             "color": "#fa0249"
+        },
+        {
+            "name": "39.2509, -84.1553",
+            "location": {
+                "lat": 39.2509374127124,
+                "lon": -84.15527343750001
+            },
+            "weight": 0.5
+        },
+        {
+            "name": "40.6048, -79.3213",
+            "location": {
+                "lat": 40.60476148914159,
+                "lon": -79.32128906250001
+            },
+            "weight": 0.5
+        },
+        {
+            "name": "40.6382, -83.8037",
+            "location": {
+                "lat": 40.63823144862825,
+                "lon": -83.80371093750001
+            },
+            "weight": 0.5
+        },
+        {
+            "name": "cock",
+            "location": {
+                "lat": 36.0467001580211,
+                "lon": -79.80468750000001
+            },
+            "weight": 0.5
+        },
+        {
+            "name": "37.3863, -78.0908",
+            "location": {
+                "lat": 37.386259386454654,
+                "lon": -78.09082031250001
+            },
+            "weight": 0.5
+        },
+        {
+            "name": "cockrado",
+            "location": {
+                "lat": 39.24667147210606,
+                "lon": -105.16113281250001
+            },
+            "weight": 0.7999999999999999,
+            "color": "#00d084"
+        },
+        {
+            "name": "43.5939, -111.4893",
+            "location": {
+                "lat": 37.03756191512844,
+                "lon": -117.64160156250001
+            },
+            "weight": 0.5
+        },
+        {
+            "name": "33.1922, -86.5723",
+            "location": {
+                "lat": 37.66768408835332,
+                "lon": -91.2744140625
+            },
+            "weight": 0.5
         }
     ],
     "gradients": [],
