@@ -48,14 +48,16 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
     }, [gradient, mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
 
     // Handles pushing the updated map schema to store
-    const updateSchema = async (updatedSchema) => {
+    const updateSchema = async (updatedSchema, newGrd) => {
         await store.updateMapSchema(mapData._id, updatedSchema);
         console.log(updatedSchema)
-        const match = updatedSchema?.gradients?.find(grd => grd.dataField === name); // Find the gradient that was just updated
+        if (newGrd) gradient.dataField = newGrd;
+        const match = updatedSchema?.gradients?.find(grd => grd.dataField === gradient.dataField); // Find the gradient that was just updated
         if (match) { // If it exists, update the current name and color
             setName(match.dataField);
             setColor(match?.minColor || '#000000');
             setColor2(match?.maxColor || '#000000');
+            gradient = match;
         }
     }
     
@@ -70,9 +72,11 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
         return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     }
 
-    function getKeySubdivisions() {
+    function getKeySubdivisions(name = gradient.dataField) {
         // Find subdivisions that have the data field
-        const grdSubdivisions = mapSchema.subdivisions.filter(subdivision => gradient.subdivisions?.includes(subdivision.name));
+        let grdSubdivisions;
+        if (name === gradient.dataField) grdSubdivisions = mapSchema.subdivisions.filter(subdivision => gradient.subdivisions?.includes(subdivision.name));
+        else grdSubdivisions = mapSchema.subdivisions;
         const keySubdivisions = grdSubdivisions.filter(subdivision => Object.keys(subdivision.data || {}).includes(name));
         let maxValue = -Infinity; let minValue = Infinity;
 
@@ -137,26 +141,39 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
                     InputProps={{ sx: { borderRadius: 3 } }}
                     onChange={e => {
                         setName(e.target.value)
-
                         // Find subdivisions that have the data field
-                        const {keySubdivisions, maxValue, minValue} = getKeySubdivisions();
+                        const {keySubdivisions, maxValue, minValue} = getKeySubdivisions(e.target.value);
 
                         // Generating colors for each subdivision based on its value
+                        const gradient = mapSchema.gradients.find(gradient => gradient.dataField === name);
                         const newSubdivisions = keySubdivisions.map(subdivision => {
-                            const gradient = mapSchema.gradients.find(gradient => gradient.dataField === name);
-                            return gradient ? {...subdivision, color: interpolateColor(subdivision.data[name], minValue, maxValue, color, color2), weight: 0.5} : subdivision;
+                            return gradient ? {...subdivision, color: interpolateColor(subdivision.data[e.target.value], minValue, maxValue, color, color2), weight: 0.5} : subdivision;
+                        });
+                        
+                        // Find old subdivisions in gradient
+                        const keySubdivisionsOld = getKeySubdivisions(name).keySubdivisions;
+
+                        // Reset the color and weight of the old subdivisions
+                        const replacedSubdivisions = keySubdivisionsOld.map(subdivision => {
+                            return gradient ? {...subdivision, color: '#DDDDDD', weight: 0.5} : subdivision;
                         });
 
                         // Replace the original subdivisions
                         const combinedSubdivisions = mapSchema.subdivisions.map(subdivision => {
-                            return newSubdivisions.find(subdivision2 => subdivision2.name === subdivision.name) || subdivision;
+                            return newSubdivisions.find(subdivision2 => subdivision2.name === subdivision.name) || 
+                            replacedSubdivisions.find(subdivision2 => subdivision2.name === subdivision.name) || 
+                            subdivision;
                         })
 
                         // Remove the old gradient from the schema
                         const newGradients = mapSchema.gradients.filter(grd => grd.dataField !== name);
 
                         // Updates the schema to update the grd color
-                        updateSchema({...mapSchema, subdivisions: combinedSubdivisions, gradients: [...newGradients, { dataField: e.target.value, minColor: color, maxColor: color2}]})
+                        updateSchema({...mapSchema, subdivisions: combinedSubdivisions, gradients: [...newGradients, { 
+                            dataField: e.target.value, 
+                            minColor: color, maxColor: color2,
+                            subdivisions: [...keySubdivisions.map(subdivision => subdivision.name)]
+                        }]}, e.target.value)
                     }}  
                 >
                     {valueOptions.map(opt => (
@@ -171,9 +188,6 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
                     onClick={() => {
                         // Finds any subdivisions that were in the bin, and resets their color and weight
                         const newSubdivisions = mapSchema.subdivisions.map(subdivision => {
-                            // Check if the subdivision is affetced by another gradient
-                            const otherGradient = mapSchema.gradients.find(grd => grd.dataField === name);
-                            if (otherGradient) return {...subdivision, color: '#DDDDDD', weight: 0.5}; // If so, reset the color and weight to the other gradient's color
                             // Check if the subdivision is affected by a bin too
                             const bin = mapSchema.bins.find(bin => bin.subdivisions?.includes(subdivision.name));
                             if (bin) return {...subdivision, color: bin.color, weight: 0.5}; // If so, reset the color and weight to the bin's color
