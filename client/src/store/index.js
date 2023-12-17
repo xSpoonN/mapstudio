@@ -18,7 +18,7 @@ export const GlobalStoreActionType = {
     SET_FEATURE_DATA: "SET_FEATURE_DATA",
     SET_SCHEMA_DATA: "SET_SCHEMA_DATA",
     SET_MAP_DATA: "SET_MAP_DATA",
-    SET_MAP_EDIT_MODE: "SET_MAP_EDIT_MODE"
+    SET_MAP_EDIT_MODE: "SET_MAP_EDIT_MODE",
 }
 
 class TransactionHandler {
@@ -123,6 +123,7 @@ function GlobalStoreContextProvider(props) {
                     modal : payload.modalType
                 });
             }
+
             case GlobalStoreActionType.SET_CURRENT_POST: {
                 return setStore({
                     ...store,
@@ -186,6 +187,7 @@ function GlobalStoreContextProvider(props) {
             }
         });
     }
+
 
     store.changeToLogin = function() {
         storeReducer({
