@@ -24,9 +24,9 @@ describe('Operating Map file', () => {
     });
 
     it('Publish map file ', () => {
-        cy.get('.MuiPaper-root.map-card').first().click();
+        cy.get('button').contains('Create +').click();
         cy.get('button').contains('Publish').click();
-        cy.get('#dialog-no-button').click();
+        cy.get('#dialog-no-button').last().click();
     });
 
     it('Export map file ', () => {
