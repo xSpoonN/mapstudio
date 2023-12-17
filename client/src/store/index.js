@@ -358,7 +358,7 @@ function GlobalStoreContextProvider(props) {
             if (response.status === 200) {
                 if (response.data.success) {
                     console.log("deleteMap response: " + response.data.id);
-                    store.changeToProfile();
+                    store.changeToProfile(auth.user);
                 }
             }
         } catch (error) {
