@@ -11,22 +11,14 @@ export default function SubdivisionItem({sub, allProperties, mapId, mapSchema, c
 
     useEffect(() => {
         const retrieveData = async () => {
-                /* if (sub?.data) { */
-                let options;
-                if (sub?.data) options = Object.getOwnPropertyNames(sub?.data); // Get the object properties of the subdivision as an array
-                else options = [];
-                /* setDropdownOptions(allProperties || options) // Set the dropdown options to the list of all properties
-                setDropdownValue(options ? options[0] : ''); */
-                if (sub?.data && options?.includes(chosenProp)) setValue(sub?.data[chosenProp] || 'N/A')
-                else setValue('N/A')
-                /* } else {
-                    setDropdownOptions([]);
-                    setDropdownValue('');
-                    setValue('N/A');
-                } */
+            let options;
+            if (sub?.data) options = Object.getOwnPropertyNames(sub?.data); // Get the object properties of the subdivision as an array
+            else options = [];
+            if (sub?.data && options?.includes(chosenProp)) setValue(sub?.data[chosenProp] || 'N/A')
+            else setValue('N/A')
         }
         retrieveData();
-    }, [sub, allProperties, chosenProp]) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [sub, allProperties, chosenProp])
 
     // Handles pushing the updated map schema to store
     const updateSchema = async (updatedSchema) => {
@@ -54,6 +46,7 @@ export default function SubdivisionItem({sub, allProperties, mapId, mapSchema, c
                     setValue(e.target.value); 
                 }}
                 onBlur={() => {
+                    if (!chosenProp) return setValue('N/A');
                     // Find the subdivision in the map schema
                     const existing = mapSchema?.subdivisions?.find(subdivision => 
                         subdivision.name === sub.name || subdivision.name === sub.NAME || subdivision.name === sub.Name

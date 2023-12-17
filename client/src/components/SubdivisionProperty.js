@@ -57,7 +57,7 @@ export default function Property({propName, mapSchema, mapData}) {
                         const keySubdivisions = mapSchema.subdivisions.filter(subdivision => Object.keys(subdivision.data || {}).includes(name));
                         // Finds any subdivisions that had the property, and delete it from their data
                         const newSubdivisions = (keySubdivisions || []).map(subdivision => {
-                            if (subdivision.data[name]) {
+                            if (Object.keys(subdivision.data || {})?.includes(name)) {
                                 const {[name]: value, ...rest} = subdivision.data;
                                 return {...subdivision, data: rest};
                             } else {
