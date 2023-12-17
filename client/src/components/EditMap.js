@@ -87,7 +87,7 @@ const SCHEMA = {  // The Schema format to validate against
           "dataField": { "type": "string" },
           "minColor": { "type": "string", "default": "#000000" },
           "maxColor": { "type": "string", "default": "#E3256B" },
-          "affectedBins": {
+          "subdivisions": {
             "type": "array",
             "items": { "type": "string" },
             "uniqueItems": true
@@ -383,6 +383,98 @@ export default function EditMap({ mapid }) {
                     return setMapEditMode('None'); // Reset edit mode
                 });
             });
+        } else if (mapEditMode.startsWith('AddToGradient')) { // AddToGradient-<gradient datafield>
+            const grdName = mapEditMode.split('-').slice(1).join('-'); // Get gradient name from edit mode
+            const grdData = data?.gradients?.find(grd => grd.dataField === grdName); // Get bin data from schema
+            mapRef.current?.off('click'); // Remove existing click handler
+            mapRef.current?.on('click', () => {}); // Add empty click handler to prevent clicking on map from doing anything
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click'); // Remove existing click handler
+                layer.on('click', async function() { 
+                    console.log(mapEditMode);
+                    if (!mapEditMode.startsWith('AddToGradient')) return; // Check if edit mode has changed since click handler was installed
+                    console.log(layer.feature.properties);
+
+                    // Find clicked subdivision in schema
+                    let existing = data?.subdivisions?.find(subdivision => 
+                        subdivision.name === layer.feature.properties.name || subdivision.name === layer.feature.properties.NAME || subdivision.name === layer.feature.properties.Name
+                    );
+                    let newSubdivisions
+                    if (existing) { // Subdivision already exists in schema
+                        newSubdivisions = data.subdivisions.map(subdivision => {
+                            return subdivision.name === existing.name ? {
+                                ...subdivision, 
+                                color: grdData.minColor, 
+                                weight: 0.5,
+                                data: subdivision.data.includes(grdData.dataField) ? subdivision.data : {
+                                    ...subdivision.data,
+                                    [grdData.dataField]: 0
+                                }
+                            } : subdivision;
+                        });
+                    } else { // Subdivision does not exist in schema, create a new object for it
+                        const newSubdivision = {
+                            name: layer.feature.properties.name || layer.feature.properties.NAME || layer.feature.properties.Name,
+                            color: grdData.minColor,
+                            weight: 0.5, // Weight is reset to default
+                            data: {
+                                [grdData.dataField]: 0
+                            }
+                        }
+                        newSubdivisions = [...data.subdivisions, newSubdivision];
+                        existing = newSubdivision;
+                    }
+                    const newGrds = data.gradients.map(grd => { // Update grd in schema
+                        return grd.dataField === grdName ? {...grd, subdivisions: [...(grd.subdivisions || []), existing.name]} : grd;
+                    });
+
+                    // Update schema
+                    const updatedSchema = {...data, subdivisions: newSubdivisions, gradients: newGrds};
+                    await store.updateMapSchema(mapid, updatedSchema);
+                    setData(updatedSchema);
+
+                    // Rerender subdivisions
+                    drawSubdivisions(updatedSchema);
+                    return setMapEditMode('None'); // Reset edit mode
+                });
+            });
+        } else if (mapEditMode.startsWith('DeleteFromGradient')) { // DeleteFromGradient-<gradient datafield>
+            const grdName = mapEditMode.split('-').slice(1).join('-'); // Get gradient name from edit mode
+            mapRef.current?.off('click'); // Remove existing click handler
+            mapRef.current?.on('click', () => {}); // Add empty click handler to prevent clicking on map from doing anything
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click'); // Remove existing click handler
+                layer.on('click', async function() { 
+                    console.log(mapEditMode);
+                    if (!mapEditMode.startsWith('DeleteFromGradient')) return; // Check if edit mode has changed since click handler was installed
+                    console.log(layer.feature.properties);
+
+                    // Find clicked subdivision in schema
+                    const existing = data?.subdivisions?.find(subdivision => 
+                        subdivision.name === layer.feature.properties.name || subdivision.name === layer.feature.properties.NAME || subdivision.name === layer.feature.properties.Name
+                    );
+                    if (existing) {
+                        // Check if the subdivision is affected by a bin too
+                        const otherBin = data.bins.find(bin => bin.subdivisions?.includes(existing.name));
+
+                        const newSubdivisions = data.subdivisions.map(subdivision => { // Update subdivision in schema
+                            return subdivision.name === existing.name ? {...subdivision, color: otherBin?.color || '#DDDDDD', weight: 0.5} : subdivision;
+                        });
+                        const newGrds = data.gradients.map(grd => { // Update grd in schema
+                            return grd.dataField === grdName ? {...grd, subdivisions: grd.subdivisions.filter(subdivision => subdivision !== existing.name)} : grd;
+                        });
+
+                        // Update schema
+                        const updatedSchema = {...data, subdivisions: newSubdivisions, gradients: newGrds};
+                        await store.updateMapSchema(mapid, updatedSchema);
+                        setData(updatedSchema);
+                        
+                        // Rerender subdivisions
+                        drawSubdivisions(updatedSchema);
+                    }
+                    return setMapEditMode('None'); // Reset edit mode
+                });
+            });
         } else { // None
             mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', () => setFeature(null)); // Add empty click handler to prevent clicking on map from doing anything
@@ -458,6 +550,7 @@ export default function EditMap({ mapid }) {
                     setData(geojsonData);
                     await store.updateMapSchema(mapid, geojsonData);
                     drawSubdivisions(geojsonData);
+                    loadPoints(geojsonData?.points);
                 }
                 return;
             }
@@ -747,7 +840,7 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data} setFeature={setFeature}/>}
                 {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint} panToPoint={panToPoint}/>}
                 {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
-                {sidebar === 'gradient' && <GradientSidebar />}
+                {sidebar === 'gradient' && <GradientSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'template' && <TemplateSidebar />}
             </Drawer>
             <ConfirmModal map={map}/>
