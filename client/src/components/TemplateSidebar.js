@@ -26,7 +26,7 @@ const templates = [
         image: 'https://source.unsplash.com/random/500x300'
     }
 ]
-export default function TemplateSidebar() {
+export default function TemplateSidebar({mapSchema, changeTemplate}) {
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
             <Typography variant="h6" style={{ margin: '10px' }}>Templates</Typography>
@@ -34,7 +34,8 @@ export default function TemplateSidebar() {
             {templates.map(template => (
                 <Box
                     key={template.name}
-                    sx={{ display: 'flex', alignItems: 'center', p: 2, m: 0.5, borderRadius: 5, width: '75%', height: '20%', backgroundColor: '#EEEEEE' }}
+                    sx={{ display: 'flex', alignItems: 'center', p: 2, m: 0.5, borderRadius: 5, width: '75%', height: '20%', backgroundColor: '#EEEEEE', border: mapSchema.type === template.name.split(" ")[0].toLowerCase() ? 3 : 0 }}
+                    onClick={() => changeTemplate(template.name)}
                 >
                     <img src={template.image} width={150} alt="Template Preview" />
                     <Box sx={{ ml: 2 }}>

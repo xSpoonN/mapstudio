@@ -449,12 +449,26 @@ function GlobalStoreContextProvider(props) {
         }
     }
 
-    store.getSchema = async function(id) {
-        if (txnHandler.getLength() === 0) {
-            let schema = await store.getSchemaFromServer(id);
-            txnHandler.addTransaction(schema);
+    store.getSchema = async function(id, edit) {
+        if(edit) {
+            if (txnHandler.getLength() === 0) {
+                let schema = await store.getSchemaFromServer(id);
+                if(schema === undefined || schema === null) {
+                    schema = {
+                        "type": "none",
+                        "bins": [],
+                        "subdivisions": [],
+                        "points": [],
+                        "gradients": [],
+                        "showSatellite": false
+                    }
+                }
+                txnHandler.addTransaction(schema);
+            }
+            return txnHandler.getCurrent();
         }
-        return txnHandler.getCurrent();
+        let schema = await store.getSchemaFromServer(id);
+        return schema
     }
 
     store.getSchemaFromServer = async function(id) {

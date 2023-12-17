@@ -58,7 +58,7 @@ export default function MapView({ mapid }) {
             }).addTo(mapRef.current); // Add Google Satellite tiles
             mapInitializedRef.current = true; // Mark map as initialized
         }
-
+        if (!markerLayerRef.current) markerLayerRef.current = L.featureGroup().addTo(mapRef.current);
         fetch(`${map?.mapFile}?${SASTOKENMAP}`, {mode: "cors"})
             .then((response) => response.json())
             .then((geojson) => {
@@ -93,7 +93,7 @@ export default function MapView({ mapid }) {
                     "gradients": [],
                     "showSatellite": true
                 });
-                const resp2 = await store.getSchema(resp.mapSchema);
+                const resp2 = await store.getSchema(resp.mapSchema, false);
                 console.log(resp2);
                 if (!resp2) return setData({ // If map has no schema, create a new one
                     "type": "bin",
@@ -109,7 +109,7 @@ export default function MapView({ mapid }) {
                 // Draw subdivisions and points
                 drawSubdivisions(resp2);
                 loadPoints(resp2?.points);
-                setShowSatellite(resp2?.satelliteView); // Set satellite view
+                setShowSatellite(resp2?.showSatellite); // Set satellite view
             }
         }
         fetchMap();
@@ -250,6 +250,9 @@ export default function MapView({ mapid }) {
 
     async function handleJSON() {
         saveAs(`${map?.mapFile}?${SASTOKENMAP}`, map.title + ".json")
+        delete data._id
+        delete data.__v
+        console.log(data)
         var blob = new Blob([JSON.stringify(data)], {type: "text/plain;charset=utf-8"});
         saveAs(blob, map.title + "_schema.json")
     }
