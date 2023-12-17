@@ -3,7 +3,6 @@ import { GlobalStoreContext } from '../store';
 import { Button, TextField, ClickAwayListener, FormControl, Select, MenuItem, IconButton, Divider, Box, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import List from '@mui/material/List';
 import { TwitterPicker } from 'react-color';
@@ -23,6 +22,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
     const [allProperties, setAllProperties] = useState([]);
+    const [selectedProperty, setSelectedProperty] = useState('');
 
     // Handles updating the map schema when something changes elsewhere, and on initial load
     useEffect(() => {
@@ -53,7 +53,10 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                     Object.keys(subdivision.data || {}).forEach(key => dataFieldsSet.add(key));
                 })
                 const dataFields = [...dataFieldsSet];
-                setAllProperties([...(mapSchema.props || []), ...dataFields]);
+                const combinedData = [...(mapSchema.props || []), ...dataFields];
+                const sorted = combinedData.sort((a, b) => a.localeCompare(b));
+                setAllProperties(sorted);
+                if (sorted && !sorted.includes(selectedProperty)) setSelectedProperty(sorted[0]);
             }
         }
         retrieveData();
@@ -93,7 +96,6 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
             })
             const dataFields = [...dataFieldsSet];
             setAllProperties([...(updatedSchema.props || []), ...dataFields]);
-            console.log([...(updatedSchema.props || []), ...dataFields]);
         }
     }
 
@@ -133,7 +135,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             </FormControl>
 
                             <TextField value={value} sx={{ margin: '2px', marginLeft: 'auto', width: '100px' }}
-                            inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
+                            inputProps={{style: { textAlign: 'right'}}} InputProps={{ sx: { borderRadius: 3 } }}
                             onChange={e => { 
                                 setValue(e.target.value); 
                             }}
@@ -157,8 +159,12 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             }}
                             />
                             
-                            <IconButton>
+                            {/* <IconButton>
                             <DeleteIcon  sx={{ marginLeft: 'auto' }} />  
+                            </IconButton> */}
+                            {/* Placeholder to take up space for alignment */}
+                            <IconButton disabled={true}>
+                            <CheckIcon  sx={{ marginLeft: 'auto', color: 'white' }} />  
                             </IconButton>
                         </Box>
 
@@ -330,10 +336,17 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                 </Button>
                 <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '20px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
                 <Typography variant="h6" style={{ margin: '10px' }}>All Subdivisions</Typography>
+                <Select value={selectedProperty} onChange={e => {
+                        setSelectedProperty(e.target.value);
+                    }} 
+                    sx={{ borderRadius: 3, marginLeft: 'auto', marginRight: '10%' }} 
+                    onClick={e => e.stopPropagation()}>
+                    {allProperties.map(option => <MenuItem value={option}>{option}</MenuItem>)}
+                </Select>
                 <List sx={{ width: '90%' }}>
                     {mapSchema?.subdivisions.map((sub) => (
                         <>
-                            <SubdivisionItem sub={sub} setFeature={setFeature}/>
+                            <SubdivisionItem sub={sub} allProperties={allProperties} mapId={mapData?._id} mapSchema={mapSchema} chosenProp={selectedProperty} setFeature={setFeature}/>
                             <Divider variant='middle' style={{ width: '90%', margin: '5px', backgroundColor: '#dddddd', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
                         </>
                     ))}
