@@ -601,8 +601,8 @@ export default function EditMap({ mapid }) {
     // Create new heatmap object by points array data
     function createHeatMapObject(pointsArrayData, radius, blur) {
         // if radius, blur == null, use default values
-        if (radius === undefined) { radius = 26;}
-        if (blur === undefined) {blur = 19;}
+        if (radius === undefined) { radius = 25;}
+        if (blur === undefined) {blur = 15;}
 
         // if radius, blur != null , use given values
         const heatMapObject = {
@@ -622,7 +622,7 @@ export default function EditMap({ mapid }) {
     function renderPArrayToHeatMap(pointsArrayData, radius, blur) {
         // if the radius and blur are not specified, use default values
         if (radius === undefined || blur === undefined) {
-            const heatLayer = L.heatLayer(pointsArrayData, { radius: 26, blur: 19 }).addTo(mapRef.current);
+            const heatLayer = L.heatLayer(pointsArrayData, { radius: 25, blur: 15 }).addTo(mapRef.current);
             console.log("Render points Array with unspecified radius or blur: heat layer:");
             console.log(heatLayer);
             heatLayerRef.current = heatLayer;
@@ -655,34 +655,28 @@ export default function EditMap({ mapid }) {
     }
 
     const handleHeatMapChange = async(radius, blur) => {
-        console.log("Handle Radius Blur changing: current map schema   ");
-        console.log("Input radius blur:" + radius + "|||| " + blur);
-        const data = await store.getSchemaFromServer(mapid);
-        console.log(data);
-        const currentMapSchema = {...data};
-        console.log(currentMapSchema);
+        console.log("Handle R   B changing:  ");
+        console.log("Input R   B:" + radius + "|||||||| " + blur);
+        const mapObject = await store.getMap(mapid);
+        const rawMapSchema = await store.getSchema(mapObject.mapSchema, true);
+
+        const currentMapSchema = {...rawMapSchema};
+
         if (!currentMapSchema.heatmaps || currentMapSchema.heatmaps.length === 0) {
             console.log("Handle: no heatmap in current map schema");
         }
-        // console.log("Handle 2 current heatmaps[0]:");
-        // console.log(currentMapSchema);
+
         currentMapSchema.heatmaps[0].radius = radius;
         currentMapSchema.heatmaps[0].blur = blur;
 
-        // console.log("Handle 3: changed heatmaps[0]:");
-        // console.log(currentMapSchema.heatmaps[0]);
-
         const changedMapSchema = {...currentMapSchema};
+        // setData(changedMapSchema);
 
-        console.log("Handle5:const changedMapSchema = {...currentMapSchema}; ");
+        console.log("After setData(changedMapSchema):");
         console.log(changedMapSchema);
 
-        setData(changedMapSchema);
-
-        console.log("Handle6: current Data:");
-        console.log(data);
-        store.updateMapSchema(mapid, data);
-        store.saveMapSchema(mapid, data);
+        store.updateMapSchema(mapid, changedMapSchema);
+        store.saveMapSchema(mapid, changedMapSchema);
 
         if (heatLayerRef.current) {
             heatLayerRef.current.setOptions({radius:radius, blur:blur});
@@ -743,8 +737,6 @@ export default function EditMap({ mapid }) {
                 
                 const currentMapSchema = data;
                 
-                // if (currentMapSchema.type !== "heatmap" ) {
-
                 if (currentMapSchema.type) {
                     // change the map schema type to heatmap
                     currentMapSchema.type = "heatmap";
@@ -752,21 +744,13 @@ export default function EditMap({ mapid }) {
                     const csvText = await file.text();
                     const heatMapData = parseCSVForHeatMap(csvText);
 
-                    // renderPArrayToHeatMap(heatMapData);
                     const heatMapObject = createHeatMapObject(heatMapData);
 
                     const updatedSchema = {...data, heatmaps: [heatMapObject]};
-                    // data.heatmaps = []
-                    // data.heatmaps.push(heatMapObject);
-
-                    console.log("Handle Before Updated map schema:" + mapid +"   " + data);
 
                     store.updateMapSchema(mapid, updatedSchema);
                     setData(updatedSchema);
                     renderHeatSchemaToHeatMap(updatedSchema);
-
-                    console.log("Handle After Updated map schema:" + mapid +"   " + data);
-                
                 }
             }
 
@@ -852,6 +836,7 @@ export default function EditMap({ mapid }) {
                     "subdivisions": [],
                     "points": [],
                     "gradients": [],
+                    "heatmaps": [],
                     "showSatellite": false
                 });
               
@@ -863,6 +848,7 @@ export default function EditMap({ mapid }) {
                     "subdivisions": [],
                     "points": [],
                     "gradients": [],
+                    "heatmaps": [],
                     "showSatellite": false
                 });
                 /* store.setSchemaData(resp2?.schema); */
