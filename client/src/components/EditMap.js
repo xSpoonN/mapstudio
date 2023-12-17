@@ -476,40 +476,33 @@ export default function EditMap({ mapid }) {
     }
 
     const handleHeatMapChange = async(radius, blur) => {
-        console.log("Handle Change radius blur : current map schema:");
+        console.log("Handle Radius Blur changing: current map schema   ");
+        console.log("Input radius blur:" + radius + "|||| " + blur)
         const data = await store.getSchema(mapid);
         const currentMapSchema = {...data};
         console.log(currentMapSchema);
         if (!currentMapSchema.heatmaps || currentMapSchema.heatmaps.length === 0) {
             console.log("Handle: no heatmap in current map schema");
-            currentMapSchema.heatmaps = [];
         }
-
-        console.log("Handle2: handleHeatMapChange = (radius, blur) :current map schema.heatmaps[0]:");
+        console.log("Handle 2 current heatmaps[0]:");
         console.log(currentMapSchema.heatmaps[0]);
-
-        console.log("Input radius blur:" + radius + "|||| " + blur)
-
         currentMapSchema.heatmaps[0].radius = radius;
         currentMapSchema.heatmaps[0].blur = blur;
 
-        console.log("Handle3: handleHeatMapChange = (radius, blur) :current map schema.heatmaps[0]:");
+        console.log("Handle 3: changed heatmaps[0]:");
         console.log(currentMapSchema.heatmaps[0]);
-
-        console.log("Handle4 Changed map schema: ");
-        console.log(currentMapSchema);
 
         const changedMapSchema = {...currentMapSchema};
 
-
-        // console.log("Handle5: Updated map schema:"+"   " + updatedSchema);
-
+        console.log("Handle5:const changedMapSchema = {...currentMapSchema}; ");
+        console.log(changedMapSchema);
 
         setData(changedMapSchema);
 
         console.log("Handle6: current Data:");
         console.log(data);
-        // store.updateMapSchema(mapid, data);
+        store.updateMapSchema(mapid, data);
+        store.saveMapSchema(mapid, data);
 
         if (heatLayerRef.current) {
             heatLayerRef.current.setOptions({radius:radius, blur:blur});
@@ -694,6 +687,7 @@ export default function EditMap({ mapid }) {
                 drawSubdivisions(resp2);
                 loadPoints(resp2?.points);
                 setShowSatellite(resp2?.satelliteView);
+                renderHeatSchemaToHeatMap(resp2);
     
             }
         }
