@@ -656,20 +656,21 @@ export default function EditMap({ mapid }) {
 
     const handleHeatMapChange = async(radius, blur) => {
         console.log("Handle Radius Blur changing: current map schema   ");
-        console.log("Input radius blur:" + radius + "|||| " + blur)
-        const data = await store.getSchema(mapid);
+        console.log("Input radius blur:" + radius + "|||| " + blur);
+        const data = await store.getSchemaFromServer(mapid);
+        console.log(data);
         const currentMapSchema = {...data};
         console.log(currentMapSchema);
         if (!currentMapSchema.heatmaps || currentMapSchema.heatmaps.length === 0) {
             console.log("Handle: no heatmap in current map schema");
         }
-        console.log("Handle 2 current heatmaps[0]:");
-        console.log(currentMapSchema.heatmaps[0]);
+        // console.log("Handle 2 current heatmaps[0]:");
+        // console.log(currentMapSchema);
         currentMapSchema.heatmaps[0].radius = radius;
         currentMapSchema.heatmaps[0].blur = blur;
 
-        console.log("Handle 3: changed heatmaps[0]:");
-        console.log(currentMapSchema.heatmaps[0]);
+        // console.log("Handle 3: changed heatmaps[0]:");
+        // console.log(currentMapSchema.heatmaps[0]);
 
         const changedMapSchema = {...currentMapSchema};
 
