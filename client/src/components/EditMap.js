@@ -959,7 +959,7 @@ export default function EditMap({ mapid }) {
             store.updateMapSchema(mapid, {...data, type: 'gradient'})
         } else if(name === "Heat Map") {
             setSidebar('heatmap')
-            store.updateMapSchema(mapid, {...data, type: 'heat'})
+            store.updateMapSchema(mapid, {...data, type: 'heatmap'})
         } else if(name === "Point Map") {
             setSidebar('point')
             store.updateMapSchema(mapid, {...data, type: 'point'})
