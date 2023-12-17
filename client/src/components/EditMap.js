@@ -406,8 +406,8 @@ export default function EditMap({ mapid }) {
                                 ...subdivision, 
                                 color: grdData.minColor, 
                                 weight: 0.5,
-                                data: subdivision.data.includes(grdData.dataField) ? subdivision.data : {
-                                    ...subdivision.data,
+                                data: Object.keys(subdivision.data || {})?.includes(grdData.dataField) ? subdivision.data : {
+                                    ...(subdivision.data || {}),
                                     [grdData.dataField]: 0
                                 }
                             } : subdivision;
