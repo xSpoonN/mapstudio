@@ -1,5 +1,4 @@
-import React ,{ useState, useContext, useEffect } from 'react';
-import { GlobalStoreContext } from '../store';
+import React ,{ useState, useEffect } from 'react';
 import { Button, Divider, Box, Slider, Typography } from '@mui/material';
 import 'leaflet.heat';
 
@@ -8,17 +7,6 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV }
     const initialBlur = mapSchema.heatmaps && mapSchema.heatmaps.length > 0 ? mapSchema.heatmaps[0].blur : 15;
     const [radius, setRadius] = useState(initialRadius);
     const [blur, setBlur] = useState(initialBlur);
-    
-    // trigger the handleFileUpload function from EditMap.js
-    // const triggerFileUpload = () => {
-    //     const fileInput = document.createElement('input');
-    //     fileInput.type = 'file';
-    //     fileInput.accept = '.csv';
-    //     fileInput.onchange = (event) => {
-    //         uploadCSV(event);
-    //     };
-    //     fileInput.click();
-    // };
 
     useEffect(() => {
         if(initialRadius !== radius || initialBlur !== blur){
@@ -26,7 +14,6 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV }
         }
         
     }, [radius, blur]);
-
 
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>

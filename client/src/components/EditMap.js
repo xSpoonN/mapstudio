@@ -4,7 +4,6 @@ import { MapContainer, TileLayer, Marker } from 'react-leaflet'; // eslint-disab
 import { IconButton, Box, AppBar, Toolbar, Button, Drawer } from '@mui/material';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SaveIcon from '@mui/icons-material/Save';
-import L, { heatLayer } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import MapSidebar from './MapSidebar';
 import PointSidebar from './PointSidebar';
@@ -971,7 +970,7 @@ export default function EditMap({ mapid }) {
             setSidebar('gradient')
             store.updateMapSchema(mapid, {...data, type: 'gradient'})
         } else if(name === "Heat Map") {
-            setSidebar('point')
+            setSidebar('heatmap')
             store.updateMapSchema(mapid, {...data, type: 'heat'})
         } else if(name === "Point Map") {
             setSidebar('point')
@@ -981,25 +980,6 @@ export default function EditMap({ mapid }) {
             store.updateMapSchema(mapid, {...data, type: 'satellite'})
         }
     }
-
-    const handleTemplateSelect = (templateName) => {
-        if (templateName === 'Heat Map') {
-            setSidebar('heatmap');
-        }
-        // if (templateName === 'Point Map') {
-        //     setSidebar('point');
-        // }
-        // if (templateName === 'Satellite Map') {
-        //     setSidebar('satellite');
-        // }
-
-        // if (templateName === 'Bin Map') {
-        //     setSidebar('bin');
-        // }
-        // if (templateName === 'Gradient Map') {
-        //     setSidebar('gradient');
-        // }
-    };
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
