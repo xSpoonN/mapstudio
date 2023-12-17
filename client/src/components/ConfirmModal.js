@@ -21,7 +21,50 @@ export default function ConfirmModal(props) {
     }
 
     function handlePublish() {
-        store.publishMap(props.map, props.map._id)
+        switch (store.modal) {
+            case 'publishMap':
+                store.publishMap(props.map, props.map._id);
+                break;
+            case 'deleteMap':
+                console.log('deleting map');
+                store.deleteMap(props.map._id);
+                break;
+            default:
+                break;
+        }
+    }
+
+    const modalText = () => {
+        switch (store.modal) {
+            case 'publishMap':
+                return 'Publish Map? (This cannot be undone)';
+            case 'deleteMap':
+                return 'Delete Map? (This cannot be undone)';
+            default:
+                return '';
+        }
+    }
+
+    const okButtonText = () => {
+        switch (store.modal) {
+            case 'publishMap':
+                return 'Ok';
+            case 'deleteMap':
+                return 'Delete';
+            default:
+                return 'Ok';
+        }
+    }
+
+    const cancelButtonText = () => {
+        switch (store.modal) {
+            case 'publishMap':
+                return 'Cancel';
+            case 'deleteMap':
+                return 'Cancel';
+            default:
+                return 'Cancel';
+        }
     }
 
     return (
@@ -30,7 +73,7 @@ export default function ConfirmModal(props) {
                 <div className="modal-dialog">
                 <header className="dialog-header">
                     <Alert severity="info" color="info">
-                        Publish Map? (This cannot be undone)
+                        {modalText()}
                     </Alert>
                 </header>
                 <div id="confirm-cancel-container">
@@ -40,7 +83,7 @@ export default function ConfirmModal(props) {
                         onClick={handlePublish}
                         sx={{mx:2}}
                     >
-                        Ok
+                        {okButtonText()}
                     </Button>
                     <Button variant="contained"
                         id="dialog-no-button"
@@ -48,7 +91,7 @@ export default function ConfirmModal(props) {
                         onClick={handleCloseModal}
                         sx={{mx:2}}
                     >
-                        Cancel
+                        {cancelButtonText()}
                     </Button>
                 </div>
             </div>
