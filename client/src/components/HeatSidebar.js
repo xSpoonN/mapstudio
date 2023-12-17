@@ -3,7 +3,7 @@ import { GlobalStoreContext } from '../store';
 import { Button, Divider, Box, Slider, Typography } from '@mui/material';
 import 'leaflet.heat';
 
-export default function HeatMapSidebar({ mapSchema, onHeatMapChange}) {
+export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV }) {
     const initialRadius = mapSchema.heatmaps && mapSchema.heatmaps.length > 0 ? mapSchema.heatmaps[0].radius : 25;
     const initialBlur = mapSchema.heatmaps && mapSchema.heatmaps.length > 0 ? mapSchema.heatmaps[0].blur : 15;
     const [radius, setRadius] = useState(initialRadius);
@@ -15,10 +15,11 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange}) {
     //     fileInput.type = 'file';
     //     fileInput.accept = '.csv';
     //     fileInput.onchange = (event) => {
-    //         handleFileUpload(event);
+    //         uploadCSV(event);
     //     };
     //     fileInput.click();
     // };
+
     useEffect(() => {
         if(initialRadius !== radius || initialBlur !== blur){
             onHeatMapChange(radius, blur);
@@ -32,13 +33,6 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange}) {
             <Typography variant="h6" style={{ margin: '10px' }}>Heat Map</Typography>
             <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} />
             
-            {/* <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>Radius</Typography>
-                <input type="range" min="10" max="50"  class="slider" id="myRange" />
-                <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>Blur</Typography>
-                <input type="range" min="10" max="50"  class="slider" id="myRange" />
-            </Box> */}
-
             <Box 
                 sx={{
                     width:'70%',mt:8, mb: 2, 
@@ -82,7 +76,7 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange}) {
 
             <Button variant="contained" component="label" style={{ margin: '10px', backgroundColor: '#E3256B'}}>
                 Upload new CSV File
-                {/* <input type="file" accept='.csv' hidden onChange={triggerFileUpload} /> */}
+                <input type="file" accept='.csv' hidden onChange={uploadCSV} />
             </Button>
         </Box>
     );

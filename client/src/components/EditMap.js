@@ -506,7 +506,7 @@ export default function EditMap({ mapid }) {
 
         if (heatLayerRef.current) {
             heatLayerRef.current.setOptions({radius:radius, blur:blur});
-            heatLayerRef.current.redraw();
+            // heatLayerRef.current.redraw();
         }
     };
 /*-----------------------------heatmap-----------------------------------*/
@@ -873,7 +873,7 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'bin' && <BinSidebar />}
                 {sidebar === 'gradient' && <GradientSidebar />}
                 {sidebar === 'template' && <TemplateSidebar onTemplateSelect={handleTemplateSelect} />}
-                {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange}/>}
+                {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange} uploadCSV={handleFileUpload}/>}
             </Drawer>
             <ConfirmModal map={map}/>
         </Box>
