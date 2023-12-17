@@ -4,7 +4,7 @@ import { MapContainer, TileLayer, Marker } from 'react-leaflet'; // eslint-disab
 import { IconButton, Box, AppBar, Toolbar, Button, Drawer } from '@mui/material';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SaveIcon from '@mui/icons-material/Save';
-import L from 'leaflet';
+import L, { heatLayer } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import MapSidebar from './MapSidebar';
 import PointSidebar from './PointSidebar';
@@ -12,6 +12,7 @@ import SubdivisionSidebar from './SubdivisionSidebar';
 import BinSidebar from './BinSidebar';
 import GradientSidebar from './GradientSidebar';
 import TemplateSidebar from './TemplateSidebar';
+import HeatMapSidebar from './HeatSidebar';
 import ConfirmModal from './ConfirmModal';
 import togeojson from 'togeojson';
 import * as shapefile from 'shapefile';
@@ -81,6 +82,19 @@ const SCHEMA = {  // The Schema format to validate against
         },
         "required": [ "location" ]
       },
+      "heatmap": {
+        "type": "object",
+        "properties": {
+            "radius": { "type": "number", "minimum": 10, "maximum":50, "default":25}, // radius of points 
+            "blur": { "type": "number", "minimum": 10, "maximum":50, "default":15},   // blur of points
+            "points": {                                  // points of the heatmap
+                "type": "array",
+                "items": { "$ref": "#/definitions/point" }, // use points definition above
+                "uniqueItems": true
+            }
+        },
+        "required": [ "radius", "blur", "points" ]
+    },
       "gradient": {
         "type": "object",
         "properties": {
@@ -122,6 +136,11 @@ const SCHEMA = {  // The Schema format to validate against
         "items": { "$ref": "#/definitions/gradient" },
         "uniqueItems": true
       },
+      "heatmaps": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/heatmap" },
+        "uniqueItems": true
+    },
       "showSatellite": {
         "type": "boolean",
         "default": false
@@ -199,11 +218,14 @@ export default function EditMap({ mapid }) {
     const satelliteLayerRef = useRef(null); // Track satellite layer instance
     const [showSatellite, setShowSatellite] = useState(false);
     const { store } = useContext(GlobalStoreContext); // eslint-disable-line
+    const heatLayerRef = useRef(null);
     L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png',
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png'
     });
+    
+
     function RenderNewGeoJSON(geojsonData) {
         if (geoJSONLayerRef.current) { geoJSONLayerRef.current.clearLayers(); }
         geoJSONLayerRef.current = L.geoJSON(geojsonData, { 
@@ -522,7 +544,153 @@ export default function EditMap({ mapid }) {
             console.log('Error updating map file data in database');
         }
     }
+
+/*-----------------------------heatmap-----------------------------------*/
+
+    // Parse csv data into heatmap points array data
+    function parseCSVForHeatMap(csvText) {
+        console.log("entering parsing csv to heatmap data");
+        const lines = csvText.split('\n');
+        let latIndex = -1, lngIndex = -1;
+        let headers = lines[0].split(',');
+        let isHeaderDetected = false;
+        const latPossibleNames = ['latitude', 'lat'];
+        const lngPossibleNames = ['longitude', 'long', 'lng'];
+        // detect header row
+        if (headers.length > 1) {
+            headers = headers.map(header => header.toLowerCase().trim());
+            latIndex = headers.findIndex(header => latPossibleNames.some(name => header.includes(name)));
+            lngIndex = headers.findIndex(header => lngPossibleNames.some(name => header.includes(name)));
+            isHeaderDetected = latIndex !== -1 && lngIndex !== -1;
+        }
+        // if header row is not detected, try to detect latitude and longitude columns
+        if (!isHeaderDetected) {
+            const maxLat = 90, minLat = -90, maxLng = 180, minLng = -180;
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                for (let j = 0; j < parts.length; j++) {
+                    const val = parseFloat(parts[j]);
+                    if (!isNaN(val)) {
+                        if (minLat <= val && val <= maxLat) {
+                            latIndex = j;
+                        } else if (minLng <= val && val <= maxLng) {
+                            lngIndex = j;
+                        }
+                    }
+                }
+                if (latIndex !== -1 && lngIndex !== -1) break;
+            }
+        }
+        if (latIndex === -1 || lngIndex === -1) {
+            console.error('Latitude or longitude columns could not be detected.');
+            return [];
+        }
+        // parse csv data
+        const startIndex = isHeaderDetected ? 1 : 0;
+        return lines.slice(startIndex).reduce((acc, line) => {
+            const parts = line.split(',');
+            const lat = parseFloat(parts[latIndex]);
+            const lng = parseFloat(parts[lngIndex]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                acc.push([lat, lng, 1]); // default weight is 1
+            }
+            return acc;
+        }, []);
+    }
+
+    // Create new heatmap object by points array data
+    function createHeatMapObject(pointsArrayData, radius, blur) {
+        // if radius, blur == null, use default values
+        if (radius === undefined) { radius = 26;}
+        if (blur === undefined) {blur = 19;}
+
+        // if radius, blur != null , use given values
+        const heatMapObject = {
+            "radius": radius, "blur": blur,
+            "points": pointsArrayData.map(([lat, lng], index) => ({
+                "name": "point" + index,
+                "location": {"lat": lat,"lon": lng},
+                "weight": 1
+            }))
+        };
+        console.log("create new heatmap object:");
+        console.log(heatMapObject);
+        return heatMapObject;
+    }
+
+    // render parsed csv points data to heatmap
+    function renderPArrayToHeatMap(pointsArrayData, radius, blur) {
+        // if the radius and blur are not specified, use default values
+        if (radius === undefined || blur === undefined) {
+            const heatLayer = L.heatLayer(pointsArrayData, { radius: 26, blur: 19 }).addTo(mapRef.current);
+            console.log("Render points Array with unspecified radius or blur: heat layer:");
+            console.log(heatLayer);
+            heatLayerRef.current = heatLayer;
+        }
+        // if the radius and blur are specified, use the specified values
+        else {
+            if (heatLayerRef.current) {
+                mapRef.current.removeLayer(heatLayerRef.current);
+            }
+            const heatLayer = L.heatLayer(pointsArrayData, { radius: radius, blur: blur }).addTo(mapRef.current);
+            console.log("Render points Array with given radius and blur: heat layer:");
+            console.log(heatLayer);
+            heatLayerRef.current = heatLayer;
+        }
+    }
+   // render current map schema's heatmap block to heatmap
+    function renderHeatSchemaToHeatMap(mapSchema) {
+        console.log("Entering: renderHeatSchemaToHeatMap");
+        if (mapSchema.type === 'heatmap' && mapSchema.heatmaps) {
+            console.log("process map schema, extract heatmap's data:");
+            const heatMap = mapSchema.heatmaps[0];
+            console.log(heatMap);
+            const radius = heatMap.radius;
+            const blur = heatMap.blur;
+            const pointsArrayData = heatMap.points.map(point => [point.location.lat, point.location.lon, point.weight]);
+            console.log(" Transfer heatmap's data to 'renderPArrayToHeatMap': ");
+            renderPArrayToHeatMap(pointsArrayData, radius, blur);
+        }
+        return null;
+    }
+
+    const handleHeatMapChange = async(radius, blur) => {
+        console.log("Handle Radius Blur changing: current map schema   ");
+        console.log("Input radius blur:" + radius + "|||| " + blur)
+        const data = await store.getSchema(mapid);
+        const currentMapSchema = {...data};
+        console.log(currentMapSchema);
+        if (!currentMapSchema.heatmaps || currentMapSchema.heatmaps.length === 0) {
+            console.log("Handle: no heatmap in current map schema");
+        }
+        console.log("Handle 2 current heatmaps[0]:");
+        console.log(currentMapSchema.heatmaps[0]);
+        currentMapSchema.heatmaps[0].radius = radius;
+        currentMapSchema.heatmaps[0].blur = blur;
+
+        console.log("Handle 3: changed heatmaps[0]:");
+        console.log(currentMapSchema.heatmaps[0]);
+
+        const changedMapSchema = {...currentMapSchema};
+
+        console.log("Handle5:const changedMapSchema = {...currentMapSchema}; ");
+        console.log(changedMapSchema);
+
+        setData(changedMapSchema);
+
+        console.log("Handle6: current Data:");
+        console.log(data);
+        store.updateMapSchema(mapid, data);
+        store.saveMapSchema(mapid, data);
+
+        if (heatLayerRef.current) {
+            heatLayerRef.current.setOptions({radius:radius, blur:blur});
+            // heatLayerRef.current.redraw();
+        }
+    };
+/*-----------------------------heatmap-----------------------------------*/
     const handleFileUpload = async (event) => {
+        console.log("file upload called");
         const files = Array.from(event.target.files);
         if (!files.length) return;
         let geojsonData;
@@ -567,6 +735,40 @@ export default function EditMap({ mapid }) {
                 };
                 shpReader.readAsArrayBuffer(file);
             }
+            // if the file type is .csv
+            else if(file.name.endsWith('.csv')){
+                console.log("csv file received, mapid: "+mapid);
+                console.log("current map schema:" + data);
+                
+                const currentMapSchema = data;
+                
+                // if (currentMapSchema.type !== "heatmap" ) {
+
+                if (currentMapSchema.type) {
+                    // change the map schema type to heatmap
+                    currentMapSchema.type = "heatmap";
+
+                    const csvText = await file.text();
+                    const heatMapData = parseCSVForHeatMap(csvText);
+
+                    // renderPArrayToHeatMap(heatMapData);
+                    const heatMapObject = createHeatMapObject(heatMapData);
+
+                    const updatedSchema = {...data, heatmaps: [heatMapObject]};
+                    // data.heatmaps = []
+                    // data.heatmaps.push(heatMapObject);
+
+                    console.log("Handle Before Updated map schema:" + mapid +"   " + data);
+
+                    store.updateMapSchema(mapid, updatedSchema);
+                    setData(updatedSchema);
+                    renderHeatSchemaToHeatMap(updatedSchema);
+
+                    console.log("Handle After Updated map schema:" + mapid +"   " + data);
+                
+                }
+            }
+
         }else if (files.length === 2) {
             const validExtensions = ['shp', 'shx', 'dbf'];
             const fileExtensions = Array.from(files).map(file => file.name.split('.').pop().toLowerCase());
@@ -651,6 +853,7 @@ export default function EditMap({ mapid }) {
                     "gradients": [],
                     "showSatellite": false
                 });
+              
                 const resp2 = await store.getSchema(resp.mapSchema, true);
                 console.log(resp2);
                 if (!resp2) return setData({ // If map has no schema, create a new one
@@ -667,7 +870,9 @@ export default function EditMap({ mapid }) {
                 // Draw subdivisions and points
                 drawSubdivisions(resp2);
                 loadPoints(resp2?.points);
-                setShowSatellite(resp2?.showSatellite); // Set satellite view
+                setShowSatellite(resp2?.satelliteView);
+                renderHeatSchemaToHeatMap(resp2);
+
             }
         }
         fetchMap();
@@ -777,6 +982,25 @@ export default function EditMap({ mapid }) {
         }
     }
 
+    const handleTemplateSelect = (templateName) => {
+        if (templateName === 'Heat Map') {
+            setSidebar('heatmap');
+        }
+        // if (templateName === 'Point Map') {
+        //     setSidebar('point');
+        // }
+        // if (templateName === 'Satellite Map') {
+        //     setSidebar('satellite');
+        // }
+
+        // if (templateName === 'Bin Map') {
+        //     setSidebar('bin');
+        // }
+        // if (templateName === 'Gradient Map') {
+        //     setSidebar('gradient');
+        // }
+    };
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Box height='80vh' width='100vw' style={{ flex: 1 }} >
@@ -785,7 +1009,7 @@ export default function EditMap({ mapid }) {
                     <Toolbar sx={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 2 }}>
                         <Box sx={{ marginRight: 'auto', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '460px', maxWidth: '460px' }}>
                         <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => document.getElementById('file-input').click()}>Import</Button>
-                            <input type="file" id="file-input" style={{ display: 'none' }} accept=".kml,.shp,.shx,.dbf,.json,.geojson" multiple onChange={handleFileUpload} />
+                            <input type="file" id="file-input" style={{ display: 'none' }} accept=".kml,.shp,.shx,.dbf,.json,.geojson,.csv" multiple onChange={handleFileUpload} />
 
                             
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
@@ -853,12 +1077,15 @@ export default function EditMap({ mapid }) {
                 onClose={() => setOpenDrawer(false)}
             >
                 <Toolbar style={{marginTop: '25px'}}/>
+
                 {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data} setShowSatellite={setShowSatellite}/>}
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data} setFeature={setFeature}/>}
                 {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint} panToPoint={panToPoint}/>}
                 {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'gradient' && <GradientSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
+                {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange} uploadCSV={handleFileUpload}/>}
                 {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate}/>}
+
             </Drawer>
             <ConfirmModal map={map}/>
         </Box>

@@ -385,6 +385,19 @@ updateMapSchema = async (req, res) => {
             },
             "required": [ "location" ]
           },
+          "heatmap": {
+            "type": "object",
+            "properties": {
+                "radius": { "type": "number", "minimum": 10, "maximum":50, "default":25}, // radius of points 
+                "blur": { "type": "number", "minimum": 10, "maximum":50, "default":15},   // blur of points
+                "points": {                                  // points of the heatmap
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/point" }, // use points definition above
+                    "uniqueItems": true
+                }
+            },
+            "required": [ "radius", "blur", "points" ]
+        },
           "gradient": {
             "type": "object",
             "properties": {
@@ -426,6 +439,11 @@ updateMapSchema = async (req, res) => {
             "items": { "$ref": "#/definitions/gradient" },
             "uniqueItems": true
           },
+          "heatmaps": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/heatmap" },
+            "uniqueItems": true
+        },
           "showSatellite": {
             "type": "boolean",
             "default": false
