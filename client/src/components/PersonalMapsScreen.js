@@ -23,6 +23,7 @@ export default function PersonalMapsScreen() {
     const [sort, setSort] = useState('Newest');
     const [search, setSearch] = useState('')
     const [maps, setMaps] = useState([]);
+    const [mapsSchema, setMapsSchema] = useState([]);
 
     useEffect(() => {
         const fetchMaps = async () => {
@@ -32,6 +33,14 @@ export default function PersonalMapsScreen() {
                 const maps = await store.getMapsData(resp.user);
                 console.log(maps);
                 setMaps(maps);
+
+                // map mapIds to schemas
+                const schemaPromises = maps.map(async (map) => {
+                    const schema = await store.getSchemaFromServer(map.mapSchema);
+                    return { mapId: map._id, schema: schema };
+                });
+                const mappedSchemas = await Promise.all(schemaPromises);
+                setMapsSchema(mappedSchemas);
             }
         }
         fetchMaps();
@@ -57,6 +66,11 @@ export default function PersonalMapsScreen() {
         store.changeToEditMap(id);
     };
 
+    const getSchema = (mapId) => {
+        const schemaEntry = mapsSchema.find((entry) => entry.mapId === mapId);
+        return schemaEntry ? schemaEntry.schema : null;
+    };
+
     function handleSortAndFilter(maps) {
         let sorted
         if(sort === "Newest") {
@@ -66,7 +80,9 @@ export default function PersonalMapsScreen() {
         } else if(sort === "Most Commented") {
             sorted = maps.sort((a, b) => b.comments.length - a.comments.length);
         }
-        return sorted.filter(post => post.title.toLowerCase().includes(search?.toLowerCase()));
+        if (filter !== "None")
+            sorted = sorted.filter(map => getSchema(map._id)?.type === filter);
+        return sorted.filter(map => map.title.toLowerCase().includes(search?.toLowerCase()));
     }
 
     return (

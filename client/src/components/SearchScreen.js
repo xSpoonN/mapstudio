@@ -15,6 +15,7 @@ export default function SearchScreen(props) {
     const [filter, setFilter] = useState('None');
     const [sort, setSort] = useState('Newest');
     const [maps, setMaps] = useState([]);
+    const [mapsSchema, setMapsSchema] = useState([]);
     let search = props.search || null;
 
     useEffect(() => {
@@ -25,6 +26,14 @@ export default function SearchScreen(props) {
                 result.push({ map: maps.maps[i], author: maps.authors[i] });
             }
             setMaps(result)
+
+            // map mapIds to schemas
+            const schemaPromises = result.map(async (map) => {
+                const schema = await store.getSchemaFromServer(map.mapSchema);
+                return { mapId: map._id, schema: schema };
+            });
+            const mappedSchemas = await Promise.all(schemaPromises);
+            setMapsSchema(mappedSchemas);
         }
         fetchMaps();
     }, [store])
@@ -35,6 +44,11 @@ export default function SearchScreen(props) {
 
     const handleSetSort = (event) => {
         setSort(event.target.value);
+    };
+
+    const getSchema = (mapId) => {
+        const schemaEntry = mapsSchema.find(entry => entry.mapId === mapId);
+        return schemaEntry ? schemaEntry.schema : null;
     };
 
     function handleSortAndFilter(maps) {
@@ -59,6 +73,8 @@ export default function SearchScreen(props) {
             return map.map.title.toLowerCase().includes(search.toLowerCase())
                     || map.author.username.toLowerCase().includes(search.toLowerCase())
         });
+        if (filter !== "None")
+            sorted = sorted.filter(map => getSchema(map._id)?.type === filter);
         return sorted
     }
 
