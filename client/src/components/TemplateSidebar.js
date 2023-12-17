@@ -28,13 +28,7 @@ const templates = [
     }
 ]
 
-
-export default function TemplateSidebar({ onTemplateSelect }) {
-    const handleTemplateClick = (templateName) => {
-        if (onTemplateSelect) {
-            onTemplateSelect(templateName);
-        }
-    };
+export default function TemplateSidebar({mapSchema, changeTemplate}) {
 
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
@@ -43,8 +37,9 @@ export default function TemplateSidebar({ onTemplateSelect }) {
             {templates.map(template => (
                 <Box
                     key={template.name}
-                    sx={{ display: 'flex', alignItems: 'center', p: 2, m: 0.5, borderRadius: 5, width: '75%', height: '20%', backgroundColor: '#EEEEEE' }}
-                    onClick={() => handleTemplateClick(template.name)}
+
+                    sx={{ display: 'flex', alignItems: 'center', p: 2, m: 0.5, borderRadius: 5, width: '75%', height: '20%', backgroundColor: '#EEEEEE', border: mapSchema.type === template.name.split(" ")[0].toLowerCase() ? 3 : 0 }}
+                    onClick={() => changeTemplate(template.name)}
                 >
                     <img src={template.image} width={150} alt="Template Preview" />
                     <Box sx={{ ml: 2 }}>

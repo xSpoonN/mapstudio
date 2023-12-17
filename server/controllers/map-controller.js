@@ -404,7 +404,7 @@ updateMapSchema = async (req, res) => {
               "dataField": { "type": "string" },
               "minColor": { "type": "string", "default": "#000000" },
               "maxColor": { "type": "string", "default": "#E3256B" },
-              "affectedBins": {
+              "subdivisions": {
                 "type": "array",
                 "items": { "type": "string" },
                 "uniqueItems": true
@@ -417,7 +417,7 @@ updateMapSchema = async (req, res) => {
         "properties": {
           "type": {
             "type": "string",
-            "enum": [ "bin", "gradient", "heatmap", "point", "satellite" ]
+            "enum": [ "bin", "gradient", "heatmap", "point", "satellite", "none" ]
           },
           "bins": {
             "type": "array",

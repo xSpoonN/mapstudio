@@ -20,7 +20,7 @@ const Ajv = require('ajv');
 const ajv = new Ajv();
 
 const SASTOKEN = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
-const SCHEMA = {  
+const SCHEMA = {  // The Schema format to validate against
     "$schema": "http://json-schema.org/draft-07/schema#",
     "definitions": {
       "bin": {
@@ -101,7 +101,7 @@ const SCHEMA = {
           "dataField": { "type": "string" },
           "minColor": { "type": "string", "default": "#000000" },
           "maxColor": { "type": "string", "default": "#E3256B" },
-          "affectedBins": {
+          "subdivisions": {
             "type": "array",
             "items": { "type": "string" },
             "uniqueItems": true
@@ -114,7 +114,7 @@ const SCHEMA = {
     "properties": {
       "type": {
         "type": "string",
-        "enum": [ "bin", "gradient", "heatmap", "point", "satellite" ]
+        "enum": [ "bin", "gradient", "heatmap", "point", "satellite", "none" ]
       },
       "bins": {
         "type": "array",
@@ -234,126 +234,305 @@ export default function EditMap({ mapid }) {
         updateMapFileData(mapid, geojsonData);
     };
 
+    // Installs click handler for each subdivision feature
     function onEachFeature(feature, layer, editMode) {
-        layer.on('click', function() { 
+        layer.on('click', function(e) { 
+            L.DomEvent.stopPropagation(e)
             if (editMode !== 'None') return;
             console.log(feature.properties);
             setFeature(feature.properties);
-            store.setMapData(map);
+            store.setMapData(map); // Forces a rerender by updating store
             setSidebar('subdivision');
         });
+        mapRef.current?.on('click', function(e) {
+            setFeature(null)
+        })
     }
 
+    // Handles all map editing that deals with interaction with the map, and not the sidebar
     useEffect(() => {
         console.log("map edit mode changed to " + mapEditMode);
-        if (!mapRef.current || !geoJSONLayerRef.current) return;
-        if (mapEditMode === 'DeletePoint') {
-            setSidebar('map');
+        if (!mapRef.current || !geoJSONLayerRef.current) return; // Map not initialized yet
+        if (mapEditMode === 'DeletePoint') { // Delete point
+            setSidebar('map'); // Reset sidebar to hide the deleted point
             const newPoints = data?.points.filter(point => point.name !== currentPoint.name);
             console.log(newPoints);
-            loadPoints(newPoints);
-            return setMapEditMode('None');
+            loadPoints(newPoints); // Rerender points
+            return setMapEditMode('None'); // Reset edit mode
         } else if (mapEditMode === 'MovePoint') {
-            mapRef.current?.off('click');
+            mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', async function(e) {
-                if (mapEditMode !== 'MovePoint') return console.log(mapEditMode);
+                if (mapEditMode !== 'MovePoint') return console.log(mapEditMode); // Check if edit mode has changed since click handler was installed
                 console.log(e.latlng.lat, e.latlng.lng);
-                const lat = e.latlng.lat;
+                const lat = e.latlng.lat; // Get new point location
                 const lng = e.latlng.lng;
-                const existing = data?.points?.find(point => point.name === currentPoint.name);
+                const existing = data?.points?.find(point => point.name === currentPoint.name); // Find existing point to edit
                 if (existing) { // Technically this should always be true
-                    const newPoint = {
+                    const newPoint = { // Create new point object with updated location
                         ...existing,
                         location: {lat: lat, lon: lng}, 
                     };
                     console.log(newPoint);
-                    const newPoints = data.points.map(point => {
-                        return point.name === currentPoint.name ? newPoint : point;
-                    });
+
+                    // Update point in data
+                    const newPoints = data.points.map(point => { return point.name === currentPoint.name ? newPoint : point; });
                     const updatedSchema = {...data, points: newPoints};
                     await store.updateMapSchema(mapid, updatedSchema);
+
+                    // Rerender points
                     loadPoints(newPoints);
-                    /* console.log(newPoints); */
-                    /* setData(updatedSchema); */
                     setCurrentPoint(newPoint);
-                    return setMapEditMode('None');
+                    return setMapEditMode('None'); // Reset edit mode
                 }
             });
             geoJSONLayerRef.current?.eachLayer((layer) => {
-                layer.off('click');
+                layer.off('click'); // Remove existing click handler
                 layer.on('click', function() { 
                     console.log(mapEditMode);
-                    if (mapEditMode !== 'None') return;
+                    if (mapEditMode !== 'None') return; // Edit mode should still be 'MovePoint' but check just in case it changed
                     console.log(layer.feature.properties);
                     setFeature(layer.feature.properties);
-                    store.setMapData(map);
+                    store.setMapData(map); // Forces a rerender by updating store
                     setSidebar('subdivision');
                 });
             });
         } else if (mapEditMode === 'AddPoint') {
-            mapRef.current?.off('click');
+            mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', function(e) {
-                if (mapEditMode !== 'AddPoint') return console.log(mapEditMode);
+                if (mapEditMode !== 'AddPoint') return console.log(mapEditMode); // Check if edit mode has changed since click handler was installed
                 console.log(e.latlng.lat, e.latlng.lng);
-                const lat = e.latlng.lat;
+                const lat = e.latlng.lat; // Get new point location
                 const lng = e.latlng.lng;
-                const newPoint = {
+                const newPoint = { // Create new point object
                     name: lat.toFixed(4) + ', ' + lng.toFixed(4),
                     location: {lat: lat, lon: lng}, 
                     weight: 0.5};
                 const newPoints = [...data?.points, newPoint];
-                /* markers.forEach(marker => {console.log("Removing ", marker); geoJSONLayerRef.current.removeLayer(marker)}); */
+
+                // Rerender points
                 loadPoints(newPoints);
-                setMapEditMode('None');
-                console.log("wow" + mapEditMode)
+                setMapEditMode('None'); // Reset edit mode
+
+                // Update point in data
                 store.updateMapSchema(mapid, {...data, points: newPoints});
             });
             geoJSONLayerRef.current?.eachLayer((layer) => {
-                layer.off('click');
+                layer.off('click'); // Remove existing click handler
                 layer.on('click', function() { 
                     console.log(mapEditMode);
-                    if (mapEditMode !== 'None') return;
+                    if (mapEditMode !== 'None') return; // Edit mode should still be 'AddPoint' but check just in case it changed
                     console.log(layer.feature.properties);
                     setFeature(layer.feature.properties);
-                    store.setMapData(map);
+                    store.setMapData(map); // Forces a rerender by updating store
                     setSidebar('subdivision');
                 });
             });
-        } else {
-            mapRef.current?.off('click');
-            mapRef.current?.on('click');
+        } else if (mapEditMode.startsWith('AddToBin')) { // AddToBin-<bin name>
+            const binName = mapEditMode.split('-').slice(1).join('-'); // Get bin name from edit mode
+            const binData = data?.bins?.find(bin => bin.name === binName); // Get bin data from schema
+            mapRef.current?.off('click'); // Remove existing click handler
+            mapRef.current?.on('click', () => {}); // Add empty click handler to prevent clicking on map from doing anything
             geoJSONLayerRef.current?.eachLayer((layer) => {
-                layer.off('click');
-                layer.on('click', function() { 
+                layer.off('click'); // Remove existing click handler
+                layer.on('click', async function() { 
+                    console.log(mapEditMode);
+                    if (!mapEditMode.startsWith('AddToBin')) return; // Check if edit mode has changed since click handler was installed
+                    console.log(layer.feature.properties);
+
+                    // Find clicked subdivision in schema
+                    let existing = data?.subdivisions?.find(subdivision => 
+                        subdivision.name === layer.feature.properties.name || subdivision.name === layer.feature.properties.NAME || subdivision.name === layer.feature.properties.Name
+                    );
+                    let newSubdivisions
+                    if (existing) { // Subdivision already exists in schema
+                        newSubdivisions = data.subdivisions.map(subdivision => {
+                            return subdivision.name === existing.name ? {...subdivision, color: binData.color, weight: 0.5} : subdivision;
+                        });
+                    } else { // Subdivision does not exist in schema, create a new object for it
+                        const newSubdivision = {
+                            name: layer.feature.properties.name || layer.feature.properties.NAME || layer.feature.properties.Name,
+                            color: binData.color,
+                            weight: 0.5 // Weight is reset to default
+                        }
+                        newSubdivisions = [...data.subdivisions, newSubdivision];
+                        existing = newSubdivision;
+                    }
+                    const newBins = data.bins.map(bin => { // Update bin in schema
+                        return bin.name === binName ? {...bin, subdivisions: [...(bin.subdivisions || []), existing.name]} : bin;
+                    });
+
+                    // Update schema
+                    const updatedSchema = {...data, subdivisions: newSubdivisions, bins: newBins};
+                    await store.updateMapSchema(mapid, updatedSchema);
+                    setData(updatedSchema);
+
+                    // Rerender subdivisions
+                    drawSubdivisions(updatedSchema);
+                    return setMapEditMode('None'); // Reset edit mode
+                });
+            });
+        } else if (mapEditMode.startsWith('DeleteFromBin')) { // DeleteFromBin-<bin name>
+            const binName = mapEditMode.split('-').slice(1).join('-'); // Get bin name from edit mode
+            mapRef.current?.off('click'); // Remove existing click handler
+            mapRef.current?.on('click', () => {}); // Add empty click handler to prevent clicking on map from doing anything
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click'); // Remove existing click handler
+                layer.on('click', async function() { 
+                    console.log(mapEditMode);
+                    if (!mapEditMode.startsWith('DeleteFromBin')) return; // Check if edit mode has changed since click handler was installed
+                    console.log(layer.feature.properties);
+
+                    // Find clicked subdivision in schema
+                    const existing = data?.subdivisions?.find(subdivision => 
+                        subdivision.name === layer.feature.properties.name || subdivision.name === layer.feature.properties.NAME || subdivision.name === layer.feature.properties.Name
+                    );
+                    if (existing) {
+                        const newSubdivisions = data.subdivisions.map(subdivision => { // Update subdivision in schema
+                            return subdivision.name === existing.name ? {...subdivision, color: '#DDDDDD', weight: 0.5} : subdivision;
+                        });
+                        const newBins = data.bins.map(bin => { // Update bin in schema
+                            return bin.name === binName ? {...bin, subdivisions: bin.subdivisions.filter(subdivision => subdivision !== existing.name)} : bin;
+                        });
+
+                        // Update schema
+                        const updatedSchema = {...data, subdivisions: newSubdivisions, bins: newBins};
+                        await store.updateMapSchema(mapid, updatedSchema);
+                        setData(updatedSchema);
+                        
+                        // Rerender subdivisions
+                        drawSubdivisions(updatedSchema);
+                    }
+                    return setMapEditMode('None'); // Reset edit mode
+                });
+            });
+        } else if (mapEditMode.startsWith('AddToGradient')) { // AddToGradient-<gradient datafield>
+            const grdName = mapEditMode.split('-').slice(1).join('-'); // Get gradient name from edit mode
+            const grdData = data?.gradients?.find(grd => grd.dataField === grdName); // Get bin data from schema
+            mapRef.current?.off('click'); // Remove existing click handler
+            mapRef.current?.on('click', () => {}); // Add empty click handler to prevent clicking on map from doing anything
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click'); // Remove existing click handler
+                layer.on('click', async function() { 
+                    console.log(mapEditMode);
+                    if (!mapEditMode.startsWith('AddToGradient')) return; // Check if edit mode has changed since click handler was installed
+                    console.log(layer.feature.properties);
+
+                    // Find clicked subdivision in schema
+                    let existing = data?.subdivisions?.find(subdivision => 
+                        subdivision.name === layer.feature.properties.name || subdivision.name === layer.feature.properties.NAME || subdivision.name === layer.feature.properties.Name
+                    );
+                    let newSubdivisions
+                    if (existing) { // Subdivision already exists in schema
+                        newSubdivisions = data.subdivisions.map(subdivision => {
+                            return subdivision.name === existing.name ? {
+                                ...subdivision, 
+                                color: grdData.minColor, 
+                                weight: 0.5,
+                                data: Object.keys(subdivision.data || {})?.includes(grdData.dataField) ? subdivision.data : {
+                                    ...(subdivision.data || {}),
+                                    [grdData.dataField]: 0
+                                }
+                            } : subdivision;
+                        });
+                    } else { // Subdivision does not exist in schema, create a new object for it
+                        const newSubdivision = {
+                            name: layer.feature.properties.name || layer.feature.properties.NAME || layer.feature.properties.Name,
+                            color: grdData.minColor,
+                            weight: 0.5, // Weight is reset to default
+                            data: {
+                                [grdData.dataField]: 0
+                            }
+                        }
+                        newSubdivisions = [...data.subdivisions, newSubdivision];
+                        existing = newSubdivision;
+                    }
+                    const newGrds = data.gradients.map(grd => { // Update grd in schema
+                        return grd.dataField === grdName ? {...grd, subdivisions: [...(grd.subdivisions || []), existing.name]} : grd;
+                    });
+
+                    // Update schema
+                    const updatedSchema = {...data, subdivisions: newSubdivisions, gradients: newGrds};
+                    await store.updateMapSchema(mapid, updatedSchema);
+                    setData(updatedSchema);
+
+                    // Rerender subdivisions
+                    drawSubdivisions(updatedSchema);
+                    return setMapEditMode('None'); // Reset edit mode
+                });
+            });
+        } else if (mapEditMode.startsWith('DeleteFromGradient')) { // DeleteFromGradient-<gradient datafield>
+            const grdName = mapEditMode.split('-').slice(1).join('-'); // Get gradient name from edit mode
+            mapRef.current?.off('click'); // Remove existing click handler
+            mapRef.current?.on('click', () => {}); // Add empty click handler to prevent clicking on map from doing anything
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click'); // Remove existing click handler
+                layer.on('click', async function() { 
+                    console.log(mapEditMode);
+                    if (!mapEditMode.startsWith('DeleteFromGradient')) return; // Check if edit mode has changed since click handler was installed
+                    console.log(layer.feature.properties);
+
+                    // Find clicked subdivision in schema
+                    const existing = data?.subdivisions?.find(subdivision => 
+                        subdivision.name === layer.feature.properties.name || subdivision.name === layer.feature.properties.NAME || subdivision.name === layer.feature.properties.Name
+                    );
+                    if (existing) {
+                        // Check if the subdivision is affected by a bin too
+                        const otherBin = data.bins.find(bin => bin.subdivisions?.includes(existing.name));
+
+                        const newSubdivisions = data.subdivisions.map(subdivision => { // Update subdivision in schema
+                            return subdivision.name === existing.name ? {...subdivision, color: otherBin?.color || '#DDDDDD', weight: 0.5} : subdivision;
+                        });
+                        const newGrds = data.gradients.map(grd => { // Update grd in schema
+                            return grd.dataField === grdName ? {...grd, subdivisions: grd.subdivisions.filter(subdivision => subdivision !== existing.name)} : grd;
+                        });
+
+                        // Update schema
+                        const updatedSchema = {...data, subdivisions: newSubdivisions, gradients: newGrds};
+                        await store.updateMapSchema(mapid, updatedSchema);
+                        setData(updatedSchema);
+                        
+                        // Rerender subdivisions
+                        drawSubdivisions(updatedSchema);
+                    }
+                    return setMapEditMode('None'); // Reset edit mode
+                });
+            });
+        } else { // None
+            mapRef.current?.off('click'); // Remove existing click handler
+            mapRef.current?.on('click', () => setFeature(null)); // Add empty click handler to prevent clicking on map from doing anything
+            geoJSONLayerRef.current?.eachLayer((layer) => {
+                layer.off('click'); // Remove existing click handler
+                layer.on('click', function(e) { 
+                    L.DomEvent.stopPropagation(e)
                     console.log(mapEditMode);
                     if (mapEditMode !== 'None') return;
                     console.log(layer.feature.properties);
                     setFeature(layer.feature.properties);
-                    store.setMapData(map);
+                    store.setMapData(map); // Forces a rerender by updating store
                     setSidebar('subdivision');
                 });
             });
         }
     }, [mapEditMode]) // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Handles adding a new point to the map
     function addPointCallback (e) {
             /* console.log("click"); */
-            if (mapEditMode === 'None') {   
-                return setCurrentPoint(null)
-            }
-            if (mapEditMode !== 'AddPoint') return console.log(mapEditMode);
+            if (mapEditMode === 'None') return setCurrentPoint(null) // If not in edit mode, do nothing
+            if (mapEditMode !== 'AddPoint') return console.log(mapEditMode); // Check if edit mode has changed since click handler was installed
             console.log(e.latlng.lat, e.latlng.lng);
-            const lat = e.latlng.lat;
+            const lat = e.latlng.lat; // Get new point location
             const lng = e.latlng.lng;
             const newPoint = {
                 name: lat.toFixed(4) + ', ' + lng.toFixed(4),
                 location: {lat: lat, lon: lng}, 
-                weight: 0.5};
+                weight: 0.5
+            };
+
+            // Update point in data
             const newPoints = [...data?.points, newPoint];
-            /* markers.forEach(marker => mapRef.current.removeLayer(marker)); */
-            loadPoints(newPoints);
-            /* console.log(newPoints); */
-            setMapEditMode('None');
+            loadPoints(newPoints); // Rerender points
+            setMapEditMode('None'); // Reset edit mode
             store.updateMapSchema(mapid, {...data, points: newPoints});
     }
 
@@ -539,6 +718,7 @@ export default function EditMap({ mapid }) {
                     setData(geojsonData);
                     await store.updateMapSchema(mapid, geojsonData);
                     drawSubdivisions(geojsonData);
+                    loadPoints(geojsonData?.points);
                 }
                 return;
             }
@@ -623,135 +803,141 @@ export default function EditMap({ mapid }) {
         }
     }
 
+    // Handles redrawing subdivision coloring when schema is updated
     const drawSubdivisions = (resp2) => {
         if (geoJSONLayerRef.current){
-            /* console.log("drawing subdivisions with data", resp2?.subdivisions); */
             geoJSONLayerRef.current.eachLayer((layer) => {
                 const existing = resp2?.subdivisions?.find(subdivision => 
-                    subdivision.name === layer.feature.properties.name || 
-                    subdivision.name === layer.feature.properties.NAME || 
+                    subdivision.name === layer.feature.properties.name || // All of these are for different capitalizations of the same property
+                    subdivision.name === layer.feature.properties.NAME || // This is because different files use different capitalizations and javascript is case sensitive
                     subdivision.name === layer.feature.properties.Name
                 );
-                layer.setStyle({fillColor: existing?.color || '#DDDDDD', fillOpacity: existing?.weight || 0.5});
+                layer.setStyle({fillColor: existing?.color || '#DDDDDD', fillOpacity: existing?.weight || 0.5}); // Set color and weight of subdivision
             } );
         }
-        if (markerLayerRef?.current) markerLayerRef.current.bringToFront();
+        if (markerLayerRef?.current) markerLayerRef.current.bringToFront(); // Bring marker featureGroup to render in front
     }
+
+    // Handles redrawing points when schema is updated
     const loadPoints = (points) => {
-        let newMarkers = [];
-        /* markers.forEach(marker => {console.log("Removing ", marker);  */markerLayerRef.current.clearLayers();/* }); */
+        let newMarkers = []; // Store working set of markers, can't use state variable marker because it is snapshot
+        markerLayerRef.current.clearLayers(); // Clear existing markers
         points?.forEach(point => {
             const marker = L.circleMarker([point.location.lat, point.location.lon], {
                 radius: point.weight * 15
-            }).addTo(markerLayerRef.current);
-            /* console.log("Adding ", marker); */
-            marker.setStyle({fillColor: point.color || '#000000', fillOpacity: 1, stroke: false});
+            }).addTo(markerLayerRef.current); // Add new marker
+            marker.setStyle({fillColor: point.color || '#000000', fillOpacity: 1, stroke: false}); // Set color and size of marker
             marker.on('click', function (e) {
-                L.DomEvent.stopPropagation(e)
+                L.DomEvent.stopPropagation(e) // Prevent click from propagating to map
                 console.log(point);
                 setCurrentPoint(point);
-                store.setMapData(map);
+                store.setMapData(map); // Forces a rerender by updating store
                 setSidebar('point');
             });
-            /* newMarkers =  */newMarkers.push(marker);
-            /* newMarkers = [...newMarkers, marker]; */
+            newMarkers.push(marker);
         })
-        setMarkers(newMarkers);
+        setMarkers(newMarkers); // Update state variable
     }
+
+    // Handles refetching the map and schema data when something changes
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
             if (resp) {
                 setMap(resp);
-                if (!resp.mapSchema) return setData({
-                    "type": "bin",
+                if (!resp.mapSchema && data === null) return setData({ // If map has no schema, create a new one
+                    "type": "none",
                     "bins": [],
                     "subdivisions": [],
                     "points": [],
                     "gradients": [],
-                    "showSatellite": true
+                    "showSatellite": false
                 });
-                const resp2 = await store.getSchema(resp.mapSchema);
-                // console.log("resp2 MAPSCHEMA");
-                // console.log(resp2);
-                if (!resp2) return setData({
-                    "type": "bin",
+              
+                const resp2 = await store.getSchema(resp.mapSchema, true);
+                console.log(resp2);
+                if (!resp2) return setData({ // If map has no schema, create a new one
+                    "type": "none",
                     "bins": [],
                     "subdivisions": [],
                     "points": [],
                     "gradients": [],
-                    "showSatellite": true
+                    "showSatellite": false
                 });
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
+
+                // Draw subdivisions and points
                 drawSubdivisions(resp2);
                 loadPoints(resp2?.points);
                 setShowSatellite(resp2?.satelliteView);
                 renderHeatSchemaToHeatMap(resp2);
-    
+
             }
         }
         fetchMap();
     }, [store, mapid]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Handles fetching and initializing the map and adding initial event listeners
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
             mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
-            //L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
             satelliteLayerRef.current = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ 
                 subdomains:['mt0','mt1','mt2','mt3']
             }).addTo(mapRef.current); // Add Google Satellite tiles
             mapInitializedRef.current = true; // Mark map as initialized
         }
         if (!markerLayerRef.current) markerLayerRef.current = L.featureGroup().addTo(mapRef.current); // Initialize marker layer
-        fetch(`${map?.mapFile}?${SASTOKEN}`, {mode: "cors"})
-            .then((response) =>  response.json())
+        fetch(`${map?.mapFile}?${SASTOKEN}`, {mode: "cors"}) // Fetch GeoJSON data
+            .then((response) =>  response.json()) // Parse response as JSON
             .then((geojson) => {
                 if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); // Remove existing GeoJSON layer
                 else geoJSONLayerRef.current = L.geoJSON(geojson,{
                     onEachFeature: function(feature, layer) {onEachFeature(feature, layer, mapEditMode)}
                 }).addTo(mapRef.current); // Add new GeoJSON layer
                 geoJSONLayerRef.current.addData(geojson); // Add GeoJSON data to layer
-                if (data) drawSubdivisions(data);
-                mapRef.current.on('click', addPointCallback);
+                if (data) drawSubdivisions(data); // Draw subdivisions
+                mapRef.current.on('click', addPointCallback); // Add click handler for adding points
             }).catch((error) => {
                 console.error('Error reading GeoJSON', error);
             });
-        satelliteLayerRef?.current?.setOpacity(showSatellite ? 1 : 0);
+        satelliteLayerRef?.current?.setOpacity(showSatellite ? 1 : 0); // Set satellite layer opacity depending on satellite view
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers();  }; // Remove GeoJSON layer on unmount
     }, [map?.mapFile, showSatellite]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    // Handles keyboard shortcuts, only activates on mount/unmount
     useEffect(() => {
         const handleKeyDown = (e) => {
             switch (e.key) {
-                case 'Escape': {
+                case 'Escape': { // Escape cancels any edit mode
                     setMapEditMode('None');
                     break;
                 }
-                case 's': {
+                case 's': { // Ctrl + s saves map
                     if (e.ctrlKey) {
                         e.preventDefault();
                         console.log('saving');
-                        store.saveMapSchema(mapid, store.getSchema(mapid));
+                        store.saveMapSchema(mapid, store.getSchema(mapid, true));
                         alert('Map saved');
                     }
                     break;
                 }
-                case 'z': {
+                case 'z': { // Ctrl + z undoes
                     if (e.ctrlKey) {
                         e.preventDefault();
                         store.undo();
                     }
                     break;
                 }
-                case 'Z': {
+                case 'Z': { // Ctrl + shift + z redoes
                     if (e.ctrlKey && e.shiftKey) {
                         e.preventDefault();
                         store.redo();
                     }
                     break;
                 }
-                case 'y': {
+                case 'y': { // Ctrl + y also redoes
                     if (e.ctrlKey) {
                         e.preventDefault();
                         store.redo();
@@ -761,18 +947,39 @@ export default function EditMap({ mapid }) {
                 default: {}
             }
         }
-        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keydown', handleKeyDown); // Install event listener
 
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-            store.clearHistory();
+        return () => { // Cleanup on unmount
+            document.removeEventListener('keydown', handleKeyDown); // Remove event listener on unmount as to not interfere with other pages
+            store.clearHistory(); // Clear history in memory on unmount
         }
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleDelete = async () => {
-        console.log('delete map called on ' + mapid);
-        const resp = await store.deleteMap(mapid);
-        console.log(resp);
+    function panToPoint(lat, lon) {
+        mapRef.current?.setView([lat, lon], mapRef.current?.getZoom() * 1.05);
+    }
+
+    function changeTemplate(name) {
+        if(name.split(" ")[0].toLowerCase() === data.type) {
+            setData({...data, type: 'none'})
+            return
+        }
+        if(name === "Bin Map") {
+            setSidebar('bin')
+            store.updateMapSchema(mapid, {...data, type: 'bin'})
+        } else if(name === "Gradient Map") {
+            setSidebar('gradient')
+            store.updateMapSchema(mapid, {...data, type: 'gradient'})
+        } else if(name === "Heat Map") {
+            setSidebar('point')
+            store.updateMapSchema(mapid, {...data, type: 'heat'})
+        } else if(name === "Point Map") {
+            setSidebar('point')
+            store.updateMapSchema(mapid, {...data, type: 'point'})
+        } else if(name === "Satellite Map") {
+            setSidebar('map')
+            store.updateMapSchema(mapid, {...data, type: 'satellite'})
+        }
     }
 
     const handleTemplateSelect = (templateName) => {
@@ -806,12 +1013,14 @@ export default function EditMap({ mapid }) {
 
                             
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => store.openModal()}>Publish</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={handleDelete}>Delete</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => store.openModal('publishMap')}>Publish</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => store.openModal('deleteMap')}>Delete</Button>
                         </Box>
+
+                        {/* Toolbar Buttons */}
                         <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px' }}>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'map' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('map'); store.setMapData(map);}}>Map Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('subdivision')}>Subdivision Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('subdivision'); setFeature(null)}}>Subdivision Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'point' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('point'); setCurrentPoint(null)}}>Point Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'bin' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('bin')}>Bin Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'gradient' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('gradient')}>Gradient Info</Button>
@@ -830,6 +1039,7 @@ export default function EditMap({ mapid }) {
                 >
                 </Box>
                 
+                {/* Sidebar Buttons */}
                 <Box sx={styles.toolbarBG}>
                     <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton}}
                         onClick={() => {
@@ -843,7 +1053,7 @@ export default function EditMap({ mapid }) {
                     ><ReplayIcon sx={{ transform: 'scaleX(-1)' }} /></IconButton>
                     <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'80px'}}
                         onClick={async () => {
-                            await store.saveMapSchema(mapid, store.getSchema(mapid));
+                            await store.saveMapSchema(mapid, store.getSchema(mapid,true));
                             alert('Map saved');
                         }}
                     ><SaveIcon/></IconButton>
@@ -867,13 +1077,15 @@ export default function EditMap({ mapid }) {
                 onClose={() => setOpenDrawer(false)}
             >
                 <Toolbar style={{marginTop: '25px'}}/>
-                {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data}/>}
-                {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data}/>}
-                {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint}/>}
-                {sidebar === 'bin' && <BinSidebar />}
-                {sidebar === 'gradient' && <GradientSidebar />}
-                {sidebar === 'template' && <TemplateSidebar onTemplateSelect={handleTemplateSelect} />}
+
+                {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data} setShowSatellite={setShowSatellite}/>}
+                {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data} setFeature={setFeature}/>}
+                {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint} panToPoint={panToPoint}/>}
+                {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
+                {sidebar === 'gradient' && <GradientSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange} uploadCSV={handleFileUpload}/>}
+                {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate}/>}
+
             </Drawer>
             <ConfirmModal map={map}/>
         </Box>
