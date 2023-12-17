@@ -750,12 +750,6 @@ export default function EditMap({ mapid }) {
         }
     }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleDelete = async () => {
-        console.log('delete map called on ' + mapid);
-        const resp = await store.deleteMap(mapid);
-        console.log(resp);
-    }
-
     function panToPoint(lat, lon) {
         mapRef.current?.setView([lat, lon], mapRef.current?.getZoom() * 1.05);
     }
@@ -772,8 +766,8 @@ export default function EditMap({ mapid }) {
 
                             
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => store.openModal()}>Publish</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={handleDelete}>Delete</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => store.openModal('publishMap')}>Publish</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => store.openModal('deleteMap')}>Delete</Button>
                         </Box>
 
                         {/* Toolbar Buttons */}
