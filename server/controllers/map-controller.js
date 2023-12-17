@@ -404,7 +404,7 @@ updateMapSchema = async (req, res) => {
         "properties": {
           "type": {
             "type": "string",
-            "enum": [ "bin", "gradient", "heatmap", "point", "satellite" ]
+            "enum": [ "bin", "gradient", "heatmap", "point", "satellite", "none" ]
           },
           "bins": {
             "type": "array",

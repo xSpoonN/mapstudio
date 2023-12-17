@@ -100,7 +100,7 @@ const SCHEMA = {  // The Schema format to validate against
     "properties": {
       "type": {
         "type": "string",
-        "enum": [ "bin", "gradient", "heatmap", "point", "satellite" ]
+        "enum": [ "bin", "gradient", "heatmap", "point", "satellite", "none" ]
       },
       "bins": {
         "type": "array",
@@ -643,23 +643,23 @@ export default function EditMap({ mapid }) {
             const resp = await store.getMap(mapid);
             if (resp) {
                 setMap(resp);
-                if (!resp.mapSchema) return setData({ // If map has no schema, create a new one
-                    "type": "bin",
+                if (!resp.mapSchema && data === null) return setData({ // If map has no schema, create a new one
+                    "type": "none",
                     "bins": [],
                     "subdivisions": [],
                     "points": [],
                     "gradients": [],
-                    "showSatellite": true
+                    "showSatellite": false
                 });
-                const resp2 = await store.getSchema(resp.mapSchema);
+                const resp2 = await store.getSchema(resp.mapSchema, true);
                 console.log(resp2);
                 if (!resp2) return setData({ // If map has no schema, create a new one
-                    "type": "bin",
+                    "type": "none",
                     "bins": [],
                     "subdivisions": [],
                     "points": [],
                     "gradients": [],
-                    "showSatellite": true
+                    "showSatellite": false
                 });
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
@@ -667,7 +667,7 @@ export default function EditMap({ mapid }) {
                 // Draw subdivisions and points
                 drawSubdivisions(resp2);
                 loadPoints(resp2?.points);
-                setShowSatellite(resp2?.satelliteView); // Set satellite view
+                setShowSatellite(resp2?.showSatellite); // Set satellite view
             }
         }
         fetchMap();
@@ -713,7 +713,7 @@ export default function EditMap({ mapid }) {
                     if (e.ctrlKey) {
                         e.preventDefault();
                         console.log('saving');
-                        store.saveMapSchema(mapid, store.getSchema(mapid));
+                        store.saveMapSchema(mapid, store.getSchema(mapid, true));
                         alert('Map saved');
                     }
                     break;
@@ -752,6 +752,29 @@ export default function EditMap({ mapid }) {
 
     function panToPoint(lat, lon) {
         mapRef.current?.setView([lat, lon], mapRef.current?.getZoom() * 1.05);
+    }
+
+    function changeTemplate(name) {
+        if(name.split(" ")[0].toLowerCase() === data.type) {
+            setData({...data, type: 'none'})
+            return
+        }
+        if(name === "Bin Map") {
+            setSidebar('bin')
+            store.updateMapSchema(mapid, {...data, type: 'bin'})
+        } else if(name === "Gradient Map") {
+            setSidebar('gradient')
+            store.updateMapSchema(mapid, {...data, type: 'gradient'})
+        } else if(name === "Heat Map") {
+            setSidebar('point')
+            store.updateMapSchema(mapid, {...data, type: 'heat'})
+        } else if(name === "Point Map") {
+            setSidebar('point')
+            store.updateMapSchema(mapid, {...data, type: 'point'})
+        } else if(name === "Satellite Map") {
+            setSidebar('map')
+            store.updateMapSchema(mapid, {...data, type: 'satellite'})
+        }
     }
 
     return (
@@ -806,7 +829,7 @@ export default function EditMap({ mapid }) {
                     ><ReplayIcon sx={{ transform: 'scaleX(-1)' }} /></IconButton>
                     <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'80px'}}
                         onClick={async () => {
-                            await store.saveMapSchema(mapid, store.getSchema(mapid));
+                            await store.saveMapSchema(mapid, store.getSchema(mapid,true));
                             alert('Map saved');
                         }}
                     ><SaveIcon/></IconButton>
@@ -830,12 +853,12 @@ export default function EditMap({ mapid }) {
                 onClose={() => setOpenDrawer(false)}
             >
                 <Toolbar style={{marginTop: '25px'}}/>
-                {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data}/>}
+                {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data} setShowSatellite={setShowSatellite}/>}
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data} setFeature={setFeature}/>}
                 {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint} panToPoint={panToPoint}/>}
                 {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'gradient' && <GradientSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
-                {sidebar === 'template' && <TemplateSidebar />}
+                {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate}/>}
             </Drawer>
             <ConfirmModal map={map}/>
         </Box>
