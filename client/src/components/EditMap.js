@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker } from 'react-leaflet'; // eslint-disab
 import { IconButton, Box, AppBar, Toolbar, Button, Drawer } from '@mui/material';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SaveIcon from '@mui/icons-material/Save';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import MapSidebar from './MapSidebar';
 import PointSidebar from './PointSidebar';
@@ -980,6 +981,7 @@ export default function EditMap({ mapid }) {
             store.updateMapSchema(mapid, {...data, type: 'satellite'})
         }
     }
+
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
