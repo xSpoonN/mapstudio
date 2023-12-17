@@ -13,7 +13,7 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV }
             onHeatMapChange(radius, blur);
         }
         
-    }, [radius, blur]);
+    }, [radius, blur]); // eslint-disable-line react-hooks/exhaustive-deps
 
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>

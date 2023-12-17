@@ -22,7 +22,7 @@ export default function SubdivisionItem({sub, setFeature}) {
                 }
         }
         retrieveData();
-    }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    }, [sub]) // eslint-disable-line react-hooks/exhaustive-deps
 
     return(
         <ListItem onClick={() => setFeature(sub)}>
