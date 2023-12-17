@@ -198,6 +198,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                             style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '190px', minHeight: '20px'}} 
                             disableRipple
                             color='razzmatazz'
+                            onClick={() => setCurrentPoint(undefined)}
                         >
                             Add New Property
                         </Button>

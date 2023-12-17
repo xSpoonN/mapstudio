@@ -291,6 +291,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                                 style={{fontWeight:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '190px', minHeight: '20px'}} 
                                 disableRipple
                                 color='razzmatazz'
+                                onClick={() => setFeature(undefined)}
                             >
                                 Add New Property
                             </Button>
