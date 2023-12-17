@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+
 Cypress.on('uncaught:exception', (err, runnable) => { return false })
 describe('Operating Map file', () => {
 
