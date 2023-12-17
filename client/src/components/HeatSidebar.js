@@ -3,7 +3,7 @@ import { GlobalStoreContext } from '../store';
 import { Button, Divider, Box, Slider, Typography } from '@mui/material';
 import 'leaflet.heat';
 
-export default function HeatMapSidebar({ mapData, mapSchema, onHeatMapChange}) {
+export default function HeatMapSidebar({ mapSchema, onHeatMapChange}) {
     const initialRadius = mapSchema.heatmaps && mapSchema.heatmaps.length > 0 ? mapSchema.heatmaps[0].radius : 25;
     const initialBlur = mapSchema.heatmaps && mapSchema.heatmaps.length > 0 ? mapSchema.heatmaps[0].blur : 15;
     const [radius, setRadius] = useState(initialRadius);
@@ -39,7 +39,16 @@ export default function HeatMapSidebar({ mapData, mapSchema, onHeatMapChange}) {
                 <input type="range" min="10" max="50"  class="slider" id="myRange" />
             </Box> */}
 
-            <Box sx={{ mt: 2 }}>
+            <Box 
+                sx={{
+                    width:'70%',mt:8, mb: 2, 
+                    '& .MuiSlider-thumb': {
+                    color: '#E3256B', // 设置滑块拇指的颜色
+                    },
+                    '& .MuiSlider-track': {
+                        color: '#E3256B', // 设置滑块轨道的颜色
+                }}}
+            >
                 <Typography gutterBottom>Radius</Typography>
                 <Slider
                     value={radius}
@@ -50,7 +59,16 @@ export default function HeatMapSidebar({ mapData, mapSchema, onHeatMapChange}) {
                     max={50}
                 />
             </Box>
-            <Box sx={{ mt: 2 }}>
+            <Box
+                sx={{
+                    width:'70%',mb: 2, 
+                    '& .MuiSlider-thumb': {
+                    color: '#E3256B', // 设置滑块拇指的颜色
+                    },
+                    '& .MuiSlider-track': {
+                        color: '#E3256B', // 设置滑块轨道的颜色
+                }}}
+            >
                 <Typography gutterBottom>Blur</Typography>
                 <Slider
                     value={blur}
@@ -62,7 +80,7 @@ export default function HeatMapSidebar({ mapData, mapSchema, onHeatMapChange}) {
                 />
             </Box>
 
-            <Button variant="contained" component="label" style={{ margin: '10px' }}>
+            <Button variant="contained" component="label" style={{ margin: '10px', backgroundColor: '#E3256B'}}>
                 Upload new CSV File
                 {/* <input type="file" accept='.csv' hidden onChange={triggerFileUpload} /> */}
             </Button>
