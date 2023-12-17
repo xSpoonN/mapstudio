@@ -4,6 +4,7 @@ import { Box, ClickAwayListener, Select, MenuItem, IconButton } from '@mui/mater
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
+import CachedIcon from '@mui/icons-material/Cached';
 import { TwitterPicker } from 'react-color';
 
 export default function Gradient({gradient, mapSchema, mapData, setMapEditMode}) {
@@ -71,7 +72,8 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
 
     function getKeySubdivisions() {
         // Find subdivisions that have the data field
-        const keySubdivisions = mapSchema.subdivisions.filter(subdivision => Object.keys(subdivision.data || {}).includes(name));
+        const grdSubdivisions = mapSchema.subdivisions.filter(subdivision => gradient.subdivisions?.includes(subdivision.name));
+        const keySubdivisions = grdSubdivisions.filter(subdivision => Object.keys(subdivision.data || {}).includes(name));
         let maxValue = -Infinity; let minValue = Infinity;
 
         // Find the max and min values for the data field
@@ -102,6 +104,28 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
                 >
                     <RemoveIcon />
                 </IconButton>
+                <IconButton sx={{ padding: 0.25, marginRight: '5px' }}
+                    onClick={async () => {
+                        // Find subdivisions that have the data field
+                        const {keySubdivisions, maxValue, minValue} = getKeySubdivisions();
+
+                        // Generating colors for each subdivision based on its value
+                        const newSubdivisions = keySubdivisions.map(subdivision => {
+                            const gradient = mapSchema.gradients.find(gradient => gradient.dataField === name);
+                            return gradient ? {...subdivision, color: interpolateColor(subdivision.data[name], minValue, maxValue, gradient.minColor, gradient.maxColor), weight: 0.5} : subdivision;
+                        });
+
+                        // Replace the original subdivisions
+                        const combinedSubdivisions = mapSchema.subdivisions.map(subdivision => {
+                            return newSubdivisions.find(subdivision2 => subdivision2.name === subdivision.name) || subdivision;
+                        })
+
+                        // Updates the schema to update the grd color
+                        updateSchema({...mapSchema, subdivisions: combinedSubdivisions})
+                    }}
+                >
+                    <CachedIcon />
+                </IconButton>
 
                 {/* Color squares */}
                 <Box sx={{ width: 30, height: 30, backgroundColor: color, borderRadius: '5px', marginRight: '2px' }} onClick={() => setDisplayColorPicker(!displayColorPicker)} />
@@ -131,7 +155,7 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
                         // Remove the old gradient from the schema
                         const newGradients = mapSchema.gradients.filter(grd => grd.dataField !== name);
 
-                        // Updates the schema to update the bin color
+                        // Updates the schema to update the grd color
                         updateSchema({...mapSchema, subdivisions: combinedSubdivisions, gradients: [...newGradients, { dataField: e.target.value, minColor: color, maxColor: color2}]})
                     }}  
                 >
@@ -152,14 +176,13 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
                             if (otherGradient) return {...subdivision, color: '#DDDDDD', weight: 0.5}; // If so, reset the color and weight to the other gradient's color
                             // Check if the subdivision is affected by a bin too
                             const bin = mapSchema.bins.find(bin => bin.subdivisions?.includes(subdivision.name));
-                            console.log(bin); console.log(subdivision.name);
                             if (bin) return {...subdivision, color: bin.color, weight: 0.5}; // If so, reset the color and weight to the bin's color
 
                             // If not, reset the color and weight
                             return gradient.subdivisions?.includes(subdivision.name) ? {...subdivision, color: '#DDDDDD', weight: 0.5} : subdivision;
                         });
 
-                        // Updates the schema to remove the bin
+                        // Updates the schema to remove the grd
                         updateSchema({...mapSchema, subdivisions: newSubdivisions, gradients: mapSchema.gradients.filter(grd => grd.dataField !== gradient.dataField)});
                     }}
                 >
@@ -188,7 +211,7 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
                                 return newSubdivisions.find(subdivision2 => subdivision2.name === subdivision.name) || subdivision;
                             })
 
-                            // Updates the schema to update the bin color
+                            // Updates the schema to update the grd color
                             updateSchema({...mapSchema, subdivisions: combinedSubdivisions, gradients: mapSchema.gradients.map(grd => {
                                 return grd.dataField === name
                                 ? {...grd, minColor: color.hex} : grd;
@@ -220,7 +243,7 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
                                 return newSubdivisions.find(subdivision2 => subdivision2.name === subdivision.name) || subdivision;
                             })
                             
-                            // Updates the schema to update the bin color
+                            // Updates the schema to update the grd color
                             updateSchema({...mapSchema, subdivisions: combinedSubdivisions, gradients: mapSchema.gradients.map(grd => {
                                 return grd.dataField === name
                                 ? {...grd, maxColor: color.hex} : grd;
