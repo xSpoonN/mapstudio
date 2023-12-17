@@ -43,10 +43,10 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange}) {
                 sx={{
                     width:'70%',mt:8, mb: 2, 
                     '& .MuiSlider-thumb': {
-                    color: '#E3256B', // 设置滑块拇指的颜色
+                    color: '#E3256B',
                     },
                     '& .MuiSlider-track': {
-                        color: '#E3256B', // 设置滑块轨道的颜色
+                        color: '#E3256B', 
                 }}}
             >
                 <Typography gutterBottom>Radius</Typography>
@@ -63,10 +63,10 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange}) {
                 sx={{
                     width:'70%',mb: 2, 
                     '& .MuiSlider-thumb': {
-                    color: '#E3256B', // 设置滑块拇指的颜色
+                    color: '#E3256B', 
                     },
                     '& .MuiSlider-track': {
-                        color: '#E3256B', // 设置滑块轨道的颜色
+                        color: '#E3256B', 
                 }}}
             >
                 <Typography gutterBottom>Blur</Typography>
