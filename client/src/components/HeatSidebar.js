@@ -1,9 +1,7 @@
 import React ,{ useState, useContext, useEffect } from 'react';
 import { GlobalStoreContext } from '../store';
 import { Button, Divider, Box, Slider, Typography } from '@mui/material';
-
 import 'leaflet.heat';
-import { map } from 'leaflet';
 
 export default function HeatMapSidebar({ mapData, mapSchema, onHeatMapChange}) {
     const initialRadius = mapSchema.heatmaps && mapSchema.heatmaps.length > 0 ? mapSchema.heatmaps[0].radius : 25;

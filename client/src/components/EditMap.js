@@ -475,44 +475,46 @@ export default function EditMap({ mapid }) {
         return null;
     }
 
-    const handleHeatMapChange = (radius, blur) => {
-        console.log("handle heatmap change called");
-
-        const updatedMapSchema = {...data};
-
-        if (!updatedMapSchema.heatmaps || updatedMapSchema.heatmaps.length === 0) {
+    const handleHeatMapChange = async(radius, blur) => {
+        console.log("Handle Change radius blur : current map schema:");
+        const data = await store.getSchema(mapid);
+        const currentMapSchema = {...data};
+        console.log(currentMapSchema);
+        if (!currentMapSchema.heatmaps || currentMapSchema.heatmaps.length === 0) {
             console.log("Handle: no heatmap in current map schema");
-            updatedMapSchema.heatmaps = [{}];
+            currentMapSchema.heatmaps = [];
         }
 
-        updatedMapSchema.heatmaps[0] = {
-            ...updatedMapSchema.heatmaps[0],
-            ...radius,
-            ...blur
-        };
+        console.log("Handle2: handleHeatMapChange = (radius, blur) :current map schema.heatmaps[0]:");
+        console.log(currentMapSchema.heatmaps[0]);
 
-        setData(updatedMapSchema);
+        console.log("Input radius blur:" + radius + "|||| " + blur)
+
+        currentMapSchema.heatmaps[0].radius = radius;
+        currentMapSchema.heatmaps[0].blur = blur;
+
+        console.log("Handle3: handleHeatMapChange = (radius, blur) :current map schema.heatmaps[0]:");
+        console.log(currentMapSchema.heatmaps[0]);
+
+        console.log("Handle4 Changed map schema: ");
+        console.log(currentMapSchema);
+
+        const changedMapSchema = {...currentMapSchema};
+
+
+        // console.log("Handle5: Updated map schema:"+"   " + updatedSchema);
+
+
+        setData(changedMapSchema);
+
+        console.log("Handle6: current Data:");
+        console.log(data);
+        // store.updateMapSchema(mapid, data);
 
         if (heatLayerRef.current) {
             heatLayerRef.current.setOptions({radius:radius, blur:blur});
             heatLayerRef.current.redraw();
         }
-
-
-
-
-        // if (data && data.heatmaps && data.heatmaps.length > 0) {
-        //     const updatedHeatmapSchema = { ...data.heatmaps[0], radius, blur };
-        //     console.log("Handle: updated heatmap schema:");
-        //     console.log(updatedHeatmapSchema);
-
-        //     const updatedData = { ...data, heatmaps: [updatedHeatmapSchema] };
-        //     console.log("Handle: updated map schema with heatmap:");
-        //     console.log(updatedData);
-
-        //     setData(updatedData);
-        //     renderHeatSchemaToHeatMap(updatedData);
-        // }
     };
 /*-----------------------------heatmap-----------------------------------*/
     const handleFileUpload = async (event) => {
@@ -562,32 +564,34 @@ export default function EditMap({ mapid }) {
             }
             // if the file type is .csv
             else if(file.name.endsWith('.csv')){
-                console.log("csv file received");
-                const currentMapSchema = data;
-                /* if the current map schema is not a heatmap:
-                    1. parse the csv file to heatmap points array data
-                    2. create a new heatmap object by using the heatmap points array data
-                    3. update the current map schema with the new heatmap object
-                    4. render the new heatmap object to map 
-                */
+                console.log("csv file received, mapid: "+mapid);
+                console.log("current map schema:" + data);
                 
-                if (currentMapSchema.type !== "heatmap" || currentMapSchema.heatmaps.length === 0) {
+                const currentMapSchema = data;
+                
+                // if (currentMapSchema.type !== "heatmap" ) {
+
+                if (currentMapSchema.type) {
                     // change the map schema type to heatmap
                     currentMapSchema.type = "heatmap";
+
                     const csvText = await file.text();
                     const heatMapData = parseCSVForHeatMap(csvText);
+
                     // renderPArrayToHeatMap(heatMapData);
                     const heatMapObject = createHeatMapObject(heatMapData);
-                    console.log("Handle: created new heat object by raw data after parsing csv:");
-                    data.heatmaps = []
-                    data.heatmaps.push(heatMapObject);
 
-                    // const updatedSchema = {...data, heatmaps: [heatMapObject]};
-                    // // store.updateMapSchema(mapid, updatedSchema);
+                    const updatedSchema = {...data, heatmaps: [heatMapObject]};
+                    // data.heatmaps = []
+                    // data.heatmaps.push(heatMapObject);
 
-                    console.log("Handle: updated map schema with heatmap:");
-                    console.log(data);
-                    renderHeatSchemaToHeatMap(data);
+                    console.log("Handle Before Updated map schema:" + mapid +"   " + data);
+
+                    store.updateMapSchema(mapid, updatedSchema);
+                    setData(updatedSchema);
+                    renderHeatSchemaToHeatMap(updatedSchema);
+
+                    console.log("Handle After Updated map schema:" + mapid +"   " + data);
                 
                 }
             }
@@ -675,7 +679,8 @@ export default function EditMap({ mapid }) {
                     "showSatellite": true
                 });
                 const resp2 = await store.getSchema(resp.mapSchema);
-                console.log(resp2);
+                // console.log("resp2 MAPSCHEMA");
+                // console.log(resp2);
                 if (!resp2) return setData({
                     "type": "bin",
                     "bins": [],
