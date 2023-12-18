@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useContext, useState } from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import TextField from '@mui/material/TextField';
@@ -31,9 +31,8 @@ const formatLegend = (legend) => {
             display: 'flex', 
             flexDirection: 'column', 
             alignItems: 'center', 
-            /* justifyContent: 'center',  */
-            /* width: '150px',  */
             minWidth: '150px',
+            maxWidth: '300px',
             minHeight: '100px',
             backgroundColor: 'rgba(80,80,80, 0.7)',
             padding: '10px', 
@@ -58,7 +57,7 @@ function interpolateColor(value, min, max, minColor, maxColor) {
 const SASTOKENICON = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D';
 const SASTOKENMAP = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
 export default function MapView({ mapid }) {
-    console.log('MAPID:::: ' + mapid)
+    /* console.log('MAPID:::: ' + mapid) */
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
@@ -92,7 +91,8 @@ export default function MapView({ mapid }) {
             const legend = L.control({position: 'bottomleft'}); // Initialize legend
             legend.onAdd = () => {
                 const div = L.DomUtil.create('div', 'info legend');
-                ReactDOM.render(formatLegend(), div)
+                const root = createRoot(div);
+                root.render(formatLegend())
                 return div;
             }
             legend.addTo(mapRef.current); // Add legend to map
@@ -105,7 +105,7 @@ export default function MapView({ mapid }) {
                 if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); // Remove existing GeoJSON layer
                 else geoJSONLayerRef.current = L.geoJSON(geojson).addTo(mapRef.current); // Add new GeoJSON layer
                 geoJSONLayerRef.current.addData(geojson); // Add GeoJSON data to layer
-                console.log("map: " + map)
+                /* console.log("map: " + map) */
             }).catch((error) => {
                 console.error('Error reading GeoJSON', error);
             });
@@ -165,7 +165,12 @@ export default function MapView({ mapid }) {
                     subdivision.name === layer.feature.properties.NAME || // This is because different files use different capitalizations and javascript is case sensitive
                     subdivision.name === layer.feature.properties.Name
                 );
-                layer.setStyle({fillColor: existing?.color || '#DDDDDD', fillOpacity: existing?.weight || 0.5}); // Set color and weight of subdivision
+                layer.setStyle({
+                    fillColor: existing?.color || '#DDDDDD', 
+                    fillOpacity: existing?.weight || 0.5,
+                    weight: 1,
+                    color: '#AAAAAA',
+                }); // Set color and weight of subdivision
             } );
         }
         if (markerLayerRef?.current) markerLayerRef.current.bringToFront(); // Bring marker featureGroup to render in front
@@ -207,7 +212,8 @@ export default function MapView({ mapid }) {
         const legend = L.control({position: 'bottomleft'}); // Initialize legend
         legend.onAdd = () => {
             const div = L.DomUtil.create('div', 'info legend');
-            ReactDOM.render(
+            const root = createRoot(div);
+            root.render(
                 formatLegend(
                     [resp2?.bins?.map(bin => {
                         return (                        
@@ -228,9 +234,9 @@ export default function MapView({ mapid }) {
                             if (value > max) max = value;
                             if (value < min) min = value;
                         });
-                        const levels = Array.from({length: 5}, (_, i) => {
-                            const value = ((max - min) * (i/4) + min);
-                            const color = interpolateColor(((max - min) * (i/4) + min), min, max, grd.minColor, grd.maxColor)
+                        const levels = Array.from({length: 4}, (_, i) => {
+                            const value = ((max - min) * (i/3) + min);
+                            const color = interpolateColor(((max - min) * (i/3) + min), min, max, grd.minColor, grd.maxColor)
                             return { value, color};
                         });
                         return [(<Typography sx={{
@@ -250,7 +256,7 @@ export default function MapView({ mapid }) {
                         ))]
                     }))]
                 )
-            , div)
+            )
             return div;
         }
         legend.addTo(mapRef.current); // Add legend to map
