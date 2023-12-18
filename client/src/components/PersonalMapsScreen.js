@@ -19,11 +19,11 @@ export default function PersonalMapsScreen() {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
 
-    const [filter, setFilter] = useState('None');
+    const [filter, setFilter] = useState('none');
     const [sort, setSort] = useState('Newest');
     const [search, setSearch] = useState('')
     const [maps, setMaps] = useState([]);
-    const [mapsSchema, setMapsSchema] = useState([]);
+    const [mapTypes, setMapTypes] = useState([]);
 
     useEffect(() => {
         const fetchMaps = async () => {
@@ -33,14 +33,17 @@ export default function PersonalMapsScreen() {
                 const maps = await store.getMapsData(resp.user);
                 console.log(maps);
                 setMaps(maps);
-
-                // map mapIds to schemas
-                const schemaPromises = maps.map(async (map) => {
-                    const schema = await store.getSchemaFromServer(map.mapSchema);
-                    return { mapId: map._id, schema: schema };
-                });
-                const mappedSchemas = await Promise.all(schemaPromises);
-                setMapsSchema(mappedSchemas);
+                // get types for maps with schemas
+                const types = [];
+                for (let i = 0; i < maps.length; i++) {
+                    if (!maps[i].mapSchema) {
+                        types.push("none");
+                        continue;
+                    }
+                    let resp = await store.getSchema(maps[i].mapSchema)
+                    types.push(resp ? resp.type : "none");
+                }
+                setMapTypes(types);
             }
         }
         fetchMaps();
@@ -66,11 +69,6 @@ export default function PersonalMapsScreen() {
         store.changeToEditMap(id);
     };
 
-    const getSchema = (mapId) => {
-        const schemaEntry = mapsSchema.find((entry) => entry.mapId === mapId);
-        return schemaEntry ? schemaEntry.schema : null;
-    };
-
     function handleSortAndFilter(maps) {
         let sorted
         if(sort === "Newest") {
@@ -80,8 +78,11 @@ export default function PersonalMapsScreen() {
         } else if(sort === "Most Commented") {
             sorted = maps.sort((a, b) => b.comments.length - a.comments.length);
         }
-        if (filter !== "None")
-            sorted = sorted.filter(map => getSchema(map._id)?.type === filter);
+        if (filter !== "None") {
+            sorted = sorted.filter((map, index) => {
+                return mapTypes[index] === filter
+            })
+        }
         return sorted.filter(map => map.title.toLowerCase().includes(search?.toLowerCase()));
     }
 
@@ -172,12 +173,12 @@ export default function PersonalMapsScreen() {
                             }
                         }}
                     >
-                        <MenuItem value="None">None</MenuItem>
-                        <MenuItem value="Bin Map">Bin Map</MenuItem>
-                        <MenuItem value="Gradient Map">Gradient Map</MenuItem>
-                        <MenuItem value="Heat Map">Heat Map</MenuItem>
-                        <MenuItem value="Point Map">Point Map</MenuItem>
-                        <MenuItem value="Satellite Map">Satellite Map</MenuItem>
+                        <MenuItem value="none">None</MenuItem>
+                        <MenuItem value="bin">Bin Map</MenuItem>
+                        <MenuItem value="gradient">Gradient Map</MenuItem>
+                        <MenuItem value="heat">Heat Map</MenuItem>
+                        <MenuItem value="point">Point Map</MenuItem>
+                        <MenuItem value="satellite">Satellite Map</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
