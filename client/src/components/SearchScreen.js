@@ -127,7 +127,7 @@ export default function SearchScreen(props) {
                         <MenuItem value="none">None</MenuItem>
                         <MenuItem value="bin">Bin Map</MenuItem>
                         <MenuItem value="gradient">Gradient Map</MenuItem>
-                        <MenuItem value="heat">Heat Map</MenuItem>
+                        <MenuItem value="heatmap">Heat Map</MenuItem>
                         <MenuItem value="point">Point Map</MenuItem>
                         <MenuItem value="satellite">Satellite Map</MenuItem>
                     </Select>
