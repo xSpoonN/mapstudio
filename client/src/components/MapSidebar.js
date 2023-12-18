@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from 'react';
 import { GlobalStoreContext } from '../store';
 import { TextField, FormControlLabel, Checkbox, Divider, Box } from '@mui/material';
 
-export default function MapInfoSidebar({ mapData, mapSchema }) {
+export default function MapInfoSidebar({ mapData, mapSchema, setShowSatellite }) {
     const [mapInfo, setMapInfo] = useState({});
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
@@ -15,7 +15,6 @@ export default function MapInfoSidebar({ mapData, mapSchema }) {
             setMapInfo(mapData);
             setTitle(mapData?.title ? mapData.title : '');
             setDescription(mapData?.description ? mapData.description : '');
-            setSatelliteView(mapSchema?.satelliteView ? mapSchema.satelliteView : false);
         }
         retrieveData();
     }, [mapData, mapSchema])
@@ -50,7 +49,8 @@ export default function MapInfoSidebar({ mapData, mapSchema }) {
                         checked={satelliteView}
                         onChange={async (e) => {
                             setSatelliteView(e.target.checked)
-                            await store.updateMapSchema(mapData._id, { ...mapSchema, satelliteView: e.target.checked })
+                            setShowSatellite(e.target.checked)
+                            await store.updateMapSchema(mapData._id, { ...mapSchema, showSatellite: e.target.checked })
                         }}
                     />
                 }

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useContext, useState } from 'react';
+import ReactDOM from 'react-dom';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import TextField from '@mui/material/TextField';
@@ -24,6 +25,35 @@ const styles = {
         scrollbarWidth: 'thin'
     }
 }
+const formatLegend = (legend) => {
+    return (
+        <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            /* justifyContent: 'center',  */
+            /* width: '150px',  */
+            minWidth: '150px',
+            minHeight: '100px',
+            backgroundColor: 'rgba(80,80,80, 0.7)',
+            padding: '10px', 
+            paddingRight: '20px',
+            borderRadius: '5px'
+        }}>
+            <Typography variant="h5" sx={{color: '#FFFFFF', fontFamily: 'JetBrains Mono'}}>Legend</Typography>
+            {legend}
+        </Box>
+    )
+}
+function interpolateColor(value, min, max, minColor, maxColor) {
+    if (min === max) return maxColor;
+    const normalizedValue = (value - min) / (max - min);
+    const r = Math.round((1 - normalizedValue) * parseInt(minColor.slice(1, 3), 16) + normalizedValue * parseInt(maxColor.slice(1, 3), 16));
+    const g = Math.round((1 - normalizedValue) * parseInt(minColor.slice(3, 5), 16) + normalizedValue * parseInt(maxColor.slice(3, 5), 16));
+    const b = Math.round((1 - normalizedValue) * parseInt(minColor.slice(5, 7), 16) + normalizedValue * parseInt(maxColor.slice(5, 7), 16));
+
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
 
 const SASTOKENICON = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D';
 const SASTOKENMAP = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
@@ -36,6 +66,7 @@ export default function MapView({ mapid }) {
     const [data, setData] = useState(null); // eslint-disable-line
     const [showSatellite, setShowSatellite] = useState(false);
     const satelliteLayerRef = useRef(null); // Track satellite layer instance
+    const legendRef = useRef(null); // Track legend instance
     const [markers, setMarkers] = useState([]); // eslint-disable-line
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
@@ -57,8 +88,16 @@ export default function MapView({ mapid }) {
                 subdomains:['mt0','mt1','mt2','mt3']
             }).addTo(mapRef.current); // Add Google Satellite tiles
             mapInitializedRef.current = true; // Mark map as initialized
+            const legend = L.control({position: 'bottomleft'}); // Initialize legend
+            legend.onAdd = () => {
+                const div = L.DomUtil.create('div', 'info legend');
+                ReactDOM.render(formatLegend(), div)
+                return div;
+            }
+            legend.addTo(mapRef.current); // Add legend to map
+            legendRef.current = legend; // Store legend in ref
         }
-
+        if (!markerLayerRef.current) markerLayerRef.current = L.featureGroup().addTo(mapRef.current);
         fetch(`${map?.mapFile}?${SASTOKENMAP}`, {mode: "cors"})
             .then((response) => response.json())
             .then((geojson) => {
@@ -93,7 +132,7 @@ export default function MapView({ mapid }) {
                     "gradients": [],
                     "showSatellite": true
                 });
-                const resp2 = await store.getSchema(resp.mapSchema);
+                const resp2 = await store.getSchema(resp.mapSchema, false);
                 console.log(resp2);
                 if (!resp2) return setData({ // If map has no schema, create a new one
                     "type": "bin",
@@ -109,7 +148,8 @@ export default function MapView({ mapid }) {
                 // Draw subdivisions and points
                 drawSubdivisions(resp2);
                 loadPoints(resp2?.points);
-                setShowSatellite(resp2?.satelliteView); // Set satellite view
+                setShowSatellite(resp2?.showSatellite); // Set satellite view
+                drawLegend(resp2);
             }
         }
         fetchMap();
@@ -140,6 +180,63 @@ export default function MapView({ mapid }) {
             newMarkers.push(marker);
         })
         setMarkers(newMarkers); // Update state variable
+    }
+
+    // Handles redrawing legend when schema is updated
+    const drawLegend = (resp2) => {
+        if (!legendRef.current) return;
+        legendRef.current.remove();
+        const legend = L.control({position: 'bottomleft'}); // Initialize legend
+        legend.onAdd = () => {
+            const div = L.DomUtil.create('div', 'info legend');
+            ReactDOM.render(
+                formatLegend(
+                    [resp2?.bins?.map(bin => {
+                        return (                        
+                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', overflow: '' }}>  
+                            <Box sx={{ width: 22, minWidth: 22, height: 22, borderRadius: '5px', backgroundColor: bin.color, marginRight: '10px', marginLeft: '15px'}} />
+                            <Typography sx={{ marginLeft: '5px', marginRight: 'auto', color: '#FFFFFF', fontFamily: 'JetBrains Mono'}} noWrap='true'>{bin.name}</Typography>
+                        </Box>
+                        )
+                    }), 
+                    ...(resp2?.gradients?.map(grd => {
+                        const grdSubdivisions = resp2.subdivisions.filter(subdivision => grd.subdivisions?.includes(subdivision.name));
+                        const keySubdivisions = grdSubdivisions.filter(subdivision => Object.keys(subdivision.data || {}).includes(grd.dataField));
+                        let max = -Infinity; let min = Infinity;
+                
+                        // Find the max and min values for the data field
+                        keySubdivisions.forEach(subdivision => {
+                            const value = subdivision.data[grd.dataField];
+                            if (value > max) max = value;
+                            if (value < min) min = value;
+                        });
+                        const levels = Array.from({length: 5}, (_, i) => {
+                            const value = ((max - min) * (i/4) + min);
+                            const color = interpolateColor(((max - min) * (i/4) + min), min, max, grd.minColor, grd.maxColor)
+                            return { value, color};
+                        });
+                        return [(<Typography sx={{
+                            color: '#FFFFFF', 
+                            fontFamily: 'JetBrains Mono', 
+                            fontSize: '16px', 
+                            marginRight: 'auto', 
+                            marginLeft: '15px',
+                            marginTop: '10px',
+                        }}>{grd.dataField.charAt(0).toUpperCase() + grd.dataField.slice(1)}</Typography>),
+                        levels.map((level, i) => (
+                            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', overflow: '' }}>  
+                                <Box sx={{ width: 22, minWidth: 22, height: 22, borderRadius: '5px', backgroundColor: level.color, marginRight: '10px', marginLeft: '15px'}} />
+                                <Typography sx={{ marginLeft: '5px', marginRight: 'auto', color: '#FFFFFF', fontFamily: 'JetBrains Mono'}} noWrap='true'>{level.value.toFixed(2)}</Typography>
+                            </Box>
+
+                        ))]
+                    }))]
+                )
+            , div)
+            return div;
+        }
+        legend.addTo(mapRef.current); // Add legend to map
+        legendRef.current = legend; // Store legend in ref
     }
 
     function handleLike() {
@@ -250,6 +347,9 @@ export default function MapView({ mapid }) {
 
     async function handleJSON() {
         saveAs(`${map?.mapFile}?${SASTOKENMAP}`, map.title + ".json")
+        delete data._id
+        delete data.__v
+        console.log(data)
         var blob = new Blob([JSON.stringify(data)], {type: "text/plain;charset=utf-8"});
         saveAs(blob, map.title + "_schema.json")
     }

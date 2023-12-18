@@ -3,11 +3,11 @@ import { GlobalStoreContext } from '../store';
 import { Button, TextField, ClickAwayListener, FormControl, Select, MenuItem, IconButton, Divider, Box, Typography } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
-import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import List from '@mui/material/List';
 import { TwitterPicker } from 'react-color';
 import SubdivisionItem from './SubdivisionItem';
+import Property from './SubdivisionProperty';
 
 export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSchema, setFeature }) {
     const { store } = useContext(GlobalStoreContext);
@@ -20,6 +20,9 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
     const [weight, setWeight] = useState(0.5); 
     const [color, setColor] = useState('#DDDDDD');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
+
+    const [allProperties, setAllProperties] = useState([]);
+    const [selectedProperty, setSelectedProperty] = useState('');
 
     // Handles updating the map schema when something changes elsewhere, and on initial load
     useEffect(() => {
@@ -43,6 +46,17 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                 }
                 setWeight(match?.weight ? match.weight : 0.5);
                 setColor(match?.color ? match.color : '#DDDDDD');
+            } else {
+                // Get all unique data fields from subdivisions
+                const dataFieldsSet = new Set();
+                mapSchema?.subdivisions?.forEach(subdivision => {
+                    Object.keys(subdivision.data || {}).forEach(key => dataFieldsSet.add(key));
+                })
+                const dataFields = [...dataFieldsSet];
+                const combinedData = [...(mapSchema.props || []), ...dataFields];
+                const sorted = combinedData.sort((a, b) => a.localeCompare(b));
+                setAllProperties(sorted);
+                if (sorted && !sorted.includes(selectedProperty)) setSelectedProperty(sorted[0]);
             }
         }
         retrieveData();
@@ -52,26 +66,36 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
     const updateSchema = async (updatedSchema) => {
         await store.updateMapSchema(mapData._id, updatedSchema);
         setMapInfo(updatedSchema);
-        // Find the subdivision in the map schema
-        const match = updatedSchema?.subdivisions?.find(subdivision => // Need to check all possible name fields because of inconsistencies in the geojson data
-            subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
-        );
-        setName(currentFeature.name || currentFeature.NAME || currentFeature.Name);
-        if (match) {
-            setWeight(match.weight ? match.weight : 0.5);
-            setColor(match.color ? match.color : '#E3256B');
-            if (match.data) {
-                const options = Object.getOwnPropertyNames(match.data); // Get the object properties of the subdivision as an array
-                setDropdownOptions(options)
-                setDropdownValue(options ? options[0] : '');
-                setValue(options ? match.data[options[0]] : '');
-            } else {
-                setDropdownOptions([]);
-                setDropdownValue('');
-                setValue('');
+        if (currentFeature) { // If a subdivision is selected
+            // Find the subdivision in the map schema
+            const match = updatedSchema?.subdivisions?.find(subdivision => // Need to check all possible name fields because of inconsistencies in the geojson data
+                subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
+            );
+            setName(currentFeature.name || currentFeature.NAME || currentFeature.Name);
+            if (match) {
+                setWeight(match.weight ? match.weight : 0.5);
+                setColor(match.color ? match.color : '#E3256B');
+                if (match.data) {
+                    const options = Object.getOwnPropertyNames(match.data); // Get the object properties of the subdivision as an array
+                    setDropdownOptions(options)
+                    setDropdownValue(options ? options[0] : '');
+                    setValue(options ? match.data[options[0]] : '');
+                } else {
+                    setDropdownOptions([]);
+                    setDropdownValue('');
+                    setValue('');
+                }
+                setWeight(match.weight ? match.weight : 0.5);
+                setColor(match.color ? match.color : '#E3256B');
             }
-            setWeight(match.weight ? match.weight : 0.5);
-            setColor(match.color ? match.color : '#E3256B');
+        } else {
+            // Get all unique data fields from subdivisions
+            const dataFieldsSet = new Set();
+            updatedSchema?.subdivisions?.forEach(subdivision => {
+                Object.keys(subdivision.data || {}).forEach(key => dataFieldsSet.add(key));
+            })
+            const dataFields = [...dataFieldsSet];
+            setAllProperties([...(updatedSchema.props || []), ...dataFields]);
         }
     }
 
@@ -111,7 +135,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             </FormControl>
 
                             <TextField value={value} sx={{ margin: '2px', marginLeft: 'auto', width: '100px' }}
-                            inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
+                            inputProps={{style: { textAlign: 'right'}}} InputProps={{ sx: { borderRadius: 3 } }}
                             onChange={e => { 
                                 setValue(e.target.value); 
                             }}
@@ -135,8 +159,12 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             }}
                             />
                             
-                            <IconButton>
+                            {/* <IconButton>
                             <DeleteIcon  sx={{ marginLeft: 'auto' }} />  
+                            </IconButton> */}
+                            {/* Placeholder to take up space for alignment */}
+                            <IconButton disabled={true}>
+                            <CheckIcon  sx={{ marginLeft: 'auto', color: 'white' }} />  
                             </IconButton>
                         </Box>
 
@@ -263,6 +291,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                                 style={{fontWeight:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '190px', minHeight: '20px'}} 
                                 disableRipple
                                 color='razzmatazz'
+                                onClick={() => setFeature(undefined)}
                             >
                                 Add New Property
                             </Button>
@@ -273,29 +302,53 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
     } else {
         content = 
             <>
+                <Typography variant="h6" style={{ margin: '10px' }}>Properties</Typography>
+                <List sx={{ width: '90%' }}>
+                    {/* Property List */}
+                    {allProperties.map((p, index) => (
+                        <Property key={index} propName={p} mapSchema={mapSchema} mapData={mapData}/>
+                    ))}
+                </List>
+                {/* Add New Property */}
+                <Button 
+                    variant="text"
+                    sx={{ color: 'black', marginTop: 'auto', marginBottom: '10px', marginLeft: 'auto' }} 
+                    style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '190px', minHeight: '20px'}} 
+                    disableRipple
+                    color='razzmatazz'
+                    onClick={async () => {
+                        const maxExistingNum = (mapSchema.props || []).reduce((max, str) => {
+                            const match = str.match(/^New Property(?: \d+)?$/);
+                            if (match) {
+                                const num = Number(str.split(' ')[2]);
+                                return num > max ? num : max;
+                            } else {
+                                return max;
+                            }
+                        }, 0);
+                        const newNum = /* maxExistingNum ?  */` ${maxExistingNum + 1}`/*  : ''; */
+                        await updateSchema({
+                            ...mapSchema, 
+                            props: [...(mapSchema.props || []), `New Property${newNum}`]
+                        });
+                    }}
+                >
+                    + New Property
+                </Button>
+                <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '20px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
                 <Typography variant="h6" style={{ margin: '10px' }}>All Subdivisions</Typography>
+                <Select value={selectedProperty} onChange={e => {
+                        setSelectedProperty(e.target.value);
+                    }} 
+                    sx={{ borderRadius: 3, marginLeft: 'auto', marginRight: '10%' }} 
+                    onClick={e => e.stopPropagation()}>
+                    {allProperties.map(option => <MenuItem value={option}>{option}</MenuItem>)}
+                </Select>
                 <List sx={{ width: '90%' }}>
                     {mapSchema?.subdivisions.map((sub) => (
                         <>
-                        {/*
-                            <ListItem onClick={() => setFeature(sub)}>
-                                <Grid container spacing={2}>
-                                <Grid item xs={4}>
-                                    <Typography variant="h6">{sub?.name}</Typography>
-                                </Grid>
-                                <Grid item xs={3}>
-                                    <Typography>a</Typography>
-                                </Grid>
-                                <Grid item xs={3}>
-                                    <Typography>Weight: {sub?.weight?.toFixed(2)}</Typography>
-                                </Grid>
-                                <Grid item xs={2}>
-                                    <Box sx={{ width: 30, height: 30, borderRadius: '5px', backgroundColor: sub.color ? sub.color : "#000000", marginLeft: 'auto' }} />
-                                </Grid>
-                                </Grid>
-                            </ListItem> */}
-                            <SubdivisionItem sub={sub} setFeature={setFeature}/>
-                            <Divider variant='middle' style={{ width: '100%', margin: '5px', backgroundColor: '#dddddd', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
+                            <SubdivisionItem sub={sub} allProperties={allProperties} mapId={mapData?._id} mapSchema={mapSchema} chosenProp={selectedProperty} setFeature={setFeature}/>
+                            <Divider variant='middle' style={{ width: '90%', margin: '5px', backgroundColor: '#dddddd', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
                         </>
                     ))}
                 </List>

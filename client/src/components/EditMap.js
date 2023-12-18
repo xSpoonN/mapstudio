@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { GlobalStoreContext } from '../store';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'; // eslint-disable-line
-import { IconButton, Box, AppBar, Toolbar, Button, Drawer } from '@mui/material';
+import { IconButton, Box, AppBar, Toolbar, Button, Drawer, Typography } from '@mui/material';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SaveIcon from '@mui/icons-material/Save';
 import L from 'leaflet';
@@ -12,6 +13,7 @@ import SubdivisionSidebar from './SubdivisionSidebar';
 import BinSidebar from './BinSidebar';
 import GradientSidebar from './GradientSidebar';
 import TemplateSidebar from './TemplateSidebar';
+import HeatMapSidebar from './HeatSidebar';
 import ConfirmModal from './ConfirmModal';
 import togeojson from 'togeojson';
 import * as shapefile from 'shapefile';
@@ -81,6 +83,19 @@ const SCHEMA = {  // The Schema format to validate against
         },
         "required": [ "location" ]
       },
+      "heatmap": {
+        "type": "object",
+        "properties": {
+            "radius": { "type": "number", "minimum": 10, "maximum":50, "default":25}, // radius of points 
+            "blur": { "type": "number", "minimum": 10, "maximum":50, "default":15},   // blur of points
+            "points": {                                  // points of the heatmap
+                "type": "array",
+                "items": { "$ref": "#/definitions/point" }, // use points definition above
+                "uniqueItems": true
+            }
+        },
+        "required": [ "radius", "blur", "points" ]
+    },
       "gradient": {
         "type": "object",
         "properties": {
@@ -100,7 +115,7 @@ const SCHEMA = {  // The Schema format to validate against
     "properties": {
       "type": {
         "type": "string",
-        "enum": [ "bin", "gradient", "heatmap", "point", "satellite" ]
+        "enum": [ "bin", "gradient", "heatmap", "point", "satellite", "none" ]
       },
       "bins": {
         "type": "array",
@@ -122,6 +137,11 @@ const SCHEMA = {  // The Schema format to validate against
         "items": { "$ref": "#/definitions/gradient" },
         "uniqueItems": true
       },
+      "heatmaps": {
+        "type": "array",
+        "items": { "$ref": "#/definitions/heatmap" },
+        "uniqueItems": true
+    },
       "showSatellite": {
         "type": "boolean",
         "default": false
@@ -182,6 +202,33 @@ const styles = {
         }
     }
 }
+const formatLegend = (legend) => {
+    return (
+        <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            minWidth: '150px',
+            minHeight: '100px',
+            backgroundColor: 'rgba(80,80,80, 0.7)',
+            padding: '10px', 
+            paddingRight: '20px',
+            borderRadius: '5px'
+        }}>
+            <Typography variant="h5" sx={{color: '#FFFFFF', fontFamily: 'JetBrains Mono'}}>Legend</Typography>
+            {legend}
+        </Box>
+    )
+}
+function interpolateColor(value, min, max, minColor, maxColor) {
+    if (min === max) return maxColor;
+    const normalizedValue = (value - min) / (max - min);
+    const r = Math.round((1 - normalizedValue) * parseInt(minColor.slice(1, 3), 16) + normalizedValue * parseInt(maxColor.slice(1, 3), 16));
+    const g = Math.round((1 - normalizedValue) * parseInt(minColor.slice(3, 5), 16) + normalizedValue * parseInt(maxColor.slice(3, 5), 16));
+    const b = Math.round((1 - normalizedValue) * parseInt(minColor.slice(5, 7), 16) + normalizedValue * parseInt(maxColor.slice(5, 7), 16));
+
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
 
 export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
@@ -197,13 +244,17 @@ export default function EditMap({ mapid }) {
     const markerLayerRef = useRef(null); // Track marker featuregroup instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
     const satelliteLayerRef = useRef(null); // Track satellite layer instance
+    const legendRef = useRef(null); // Track legend instance
     const [showSatellite, setShowSatellite] = useState(false);
     const { store } = useContext(GlobalStoreContext); // eslint-disable-line
+    const heatLayerRef = useRef(null);
     L.Icon.Default.mergeOptions({
         iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon-2x.png',
         iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-icon.png',
         shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.3.1/images/marker-shadow.png'
     });
+    
+
     function RenderNewGeoJSON(geojsonData) {
         if (geoJSONLayerRef.current) { geoJSONLayerRef.current.clearLayers(); }
         geoJSONLayerRef.current = L.geoJSON(geojsonData, { 
@@ -522,7 +573,148 @@ export default function EditMap({ mapid }) {
             console.log('Error updating map file data in database');
         }
     }
+
+/*-----------------------------heatmap-----------------------------------*/
+
+    // Parse csv data into heatmap points array data
+    function parseCSVForHeatMap(csvText) {
+        console.log("entering parsing csv to heatmap data");
+        const lines = csvText.split('\n');
+        let latIndex = -1, lngIndex = -1;
+        let headers = lines[0].split(',');
+        let isHeaderDetected = false;
+        const latPossibleNames = ['latitude', 'lat'];
+        const lngPossibleNames = ['longitude', 'long', 'lng'];
+        // detect header row
+        if (headers.length > 1) {
+            headers = headers.map(header => header.toLowerCase().trim());
+            latIndex = headers.findIndex(header => latPossibleNames.some(name => header.includes(name)));
+            lngIndex = headers.findIndex(header => lngPossibleNames.some(name => header.includes(name)));
+            isHeaderDetected = latIndex !== -1 && lngIndex !== -1;
+        }
+        // if header row is not detected, try to detect latitude and longitude columns
+        if (!isHeaderDetected) {
+            const maxLat = 90, minLat = -90, maxLng = 180, minLng = -180;
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                for (let j = 0; j < parts.length; j++) {
+                    const val = parseFloat(parts[j]);
+                    if (!isNaN(val)) {
+                        if (minLat <= val && val <= maxLat) {
+                            latIndex = j;
+                        } else if (minLng <= val && val <= maxLng) {
+                            lngIndex = j;
+                        }
+                    }
+                }
+                if (latIndex !== -1 && lngIndex !== -1) break;
+            }
+        }
+        if (latIndex === -1 || lngIndex === -1) {
+            console.error('Latitude or longitude columns could not be detected.');
+            return [];
+        }
+        // parse csv data
+        const startIndex = isHeaderDetected ? 1 : 0;
+        return lines.slice(startIndex).reduce((acc, line) => {
+            const parts = line.split(',');
+            const lat = parseFloat(parts[latIndex]);
+            const lng = parseFloat(parts[lngIndex]);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                acc.push([lat, lng, 1]); // default weight is 1
+            }
+            return acc;
+        }, []);
+    }
+
+    // Create new heatmap object by points array data
+    function createHeatMapObject(pointsArrayData, radius, blur) {
+        // if radius, blur == null, use default values
+        if (radius === undefined) { radius = 25;}
+        if (blur === undefined) {blur = 15;}
+
+        // if radius, blur != null , use given values
+        const heatMapObject = {
+            "radius": radius, "blur": blur,
+            "points": pointsArrayData.map(([lat, lng], index) => ({
+                "name": "point" + index,
+                "location": {"lat": lat,"lon": lng},
+                "weight": 1
+            }))
+        };
+        console.log("create new heatmap object:");
+        console.log(heatMapObject);
+        return heatMapObject;
+    }
+
+    // render parsed csv points data to heatmap
+    function renderPArrayToHeatMap(pointsArrayData, radius, blur) {
+        // if the radius and blur are not specified, use default values
+        if (radius === undefined || blur === undefined) {
+            const heatLayer = L.heatLayer(pointsArrayData, { radius: 25, blur: 15 }).addTo(mapRef.current);
+            console.log("Render points Array with unspecified radius or blur: heat layer:");
+            console.log(heatLayer);
+            heatLayerRef.current = heatLayer;
+        }
+        // if the radius and blur are specified, use the specified values
+        else {
+            if (heatLayerRef.current) {
+                mapRef.current.removeLayer(heatLayerRef.current);
+            }
+            const heatLayer = L.heatLayer(pointsArrayData, { radius: radius, blur: blur }).addTo(mapRef.current);
+            console.log("Render points Array with given radius and blur: heat layer:");
+            console.log(heatLayer);
+            heatLayerRef.current = heatLayer;
+        }
+    }
+   // render current map schema's heatmap block to heatmap
+    function renderHeatSchemaToHeatMap(mapSchema) {
+        console.log("Entering: renderHeatSchemaToHeatMap");
+        if (mapSchema.type === 'heatmap' && mapSchema.heatmaps) {
+            console.log("process map schema, extract heatmap's data:");
+            const heatMap = mapSchema.heatmaps[0];
+            console.log(heatMap);
+            const radius = heatMap.radius;
+            const blur = heatMap.blur;
+            const pointsArrayData = heatMap.points.map(point => [point.location.lat, point.location.lon, point.weight]);
+            console.log(" Transfer heatmap's data to 'renderPArrayToHeatMap': ");
+            renderPArrayToHeatMap(pointsArrayData, radius, blur);
+        }
+        return null;
+    }
+
+    const handleHeatMapChange = async(radius, blur) => {
+        console.log("Handle R   B changing:  ");
+        console.log("Input R   B:" + radius + "|||||||| " + blur);
+        const mapObject = await store.getMap(mapid);
+        const rawMapSchema = await store.getSchema(mapObject.mapSchema, true);
+
+        const currentMapSchema = {...rawMapSchema};
+
+        if (!currentMapSchema.heatmaps || currentMapSchema.heatmaps.length === 0) {
+            console.log("Handle: no heatmap in current map schema");
+        }
+
+        currentMapSchema.heatmaps[0].radius = radius;
+        currentMapSchema.heatmaps[0].blur = blur;
+
+        const changedMapSchema = {...currentMapSchema};
+        // setData(changedMapSchema);
+
+        console.log("After setData(changedMapSchema):");
+        console.log(changedMapSchema);
+
+        store.updateMapSchema(mapid, changedMapSchema);
+        store.saveMapSchema(mapid, changedMapSchema);
+
+        if (heatLayerRef.current) {
+            heatLayerRef.current.setOptions({radius:radius, blur:blur});
+            // heatLayerRef.current.redraw();
+        }
+    };
+/*-----------------------------heatmap-----------------------------------*/
     const handleFileUpload = async (event) => {
+        console.log("file upload called");
         const files = Array.from(event.target.files);
         if (!files.length) return;
         let geojsonData;
@@ -567,6 +759,30 @@ export default function EditMap({ mapid }) {
                 };
                 shpReader.readAsArrayBuffer(file);
             }
+            // if the file type is .csv
+            else if(file.name.endsWith('.csv')){
+                console.log("csv file received, mapid: "+mapid);
+                console.log("current map schema:" + data);
+                
+                const currentMapSchema = data;
+                
+                if (currentMapSchema.type) {
+                    // change the map schema type to heatmap
+                    currentMapSchema.type = "heatmap";
+
+                    const csvText = await file.text();
+                    const heatMapData = parseCSVForHeatMap(csvText);
+
+                    const heatMapObject = createHeatMapObject(heatMapData);
+
+                    const updatedSchema = {...data, heatmaps: [heatMapObject]};
+
+                    store.updateMapSchema(mapid, updatedSchema);
+                    setData(updatedSchema);
+                    renderHeatSchemaToHeatMap(updatedSchema);
+                }
+            }
+
         }else if (files.length === 2) {
             const validExtensions = ['shp', 'shx', 'dbf'];
             const fileExtensions = Array.from(files).map(file => file.name.split('.').pop().toLowerCase());
@@ -610,7 +826,12 @@ export default function EditMap({ mapid }) {
                     subdivision.name === layer.feature.properties.NAME || // This is because different files use different capitalizations and javascript is case sensitive
                     subdivision.name === layer.feature.properties.Name
                 );
-                layer.setStyle({fillColor: existing?.color || '#DDDDDD', fillOpacity: existing?.weight || 0.5}); // Set color and weight of subdivision
+                layer.setStyle({
+                    fillColor: existing?.color || '#DDDDDD', 
+                    fillOpacity: existing?.weight || 0.5,
+                    weight: 1,
+                    color: '#AAAAAA',
+                }); // Set color and weight of subdivision
             } );
         }
         if (markerLayerRef?.current) markerLayerRef.current.bringToFront(); // Bring marker featureGroup to render in front
@@ -637,37 +858,99 @@ export default function EditMap({ mapid }) {
         setMarkers(newMarkers); // Update state variable
     }
 
+    // Handles redrawing legend when schema is updated
+    const drawLegend = (resp2) => {
+        if (!legendRef.current) return;
+        legendRef.current.remove();
+        const legend = L.control({position: 'bottomleft'}); // Initialize legend
+        legend.onAdd = () => {
+            const div = L.DomUtil.create('div', 'info legend');
+            ReactDOM.render(
+                formatLegend(
+                    [resp2?.bins?.map(bin => {
+                        return (                        
+                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', overflow: '' }}>  
+                            <Box sx={{ width: 22, minWidth: 22, height: 22, borderRadius: '5px', backgroundColor: bin.color, marginRight: '10px', marginLeft: '15px'}} />
+                            <Typography sx={{ marginLeft: '5px', marginRight: 'auto', color: '#FFFFFF', fontFamily: 'JetBrains Mono'}} noWrap='true'>{bin.name}</Typography>
+                        </Box>
+                        )
+                    }), 
+                    ...(resp2?.gradients?.map(grd => {
+                        const grdSubdivisions = resp2.subdivisions.filter(subdivision => grd.subdivisions?.includes(subdivision.name));
+                        const keySubdivisions = grdSubdivisions.filter(subdivision => Object.keys(subdivision.data || {}).includes(grd.dataField));
+                        let max = -Infinity; let min = Infinity;
+                
+                        // Find the max and min values for the data field
+                        keySubdivisions.forEach(subdivision => {
+                            const value = subdivision.data[grd.dataField];
+                            if (value > max) max = value;
+                            if (value < min) min = value;
+                        });
+                        const levels = Array.from({length: 5}, (_, i) => {
+                            const value = ((max - min) * (i/4) + min);
+                            const color = interpolateColor(((max - min) * (i/4) + min), min, max, grd.minColor, grd.maxColor)
+                            return { value, color};
+                        });
+                        return [(<Typography sx={{
+                            color: '#FFFFFF', 
+                            fontFamily: 'JetBrains Mono', 
+                            fontSize: '16px', 
+                            marginRight: 'auto', 
+                            marginLeft: '15px',
+                            marginTop: '10px',
+                        }}>{grd.dataField.charAt(0).toUpperCase() + grd.dataField.slice(1)}</Typography>),
+                        levels.map((level, i) => (
+                            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', overflow: '' }}>  
+                                <Box sx={{ width: 22, minWidth: 22, height: 22, borderRadius: '5px', backgroundColor: level.color, marginRight: '10px', marginLeft: '15px'}} />
+                                <Typography sx={{ marginLeft: '5px', marginRight: 'auto', color: '#FFFFFF', fontFamily: 'JetBrains Mono'}} noWrap='true'>{level.value.toFixed(2)}</Typography>
+                            </Box>
+
+                        ))]
+                    }))]
+                )
+            , div)
+            return div;
+        }
+        legend.addTo(mapRef.current); // Add legend to map
+        legendRef.current = legend; // Store legend in ref
+    }
+
     // Handles refetching the map and schema data when something changes
     useEffect(() => {
         const fetchMap = async () => {
             const resp = await store.getMap(mapid);
             if (resp) {
                 setMap(resp);
-                if (!resp.mapSchema) return setData({ // If map has no schema, create a new one
-                    "type": "bin",
+                if (!resp.mapSchema && data === null) return setData({ // If map has no schema, create a new one
+                    "type": "none",
                     "bins": [],
                     "subdivisions": [],
                     "points": [],
                     "gradients": [],
-                    "showSatellite": true
+                    "heatmaps": [],
+                    "showSatellite": false
                 });
-                const resp2 = await store.getSchema(resp.mapSchema);
+              
+                const resp2 = await store.getSchema(resp.mapSchema, true);
                 console.log(resp2);
                 if (!resp2) return setData({ // If map has no schema, create a new one
-                    "type": "bin",
+                    "type": "none",
                     "bins": [],
                     "subdivisions": [],
                     "points": [],
                     "gradients": [],
-                    "showSatellite": true
+                    "heatmaps": [],
+                    "showSatellite": false
                 });
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
 
-                // Draw subdivisions and points
+                // Draw subdivisions, points, and legend
                 drawSubdivisions(resp2);
                 loadPoints(resp2?.points);
-                setShowSatellite(resp2?.satelliteView); // Set satellite view
+                setShowSatellite(resp2?.satelliteView);
+                renderHeatSchemaToHeatMap(resp2);
+                drawLegend(resp2);
             }
         }
         fetchMap();
@@ -682,6 +965,14 @@ export default function EditMap({ mapid }) {
                 subdomains:['mt0','mt1','mt2','mt3']
             }).addTo(mapRef.current); // Add Google Satellite tiles
             mapInitializedRef.current = true; // Mark map as initialized
+            const legend = L.control({position: 'bottomleft'}); // Initialize legend
+            legend.onAdd = () => {
+                const div = L.DomUtil.create('div', 'info legend');
+                ReactDOM.render(formatLegend(), div)
+                return div;
+            }
+            legend.addTo(mapRef.current); // Add legend to map
+            legendRef.current = legend; // Store legend in ref
         }
         if (!markerLayerRef.current) markerLayerRef.current = L.featureGroup().addTo(mapRef.current); // Initialize marker layer
         fetch(`${map?.mapFile}?${SASTOKEN}`, {mode: "cors"}) // Fetch GeoJSON data
@@ -713,7 +1004,7 @@ export default function EditMap({ mapid }) {
                     if (e.ctrlKey) {
                         e.preventDefault();
                         console.log('saving');
-                        store.saveMapSchema(mapid, store.getSchema(mapid));
+                        store.saveMapSchema(mapid, store.getSchema(mapid, true));
                         alert('Map saved');
                     }
                     break;
@@ -754,6 +1045,30 @@ export default function EditMap({ mapid }) {
         mapRef.current?.setView([lat, lon], mapRef.current?.getZoom() * 1.05);
     }
 
+    function changeTemplate(name) {
+        if(name.split(" ")[0].toLowerCase() === data.type) {
+            setData({...data, type: 'none'})
+            return
+        }
+        if(name === "Bin Map") {
+            setSidebar('bin')
+            store.updateMapSchema(mapid, {...data, type: 'bin'})
+        } else if(name === "Gradient Map") {
+            setSidebar('gradient')
+            store.updateMapSchema(mapid, {...data, type: 'gradient'})
+        } else if(name === "Heat Map") {
+            setSidebar('heatmap')
+            store.updateMapSchema(mapid, {...data, type: 'heatmap'})
+        } else if(name === "Point Map") {
+            setSidebar('point')
+            store.updateMapSchema(mapid, {...data, type: 'point'})
+        } else if(name === "Satellite Map") {
+            setSidebar('map')
+            store.updateMapSchema(mapid, {...data, type: 'satellite'})
+        }
+    }
+
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Box height='80vh' width='100vw' style={{ flex: 1 }} >
@@ -762,7 +1077,7 @@ export default function EditMap({ mapid }) {
                     <Toolbar sx={{ display: 'grid', gridTemplateColumns: '1fr 3fr', gap: 2 }}>
                         <Box sx={{ marginRight: 'auto', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '460px', maxWidth: '460px' }}>
                         <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => document.getElementById('file-input').click()}>Import</Button>
-                            <input type="file" id="file-input" style={{ display: 'none' }} accept=".kml,.shp,.shx,.dbf,.json,.geojson" multiple onChange={handleFileUpload} />
+                            <input type="file" id="file-input" style={{ display: 'none' }} accept=".kml,.shp,.shx,.dbf,.json,.geojson,.csv" multiple onChange={handleFileUpload} />
 
                             
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
@@ -806,7 +1121,7 @@ export default function EditMap({ mapid }) {
                     ><ReplayIcon sx={{ transform: 'scaleX(-1)' }} /></IconButton>
                     <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'80px'}}
                         onClick={async () => {
-                            await store.saveMapSchema(mapid, store.getSchema(mapid));
+                            await store.saveMapSchema(mapid, store.getSchema(mapid,true));
                             alert('Map saved');
                         }}
                     ><SaveIcon/></IconButton>
@@ -830,12 +1145,15 @@ export default function EditMap({ mapid }) {
                 onClose={() => setOpenDrawer(false)}
             >
                 <Toolbar style={{marginTop: '25px'}}/>
-                {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data}/>}
+
+                {sidebar === 'map' && <MapSidebar mapData={map} mapSchema={data} setShowSatellite={setShowSatellite}/>}
                 {sidebar === 'subdivision' && <SubdivisionSidebar mapData={map} currentFeature={feature} mapSchema={data} setFeature={setFeature}/>}
                 {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint} panToPoint={panToPoint}/>}
                 {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'gradient' && <GradientSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
-                {sidebar === 'template' && <TemplateSidebar />}
+                {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange} uploadCSV={handleFileUpload}/>}
+                {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate}/>}
+
             </Drawer>
             <ConfirmModal map={map}/>
         </Box>
