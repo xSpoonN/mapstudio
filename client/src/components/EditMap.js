@@ -1034,7 +1034,7 @@ export default function EditMap({ mapid }) {
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
             mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
+            /* L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); */ // Add OpenStreetMap tiles
             satelliteLayerRef.current = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ 
                 subdomains:['mt0','mt1','mt2','mt3']
             }).addTo(mapRef.current); // Add Google Satellite tiles
