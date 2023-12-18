@@ -71,6 +71,7 @@ export default function MapView({ mapid }) {
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
     const divRef = useRef(null);
+    const heatLayerRef = useRef(null);
 
     const [map, setMap] = useState(null);
     const [user, setUser] = useState(null);
@@ -149,6 +150,7 @@ export default function MapView({ mapid }) {
                 drawSubdivisions(resp2);
                 loadPoints(resp2?.points);
                 setShowSatellite(resp2?.showSatellite); // Set satellite view
+                renderHeatSchemaToHeatMap(resp2);
                 drawLegend(resp2);
             }
         }
@@ -181,6 +183,21 @@ export default function MapView({ mapid }) {
         })
         setMarkers(newMarkers); // Update state variable
     }
+
+    function renderHeatSchemaToHeatMap(mapSchema) {
+        if (mapSchema?.heatmaps?.length > 0) {
+            const heatMap = mapSchema.heatmaps[0];
+            const radius = heatMap.radius;
+            const blur = heatMap.blur;
+            const pointsArrayData = heatMap.points.map(point => [point.location.lat, point.location.lon, point.weight * 20]);
+            if (heatLayerRef.current) {
+                mapRef?.current?.removeLayer(heatLayerRef.current);
+            }
+            const heatLayer = L.heatLayer(pointsArrayData, { radius: radius, blur: blur }).addTo(mapRef.current);
+            if(heatLayer) {
+                heatLayerRef.current = heatLayer;
+            }
+        }
 
     // Handles redrawing legend when schema is updated
     const drawLegend = (resp2) => {
