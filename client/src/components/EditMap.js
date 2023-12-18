@@ -16,6 +16,7 @@ import HeatMapSidebar from './HeatSidebar';
 import ConfirmModal from './ConfirmModal';
 import togeojson from 'togeojson';
 import * as shapefile from 'shapefile';
+import { saveAs } from 'file-saver';
 const Ajv = require('ajv');
 const ajv = new Ajv();
 
@@ -607,10 +608,10 @@ export default function EditMap({ mapid }) {
         // if radius, blur != null , use given values
         const heatMapObject = {
             "radius": radius, "blur": blur,
-            "points": pointsArrayData.map(([lat, lng], index) => ({
+            "points": pointsArrayData.map(([lat, lng, weight], index) => ({
                 "name": "point" + index,
                 "location": {"lat": lat,"lon": lng},
-                "weight": 1
+                "weight": weight
             }))
         };
         console.log("create new heatmap object:");
@@ -625,64 +626,99 @@ export default function EditMap({ mapid }) {
             const heatLayer = L.heatLayer(pointsArrayData, { radius: 25, blur: 15 }).addTo(mapRef.current);
             console.log("Render points Array with unspecified radius or blur: heat layer:");
             console.log(heatLayer);
-            heatLayerRef.current = heatLayer;
+            if(heatLayer) {
+                heatLayerRef.current = heatLayer;
+            }
         }
         // if the radius and blur are specified, use the specified values
         else {
             if (heatLayerRef.current) {
-                mapRef.current.removeLayer(heatLayerRef.current);
+                mapRef?.current?.removeLayer(heatLayerRef.current);
             }
             const heatLayer = L.heatLayer(pointsArrayData, { radius: radius, blur: blur }).addTo(mapRef.current);
             console.log("Render points Array with given radius and blur: heat layer:");
             console.log(heatLayer);
-            heatLayerRef.current = heatLayer;
+            console.log(radius + "," + blur)
+            if(heatLayer) {
+                heatLayerRef.current = heatLayer;
+            }
         }
     }
    // render current map schema's heatmap block to heatmap
     function renderHeatSchemaToHeatMap(mapSchema) {
         console.log("Entering: renderHeatSchemaToHeatMap");
-        if (mapSchema.type === 'heatmap' && mapSchema.heatmaps) {
+        if (mapSchema?.type === 'heatmap' && mapSchema?.heatmaps?.length > 0) {
             console.log("process map schema, extract heatmap's data:");
             const heatMap = mapSchema.heatmaps[0];
             console.log(heatMap);
             const radius = heatMap.radius;
             const blur = heatMap.blur;
-            const pointsArrayData = heatMap.points.map(point => [point.location.lat, point.location.lon, point.weight]);
+            const pointsArrayData = heatMap.points.map(point => [point.location.lat, point.location.lon, point.weight * 20]);
             console.log(" Transfer heatmap's data to 'renderPArrayToHeatMap': ");
             renderPArrayToHeatMap(pointsArrayData, radius, blur);
+        } else if (mapSchema?.heatmaps?.length === 0 && heatLayerRef.current) {
+            mapRef.current.removeLayer(heatLayerRef.current);
         }
         return null;
     }
 
-    const handleHeatMapChange = async(radius, blur) => {
+    const handleHeatMapChange = async(radius, blur, committed) => {
         console.log("Handle R   B changing:  ");
         console.log("Input R   B:" + radius + "|||||||| " + blur);
-        const mapObject = await store.getMap(mapid);
-        const rawMapSchema = await store.getSchema(mapObject.mapSchema, true);
 
-        const currentMapSchema = {...rawMapSchema};
-
-        if (!currentMapSchema.heatmaps || currentMapSchema.heatmaps.length === 0) {
+        if (!data || !data.heatmaps || data.heatmaps.length === 0) {
             console.log("Handle: no heatmap in current map schema");
+            await store.updateMapSchema(mapid, {...data, heatmaps: []});
+            return
         }
 
-        currentMapSchema.heatmaps[0].radius = radius;
-        currentMapSchema.heatmaps[0].blur = blur;
+        let changedMapSchema = JSON.parse(JSON.stringify(data))
 
-        const changedMapSchema = {...currentMapSchema};
-        // setData(changedMapSchema);
+        changedMapSchema.heatmaps[0].radius = radius;
+        changedMapSchema.heatmaps[0].blur = blur;
 
-        console.log("After setData(changedMapSchema):");
-        console.log(changedMapSchema);
-
-        store.updateMapSchema(mapid, changedMapSchema);
-        store.saveMapSchema(mapid, changedMapSchema);
+        if (committed) {
+            console.log("After setData(changedMapSchema):");
+            console.log(changedMapSchema);
+            await store.updateMapSchema(mapid, changedMapSchema);
+        }
 
         if (heatLayerRef.current) {
             heatLayerRef.current.setOptions({radius:radius, blur:blur});
             // heatLayerRef.current.redraw();
         }
     };
+
+    async function clearHeatMap() {
+        console.log("clear")
+        if(heatLayerRef.current) {
+            mapRef.current.removeLayer(heatLayerRef.current);
+            let newData = {...data, heatmaps: []}
+            setData(newData)
+            await store.updateMapSchema(mapid, newData);
+        }
+    }
+
+    async function heatExistingPoints() {
+        console.log("useExistingPoints")
+        const heatMapObject = {
+            "radius": 25, "blur": 15,
+            "points": data.points.map((point, index) => ({
+                "name": point.name,
+                "location": {"lat": point.location.lat,"lon": point.location.lon},
+                "weight": point.weight * 200
+            }))
+        };
+
+        const updatedSchema = {...data, heatmaps: [heatMapObject]};
+        console.log("updatedSchema")
+        console.log(updatedSchema)
+
+        store.updateMapSchema(mapid, updatedSchema);
+        setData(updatedSchema);
+        renderHeatSchemaToHeatMap(updatedSchema);
+
+    }
 /*-----------------------------heatmap-----------------------------------*/
     const handleFileUpload = async (event) => {
         console.log("file upload called");
@@ -743,10 +779,12 @@ export default function EditMap({ mapid }) {
 
                     const csvText = await file.text();
                     const heatMapData = parseCSVForHeatMap(csvText);
-
+                    console.log(heatMapData)
                     const heatMapObject = createHeatMapObject(heatMapData);
 
                     const updatedSchema = {...data, heatmaps: [heatMapObject]};
+                    console.log("updatedSchema")
+                    console.log(updatedSchema)
 
                     store.updateMapSchema(mapid, updatedSchema);
                     setData(updatedSchema);
@@ -841,7 +879,8 @@ export default function EditMap({ mapid }) {
                 });
               
                 const resp2 = await store.getSchema(resp.mapSchema, true);
-                console.log(resp2);
+                console.log("wow");
+                console.log(resp2)
                 if (!resp2) return setData({ // If map has no schema, create a new one
                     "type": "none",
                     "bins": [],
@@ -853,6 +892,8 @@ export default function EditMap({ mapid }) {
                 });
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
+                console.log("resp2")
+                console.log(resp2)
 
                 // Draw subdivisions and points
                 drawSubdivisions(resp2);
@@ -947,7 +988,7 @@ export default function EditMap({ mapid }) {
     }
 
     function changeTemplate(name) {
-        if(name.split(" ")[0].toLowerCase() === data.type) {
+        if(name.split(" ")[0].toLowerCase() === data.type || (data.type === 'heatmap' && name === "Heat Map")) {
             setData({...data, type: 'none'})
             return
         }
@@ -969,6 +1010,15 @@ export default function EditMap({ mapid }) {
         }
     }
 
+    async function exportJSON() {
+        saveAs(`${map?.mapFile}?${SASTOKEN}`, map.title + ".json")
+        delete data._id
+        delete data.__v
+        console.log(data)
+        var blob = new Blob([JSON.stringify(data)], {type: "text/plain;charset=utf-8"});
+        saveAs(blob, map.title + "_schema.json")
+    }
+
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
@@ -981,16 +1031,17 @@ export default function EditMap({ mapid }) {
                             <input type="file" id="file-input" style={{ display: 'none' }} accept=".kml,.shp,.shx,.dbf,.json,.geojson,.csv" multiple onChange={handleFileUpload} />
 
                             
-                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple>Export</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => exportJSON()}>Export</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => store.openModal('publishMap')}>Publish</Button>
                             <Button variant="text" sx={styles.sxOverride} style={styles.standardButton} disableRipple onClick={() => store.openModal('deleteMap')}>Delete</Button>
                         </Box>
 
                         {/* Toolbar Buttons */}
-                        <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '870px', maxWidth: '870px' }}>
+                        <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '1000px', maxWidth: '1000px' }}>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'map' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('map'); store.setMapData(map);}}>Map Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('subdivision'); setFeature(null)}}>Subdivision Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'point' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('point'); setCurrentPoint(null)}}>Point Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'heatmap' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('heatmap')}}>Heat Map</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'bin' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('bin')}>Bin Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'gradient' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('gradient')}>Gradient Info</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'template' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('template')}>Templates</Button>
@@ -1052,7 +1103,7 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint} panToPoint={panToPoint}/>}
                 {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'gradient' && <GradientSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
-                {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange} uploadCSV={handleFileUpload}/>}
+                {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange} uploadCSV={handleFileUpload} clearHeatMap={clearHeatMap} heatExistingPoints={heatExistingPoints}/>}
                 {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate}/>}
 
             </Drawer>

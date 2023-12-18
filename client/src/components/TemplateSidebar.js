@@ -38,7 +38,7 @@ export default function TemplateSidebar({mapSchema, changeTemplate}) {
                 <Box
                     key={template.name}
 
-                    sx={{ display: 'flex', alignItems: 'center', p: 2, m: 0.5, borderRadius: 5, width: '75%', height: '20%', backgroundColor: '#EEEEEE', border: mapSchema.type === template.name.split(" ")[0].toLowerCase() ? 3 : 0 }}
+                    sx={{ display: 'flex', alignItems: 'center', p: 2, m: 0.5, borderRadius: 5, width: '75%', height: '20%', backgroundColor: '#EEEEEE', border: mapSchema.type === template.name.split(" ")[0].toLowerCase() ? 3 : ((mapSchema.type === 'heatmap' && template.name === "Heat Map") ? 3 : 0) }}
                     onClick={() => changeTemplate(template.name)}
                 >
                     <img src={template.image} width={150} alt="Template Preview" />
