@@ -215,7 +215,7 @@ export default function AppBanner() {
 				</Box>
 
 				<Box justifyContent="center" sx={{ flexGrow: 2, display: { xs: 'none', md: 'flex' } }}>
-					<TextField
+					{store.currentScreen !== 'search' && <TextField
 						id="standard-basic"
 						variant="outlined" 
 						InputProps={{
@@ -248,7 +248,7 @@ export default function AppBanner() {
 								handleSearch();
 							}
 						}}
-					/>
+					/>}
 				</Box>
 
 				{x}
