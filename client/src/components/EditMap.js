@@ -963,7 +963,6 @@ export default function EditMap({ mapid }) {
                             const color = interpolateColor(((max - min) * (i/3) + min), min, max, grd.minColor, grd.maxColor)
                             return { value, color};
                         });
-                        console.log("levels", levels);
                         return [(<Typography sx={{
                             color: '#FFFFFF', 
                             fontFamily: 'JetBrains Mono', 

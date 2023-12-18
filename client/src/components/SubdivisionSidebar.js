@@ -36,11 +36,17 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                     subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                 );
                 setName(currentFeature.name || currentFeature.NAME || currentFeature.Name);
-                if (match?.data) {
-                    const options = Object.getOwnPropertyNames(match.data); // Get the object properties of the subdivision as an array
+                if (match) {
+                    // Get all unique data fields from subdivisions
+                    const dataFieldsSet = new Set();
+                    mapSchema?.subdivisions?.forEach(subdivision => {
+                        Object.keys(subdivision.data || {}).forEach(key => dataFieldsSet.add(key));
+                    })
+                    const dataFields = [...dataFieldsSet];
+                    const options = allProperties.length ? allProperties : [...(mapSchema.props || []), ...dataFields]; // Get the object properties of the subdivision as an array
                     setDropdownOptions(options)
                     setDropdownValue(options ? options[0] : '');
-                    setValue(options ? match.data[options[0]] : '');
+                    setValue(options ? (match.data ? match.data[options[0]] || 'N/A' : 'N/A') : '');
                 } else {
                     setDropdownOptions([]);
                     setDropdownValue('');
@@ -95,11 +101,17 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
             if (match) {
                 setWeight(match.weight ? match.weight : 0.5);
                 setColor(match.color ? match.color : '#E3256B');
-                if (match.data) {
-                    const options = Object.getOwnPropertyNames(match.data); // Get the object properties of the subdivision as an array
+                if (match) {
+                    // Get all unique data fields from subdivisions
+                    const dataFieldsSet = new Set();
+                    mapSchema?.subdivisions?.forEach(subdivision => {
+                        Object.keys(subdivision.data || {}).forEach(key => dataFieldsSet.add(key));
+                    })
+                    const dataFields = [...dataFieldsSet];
+                    const options = allProperties.length ? allProperties : [...(mapSchema.props || []), ...dataFields]; // Get the object properties of the subdivision as an array
                     setDropdownOptions(options)
                     setDropdownValue(options ? options[0] : '');
-                    setValue(options ? match.data[options[0]] : '');
+                    setValue(options ? (match.data ? match.data[options[0]] || 'N/A' : 'N/A') : '');
                 } else {
                     setDropdownOptions([]);
                     setDropdownValue('');
