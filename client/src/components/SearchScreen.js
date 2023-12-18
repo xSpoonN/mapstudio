@@ -25,16 +25,13 @@ export default function SearchScreen(props) {
             const types = [];
             for (let i = 0; i < maps.maps.length; i++) {
                 result.push({ map: maps.maps[i], author: maps.authors[i] });
-                if(maps.maps[i].mapSchema) {
-                    let resp = await store.getSchema(maps.maps[i].mapSchema)
-                    if(resp) {
-                        types.push(resp.type)
-                    } else {
-                        types.push("none")
-                    }
-                } else {
-                    types.push("none")
+                // get types for maps with schemas
+                if (!maps.maps[i].mapSchema) {
+                    types.push("none");
+                    continue;
                 }
+                let resp = await store.getSchema(maps.maps[i].mapSchema)
+                types.push(resp ? resp.type : "none");
             }
             setMaps(result)
             setMapType(types)
@@ -59,12 +56,11 @@ export default function SearchScreen(props) {
         } else if(sort === "Most Commented") {
             sorted = maps.sort((a, b) => b.map.comments.length - a.map.comments.length);
         }
-        sorted = sorted.filter((map,index) => {
-            if(filter === 'none' || mapTypes[index] === filter) {
-                return true
-            }
-            return false
-        });
+        if (filter !== 'none') {
+            sorted = sorted.filter((map, index) => {
+                return mapTypes[index] === filter
+            })
+        }
         if (!search) return sorted;
         sorted = sorted.filter(map => {
             const tags = search.toLowerCase().split(' ');
@@ -131,7 +127,7 @@ export default function SearchScreen(props) {
                         <MenuItem value="none">None</MenuItem>
                         <MenuItem value="bin">Bin Map</MenuItem>
                         <MenuItem value="gradient">Gradient Map</MenuItem>
-                        <MenuItem value="heat">Heat Map</MenuItem>
+                        <MenuItem value="heatmap">Heat Map</MenuItem>
                         <MenuItem value="point">Point Map</MenuItem>
                         <MenuItem value="satellite">Satellite Map</MenuItem>
                     </Select>

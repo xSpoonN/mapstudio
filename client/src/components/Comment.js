@@ -20,7 +20,7 @@ export default function Comment(props) {
     useEffect(() => {
         const fetchUser = async () => {
             const resp = await auth.getUserById(comment?.authorId);
-            console.log(resp);
+            /* console.log(resp); */
             if (resp?.success) setUser(resp.user);
         }
         fetchUser();
