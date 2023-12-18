@@ -239,6 +239,7 @@ export default function AppBanner() {
 								}
 							}
 						}}
+						placeholder="Search Maps..."
 						style = {{ width: '50%' }}
 						onChange={handleUpdateSearch}
 						value={search}
