@@ -954,14 +954,16 @@ export default function EditMap({ mapid }) {
                         // Find the max and min values for the data field
                         keySubdivisions.forEach(subdivision => {
                             const value = subdivision.data[grd.dataField];
-                            if (value > max) max = value;
-                            if (value < min) min = value;
+                            if (!value) return;
+                            if (Number(value) > max) max = Number(value);
+                            if (Number(value) < min) min = Number(value);
                         });
                         const levels = Array.from({length: 4}, (_, i) => {
                             const value = ((max - min) * (i/3) + min);
                             const color = interpolateColor(((max - min) * (i/3) + min), min, max, grd.minColor, grd.maxColor)
                             return { value, color};
                         });
+                        console.log("levels", levels);
                         return [(<Typography sx={{
                             color: '#FFFFFF', 
                             fontFamily: 'JetBrains Mono', 
@@ -973,7 +975,7 @@ export default function EditMap({ mapid }) {
                         levels.map((level, i) => (
                             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', overflow: '' }}>  
                                 <Box sx={{ width: 22, minWidth: 22, height: 22, borderRadius: '5px', backgroundColor: level.color, marginRight: '10px', marginLeft: '15px'}} />
-                                <Typography sx={{ marginLeft: '5px', marginRight: 'auto', color: '#FFFFFF', fontFamily: 'JetBrains Mono'}} noWrap='true'>{level.value.toFixed(2)}</Typography>
+                                <Typography sx={{ marginLeft: '5px', marginRight: 'auto', color: '#FFFFFF', fontFamily: 'JetBrains Mono'}} noWrap={true}>{level.value.toFixed(2)}</Typography>
                             </Box>
 
                         ))]
