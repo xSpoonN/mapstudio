@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { GlobalStoreContext } from '../store';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'; // eslint-disable-line
-import { IconButton, Box, AppBar, Toolbar, Button, Drawer, Typography } from '@mui/material';
+import { IconButton, Box, AppBar, Toolbar, Button, Drawer, Typography, Snackbar, Alert } from '@mui/material';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SaveIcon from '@mui/icons-material/Save';
 import L from 'leaflet';
@@ -233,6 +233,10 @@ function interpolateColor(value, min, max, minColor, maxColor) {
 
 export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('info');
+    const [snackbarAutoHide, setSnackbarAutoHide] = useState(3000);
     const [sidebar, setSidebar] = useState('map');
     const [map, setMap] = useState(null); // Map metadata from database
     const [feature, setFeature] = useState(null); // Current feature selected on map (for subdivisions)
@@ -290,6 +294,10 @@ export default function EditMap({ mapid }) {
             loadPoints(newPoints); // Rerender points
             return setMapEditMode('None'); // Reset edit mode
         } else if (mapEditMode === 'MovePoint') {
+            setOpenSnackbar(true);
+            setSnackbarMessage('Click to move the point');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', async function(e) {
                 if (mapEditMode !== 'MovePoint') return console.log(mapEditMode); // Check if edit mode has changed since click handler was installed
@@ -327,6 +335,10 @@ export default function EditMap({ mapid }) {
                 });
             });
         } else if (mapEditMode === 'AddPoint') {
+            setOpenSnackbar(true);
+            setSnackbarMessage('Click to add a point');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', function(e) {
                 if (mapEditMode !== 'AddPoint') return console.log(mapEditMode); // Check if edit mode has changed since click handler was installed
@@ -358,6 +370,10 @@ export default function EditMap({ mapid }) {
                 });
             });
         } else if (mapEditMode.startsWith('AddToBin')) { // AddToBin-<bin name>
+            setOpenSnackbar(true);
+            setSnackbarMessage('Click to add a subdivision to the bin');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             const binName = mapEditMode.split('-').slice(1).join('-'); // Get bin name from edit mode
             const binData = data?.bins?.find(bin => bin.name === binName); // Get bin data from schema
             mapRef.current?.off('click'); // Remove existing click handler
@@ -402,6 +418,10 @@ export default function EditMap({ mapid }) {
                 });
             });
         } else if (mapEditMode.startsWith('DeleteFromBin')) { // DeleteFromBin-<bin name>
+            setOpenSnackbar(true);
+            setSnackbarMessage('Click to remove a subdivision from the bin');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             const binName = mapEditMode.split('-').slice(1).join('-'); // Get bin name from edit mode
             mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', () => {}); // Add empty click handler to prevent clicking on map from doing anything
@@ -436,6 +456,10 @@ export default function EditMap({ mapid }) {
                 });
             });
         } else if (mapEditMode.startsWith('AddToGradient')) { // AddToGradient-<gradient datafield>
+            setOpenSnackbar(true);
+            setSnackbarMessage('Click to add a subdivision to the gradient');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             const grdName = mapEditMode.split('-').slice(1).join('-'); // Get gradient name from edit mode
             const grdData = data?.gradients?.find(grd => grd.dataField === grdName); // Get bin data from schema
             mapRef.current?.off('click'); // Remove existing click handler
@@ -491,6 +515,10 @@ export default function EditMap({ mapid }) {
                 });
             });
         } else if (mapEditMode.startsWith('DeleteFromGradient')) { // DeleteFromGradient-<gradient datafield>
+            setOpenSnackbar(true);
+            setSnackbarMessage('Click to remove a subdivision from the gradient');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             const grdName = mapEditMode.split('-').slice(1).join('-'); // Get gradient name from edit mode
             mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', () => {}); // Add empty click handler to prevent clicking on map from doing anything
@@ -528,6 +556,10 @@ export default function EditMap({ mapid }) {
                 });
             });
         } else { // None
+            setOpenSnackbar(false);
+            setSnackbarMessage('');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', () => setFeature(null)); // Add empty click handler to prevent clicking on map from doing anything
             geoJSONLayerRef.current?.eachLayer((layer) => {
@@ -1004,9 +1036,11 @@ export default function EditMap({ mapid }) {
                 case 's': { // Ctrl + s saves map
                     if (e.ctrlKey) {
                         e.preventDefault();
-                        console.log('saving');
                         store.saveMapSchema(mapid, store.getSchema(mapid, true));
-                        alert('Map saved');
+                        setOpenSnackbar(true);
+                        setSnackbarMessage('Map saved');
+                        setSnackbarSeverity('success');
+                        setSnackbarAutoHide(5000);
                     }
                     break;
                 }
@@ -1069,7 +1103,6 @@ export default function EditMap({ mapid }) {
         }
     }
 
-
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Box height='80vh' width='100vw' style={{ flex: 1 }} >
@@ -1123,7 +1156,10 @@ export default function EditMap({ mapid }) {
                     <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'80px'}}
                         onClick={async () => {
                             await store.saveMapSchema(mapid, store.getSchema(mapid,true));
-                            alert('Map saved');
+                            setOpenSnackbar(true);
+                            setSnackbarMessage('Map saved');
+                            setSnackbarSeverity('success');
+                            setSnackbarAutoHide(5000);
                         }}
                     ><SaveIcon/></IconButton>
                 </Box>
@@ -1157,6 +1193,15 @@ export default function EditMap({ mapid }) {
 
             </Drawer>
             <ConfirmModal map={map}/>
+            <Snackbar open={openSnackbar} autoHideDuration={snackbarAutoHide} onClose={() => {
+                setOpenSnackbar(false);
+                if (mapEditMode !== 'None') setMapEditMode('None');
+            }} anchorOrigin={{ vertical: 'bottom', horizontal: 'center'}}>
+                <Alert action={null} onClose={() => {
+                    setOpenSnackbar(false);
+                    if (mapEditMode !== 'None') setMapEditMode('None');
+                }} severity={snackbarSeverity} sx={{ width: '100%' }}>{snackbarMessage}</Alert>
+            </Snackbar>
         </Box>
     );
 }
