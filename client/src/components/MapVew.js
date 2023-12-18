@@ -198,6 +198,7 @@ export default function MapView({ mapid }) {
                 heatLayerRef.current = heatLayer;
             }
         }
+    }
 
     // Handles redrawing legend when schema is updated
     const drawLegend = (resp2) => {
