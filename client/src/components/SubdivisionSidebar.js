@@ -9,6 +9,8 @@ import { TwitterPicker } from 'react-color';
 import SubdivisionItem from './SubdivisionItem';
 import Property from './SubdivisionProperty';
 
+const SASTOKEN = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
+
 export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSchema, setFeature }) {
     const { store } = useContext(GlobalStoreContext);
     /* const [sdData, setSdData] = useState({}); */
@@ -47,6 +49,24 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                 setWeight(match?.weight ? match.weight : 0.5);
                 setColor(match?.color ? match.color : '#DDDDDD');
             } else {
+                if (mapSchema && !mapSchema.subdivisions?.length) { // eslint-disable-line
+                    console.log("Fetching");
+                    fetch(`${mapData?.mapFile}?${SASTOKEN}`, {mode: "cors"}) // Fetch GeoJSON data
+                    .then((response) =>  response.json()) // Parse response as JSON
+                    .then((geojson) => {
+                        const subdivisions = geojson.features.map(feature => {
+                            return {
+                                name: feature.properties.NAME || feature.properties.name || feature.properties.Name, 
+                                weight: 0.5, 
+                                color: '#DDDDDD'
+                            }
+                        })
+                        console.log("subdivisions", subdivisions);
+                        updateSchema({...mapSchema, subdivisions: subdivisions});
+                    }).catch((error) => {
+                        console.error('Error reading GeoJSON', error);
+                    });
+                }
                 // Get all unique data fields from subdivisions
                 const dataFieldsSet = new Set();
                 mapSchema?.subdivisions?.forEach(subdivision => {
