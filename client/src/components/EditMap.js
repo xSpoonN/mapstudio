@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { GlobalStoreContext } from '../store';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'; // eslint-disable-line
 import { IconButton, Box, AppBar, Toolbar, Button, Drawer, Typography, Snackbar, Alert } from '@mui/material';
@@ -898,7 +898,8 @@ export default function EditMap({ mapid }) {
         const legend = L.control({position: 'bottomleft'}); // Initialize legend
         legend.onAdd = () => {
             const div = L.DomUtil.create('div', 'info legend');
-            ReactDOM.render(
+            const root = createRoot(div);
+            root.render(
                 formatLegend(
                     [resp2?.bins?.map(bin => {
                         return (                        
@@ -919,9 +920,9 @@ export default function EditMap({ mapid }) {
                             if (value > max) max = value;
                             if (value < min) min = value;
                         });
-                        const levels = Array.from({length: 5}, (_, i) => {
-                            const value = ((max - min) * (i/4) + min);
-                            const color = interpolateColor(((max - min) * (i/4) + min), min, max, grd.minColor, grd.maxColor)
+                        const levels = Array.from({length: 4}, (_, i) => {
+                            const value = ((max - min) * (i/3) + min);
+                            const color = interpolateColor(((max - min) * (i/3) + min), min, max, grd.minColor, grd.maxColor)
                             return { value, color};
                         });
                         return [(<Typography sx={{
@@ -1001,7 +1002,8 @@ export default function EditMap({ mapid }) {
             const legend = L.control({position: 'bottomleft'}); // Initialize legend
             legend.onAdd = () => {
                 const div = L.DomUtil.create('div', 'info legend');
-                ReactDOM.render(formatLegend(), div)
+                const root = createRoot(div);
+                root.render(formatLegend(), div)
                 return div;
             }
             legend.addTo(mapRef.current); // Add legend to map

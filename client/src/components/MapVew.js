@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useContext, useState } from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import Box from '@mui/material/Box';
 import List from '@mui/material/List';
 import TextField from '@mui/material/TextField';
@@ -90,7 +90,8 @@ export default function MapView({ mapid }) {
             const legend = L.control({position: 'bottomleft'}); // Initialize legend
             legend.onAdd = () => {
                 const div = L.DomUtil.create('div', 'info legend');
-                ReactDOM.render(formatLegend(), div)
+                const root = createRoot(div);
+                root.render(formatLegend(), div)
                 return div;
             }
             legend.addTo(mapRef.current); // Add legend to map
@@ -162,7 +163,12 @@ export default function MapView({ mapid }) {
                     subdivision.name === layer.feature.properties.NAME || // This is because different files use different capitalizations and javascript is case sensitive
                     subdivision.name === layer.feature.properties.Name
                 );
-                layer.setStyle({fillColor: existing?.color || '#DDDDDD', fillOpacity: existing?.weight || 0.5}); // Set color and weight of subdivision
+                layer.setStyle({
+                    fillColor: existing?.color || '#DDDDDD', 
+                    fillOpacity: existing?.weight || 0.5,
+                    weight: 1,
+                    color: '#AAAAAA',
+                }); // Set color and weight of subdivision
             } );
         }
         if (markerLayerRef?.current) markerLayerRef.current.bringToFront(); // Bring marker featureGroup to render in front
@@ -188,7 +194,8 @@ export default function MapView({ mapid }) {
         const legend = L.control({position: 'bottomleft'}); // Initialize legend
         legend.onAdd = () => {
             const div = L.DomUtil.create('div', 'info legend');
-            ReactDOM.render(
+            const root = createRoot(div);
+            root.render(
                 formatLegend(
                     [resp2?.bins?.map(bin => {
                         return (                        
@@ -209,9 +216,9 @@ export default function MapView({ mapid }) {
                             if (value > max) max = value;
                             if (value < min) min = value;
                         });
-                        const levels = Array.from({length: 5}, (_, i) => {
-                            const value = ((max - min) * (i/4) + min);
-                            const color = interpolateColor(((max - min) * (i/4) + min), min, max, grd.minColor, grd.maxColor)
+                        const levels = Array.from({length: 4}, (_, i) => {
+                            const value = ((max - min) * (i/3) + min);
+                            const color = interpolateColor(((max - min) * (i/3) + min), min, max, grd.minColor, grd.maxColor)
                             return { value, color};
                         });
                         return [(<Typography sx={{
