@@ -980,7 +980,7 @@ export default function EditMap({ mapid }) {
                         ))]
                     }))]
                 )
-            , div)
+            )
             return div;
         }
         legend.addTo(mapRef.current); // Add legend to map
@@ -1044,7 +1044,7 @@ export default function EditMap({ mapid }) {
             legend.onAdd = () => {
                 const div = L.DomUtil.create('div', 'info legend');
                 const root = createRoot(div);
-                root.render(formatLegend(), div)
+                root.render(formatLegend())
                 return div;
             }
             legend.addTo(mapRef.current); // Add legend to map

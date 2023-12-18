@@ -57,7 +57,7 @@ function interpolateColor(value, min, max, minColor, maxColor) {
 const SASTOKENICON = 'sp=r&st=2023-11-18T22:00:55Z&se=2027-11-18T06:00:55Z&sv=2022-11-02&sr=c&sig=qEnsBbuIbbJjSfAVO0rRPDMb5OJ9I%2BcTKDwpeQMtvbQ%3D';
 const SASTOKENMAP = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
 export default function MapView({ mapid }) {
-    console.log('MAPID:::: ' + mapid)
+    /* console.log('MAPID:::: ' + mapid) */
     const mapRef = useRef(null); // Track map instance
     const geoJSONLayerRef = useRef(null); // Track GeoJSON layer instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
@@ -92,7 +92,7 @@ export default function MapView({ mapid }) {
             legend.onAdd = () => {
                 const div = L.DomUtil.create('div', 'info legend');
                 const root = createRoot(div);
-                root.render(formatLegend(), div)
+                root.render(formatLegend())
                 return div;
             }
             legend.addTo(mapRef.current); // Add legend to map
@@ -105,7 +105,7 @@ export default function MapView({ mapid }) {
                 if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); // Remove existing GeoJSON layer
                 else geoJSONLayerRef.current = L.geoJSON(geojson).addTo(mapRef.current); // Add new GeoJSON layer
                 geoJSONLayerRef.current.addData(geojson); // Add GeoJSON data to layer
-                console.log("map: " + map)
+                /* console.log("map: " + map) */
             }).catch((error) => {
                 console.error('Error reading GeoJSON', error);
             });
@@ -256,7 +256,7 @@ export default function MapView({ mapid }) {
                         ))]
                     }))]
                 )
-            , div)
+            )
             return div;
         }
         legend.addTo(mapRef.current); // Add legend to map
