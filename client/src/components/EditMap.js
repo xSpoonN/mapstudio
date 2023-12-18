@@ -1022,7 +1022,7 @@ export default function EditMap({ mapid }) {
                 // Draw subdivisions, points, and legend
                 drawSubdivisions(resp2);
                 loadPoints(resp2?.points);
-                setShowSatellite(resp2?.satelliteView);
+                setShowSatellite(resp2?.showSatellite);
                 renderHeatSchemaToHeatMap(resp2);
                 drawLegend(resp2);
             }
