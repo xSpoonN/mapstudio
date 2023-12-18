@@ -208,8 +208,6 @@ const formatLegend = (legend) => {
             display: 'flex', 
             flexDirection: 'column', 
             alignItems: 'center', 
-            /* justifyContent: 'center',  */
-            /* width: '150px',  */
             minWidth: '150px',
             minHeight: '100px',
             backgroundColor: 'rgba(80,80,80, 0.7)',
