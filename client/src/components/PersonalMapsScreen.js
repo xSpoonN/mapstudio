@@ -120,7 +120,8 @@ export default function PersonalMapsScreen() {
 								}
 							}
 						}}
-						style = {{ width: '75%' }}
+                        placeholder="Search Your Maps..."
+						style = {{ width: '100%' }}
                         onChange={handleSetSearch}
                         value={search}
 					/>
