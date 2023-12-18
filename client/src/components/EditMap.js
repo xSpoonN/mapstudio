@@ -1247,7 +1247,8 @@ export default function EditMap({ mapid }) {
 
             </Drawer>
             <ConfirmModal map={map}/>
-            <Snackbar open={openSnackbar} autoHideDuration={snackbarAutoHide} onClose={() => {
+            <Snackbar open={openSnackbar} autoHideDuration={snackbarAutoHide} onClose={(event, reason) => {
+                if (reason === 'clickaway') return;
                 setOpenSnackbar(false);
                 if (mapEditMode !== 'None') setMapEditMode('None');
             }} anchorOrigin={{ vertical: 'bottom', horizontal: 'center'}}>
