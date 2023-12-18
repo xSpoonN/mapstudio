@@ -21,7 +21,6 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV, 
         onHeatMapChange(radius, blur, true);
     }
 
-
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }}>
             <Typography variant="h6" style={{ margin: '10px' }}>Heat Map</Typography>

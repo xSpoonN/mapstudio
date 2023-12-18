@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { GlobalStoreContext } from '../store';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'; // eslint-disable-line
-import { IconButton, Box, AppBar, Toolbar, Button, Drawer } from '@mui/material';
+import { IconButton, Box, AppBar, Toolbar, Button, Drawer, Typography } from '@mui/material';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SaveIcon from '@mui/icons-material/Save';
 import L from 'leaflet';
@@ -202,6 +203,33 @@ const styles = {
         }
     }
 }
+const formatLegend = (legend) => {
+    return (
+        <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            minWidth: '150px',
+            minHeight: '100px',
+            backgroundColor: 'rgba(80,80,80, 0.7)',
+            padding: '10px', 
+            paddingRight: '20px',
+            borderRadius: '5px'
+        }}>
+            <Typography variant="h5" sx={{color: '#FFFFFF', fontFamily: 'JetBrains Mono'}}>Legend</Typography>
+            {legend}
+        </Box>
+    )
+}
+function interpolateColor(value, min, max, minColor, maxColor) {
+    if (min === max) return maxColor;
+    const normalizedValue = (value - min) / (max - min);
+    const r = Math.round((1 - normalizedValue) * parseInt(minColor.slice(1, 3), 16) + normalizedValue * parseInt(maxColor.slice(1, 3), 16));
+    const g = Math.round((1 - normalizedValue) * parseInt(minColor.slice(3, 5), 16) + normalizedValue * parseInt(maxColor.slice(3, 5), 16));
+    const b = Math.round((1 - normalizedValue) * parseInt(minColor.slice(5, 7), 16) + normalizedValue * parseInt(maxColor.slice(5, 7), 16));
+
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
 
 export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
@@ -217,6 +245,7 @@ export default function EditMap({ mapid }) {
     const markerLayerRef = useRef(null); // Track marker featuregroup instance
     const mapInitializedRef = useRef(false); // Track whether map has been initialized
     const satelliteLayerRef = useRef(null); // Track satellite layer instance
+    const legendRef = useRef(null); // Track legend instance
     const [showSatellite, setShowSatellite] = useState(false);
     const { store } = useContext(GlobalStoreContext); // eslint-disable-line
     const heatLayerRef = useRef(null);
@@ -835,7 +864,12 @@ export default function EditMap({ mapid }) {
                     subdivision.name === layer.feature.properties.NAME || // This is because different files use different capitalizations and javascript is case sensitive
                     subdivision.name === layer.feature.properties.Name
                 );
-                layer.setStyle({fillColor: existing?.color || '#DDDDDD', fillOpacity: existing?.weight || 0.5}); // Set color and weight of subdivision
+                layer.setStyle({
+                    fillColor: existing?.color || '#DDDDDD', 
+                    fillOpacity: existing?.weight || 0.5,
+                    weight: 1,
+                    color: '#AAAAAA',
+                }); // Set color and weight of subdivision
             } );
         }
         if (markerLayerRef?.current) markerLayerRef.current.bringToFront(); // Bring marker featureGroup to render in front
@@ -860,6 +894,63 @@ export default function EditMap({ mapid }) {
             newMarkers.push(marker);
         })
         setMarkers(newMarkers); // Update state variable
+    }
+
+    // Handles redrawing legend when schema is updated
+    const drawLegend = (resp2) => {
+        if (!legendRef.current) return;
+        legendRef.current.remove();
+        const legend = L.control({position: 'bottomleft'}); // Initialize legend
+        legend.onAdd = () => {
+            const div = L.DomUtil.create('div', 'info legend');
+            ReactDOM.render(
+                formatLegend(
+                    [resp2?.bins?.map(bin => {
+                        return (                        
+                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', overflow: '' }}>  
+                            <Box sx={{ width: 22, minWidth: 22, height: 22, borderRadius: '5px', backgroundColor: bin.color, marginRight: '10px', marginLeft: '15px'}} />
+                            <Typography sx={{ marginLeft: '5px', marginRight: 'auto', color: '#FFFFFF', fontFamily: 'JetBrains Mono'}} noWrap='true'>{bin.name}</Typography>
+                        </Box>
+                        )
+                    }), 
+                    ...(resp2?.gradients?.map(grd => {
+                        const grdSubdivisions = resp2.subdivisions.filter(subdivision => grd.subdivisions?.includes(subdivision.name));
+                        const keySubdivisions = grdSubdivisions.filter(subdivision => Object.keys(subdivision.data || {}).includes(grd.dataField));
+                        let max = -Infinity; let min = Infinity;
+                
+                        // Find the max and min values for the data field
+                        keySubdivisions.forEach(subdivision => {
+                            const value = subdivision.data[grd.dataField];
+                            if (value > max) max = value;
+                            if (value < min) min = value;
+                        });
+                        const levels = Array.from({length: 5}, (_, i) => {
+                            const value = ((max - min) * (i/4) + min);
+                            const color = interpolateColor(((max - min) * (i/4) + min), min, max, grd.minColor, grd.maxColor)
+                            return { value, color};
+                        });
+                        return [(<Typography sx={{
+                            color: '#FFFFFF', 
+                            fontFamily: 'JetBrains Mono', 
+                            fontSize: '16px', 
+                            marginRight: 'auto', 
+                            marginLeft: '15px',
+                            marginTop: '10px',
+                        }}>{grd.dataField.charAt(0).toUpperCase() + grd.dataField.slice(1)}</Typography>),
+                        levels.map((level, i) => (
+                            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', overflow: '' }}>  
+                                <Box sx={{ width: 22, minWidth: 22, height: 22, borderRadius: '5px', backgroundColor: level.color, marginRight: '10px', marginLeft: '15px'}} />
+                                <Typography sx={{ marginLeft: '5px', marginRight: 'auto', color: '#FFFFFF', fontFamily: 'JetBrains Mono'}} noWrap='true'>{level.value.toFixed(2)}</Typography>
+                            </Box>
+
+                        ))]
+                    }))]
+                )
+            , div)
+            return div;
+        }
+        legend.addTo(mapRef.current); // Add legend to map
+        legendRef.current = legend; // Store legend in ref
     }
 
     // Handles refetching the map and schema data when something changes
@@ -895,12 +986,12 @@ export default function EditMap({ mapid }) {
                 console.log("resp2")
                 console.log(resp2)
 
-                // Draw subdivisions and points
+                // Draw subdivisions, points, and legend
                 drawSubdivisions(resp2);
                 loadPoints(resp2?.points);
                 setShowSatellite(resp2?.satelliteView);
                 renderHeatSchemaToHeatMap(resp2);
-
+                drawLegend(resp2);
             }
         }
         fetchMap();
@@ -915,6 +1006,14 @@ export default function EditMap({ mapid }) {
                 subdomains:['mt0','mt1','mt2','mt3']
             }).addTo(mapRef.current); // Add Google Satellite tiles
             mapInitializedRef.current = true; // Mark map as initialized
+            const legend = L.control({position: 'bottomleft'}); // Initialize legend
+            legend.onAdd = () => {
+                const div = L.DomUtil.create('div', 'info legend');
+                ReactDOM.render(formatLegend(), div)
+                return div;
+            }
+            legend.addTo(mapRef.current); // Add legend to map
+            legendRef.current = legend; // Store legend in ref
         }
         if (!markerLayerRef.current) markerLayerRef.current = L.featureGroup().addTo(mapRef.current); // Initialize marker layer
         fetch(`${map?.mapFile}?${SASTOKEN}`, {mode: "cors"}) // Fetch GeoJSON data
