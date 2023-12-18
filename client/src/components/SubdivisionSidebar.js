@@ -167,7 +167,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             </FormControl>
 
                             <TextField value={value} sx={{ margin: '2px', marginLeft: 'auto', width: '100px' }}
-                            inputProps={{style: { textAlign: 'right'}}} InputProps={{ sx: { borderRadius: 3 } }}
+                            inputProps={{style: { textAlign: 'right'}, maxLength: 16}} InputProps={{ sx: { borderRadius: 3 } }}
                             onChange={e => { 
                                 setValue(e.target.value); 
                             }}

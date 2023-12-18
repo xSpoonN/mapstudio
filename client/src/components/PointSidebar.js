@@ -65,7 +65,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                     {/* Point Name */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <Typography sx={{ mr: 1, ml: '10%' }}>Name</Typography>  
-                        <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} 
+                        <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} inputProps={{ maxLength: 50 }}
                         onChange={e => setName(e.target.value)}
                         onBlur={() => {
                             const isNameExists = mapInfo.points.some(point => point.name === name); // Checks if the name already exists

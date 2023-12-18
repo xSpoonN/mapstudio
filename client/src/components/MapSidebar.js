@@ -25,7 +25,7 @@ export default function MapInfoSidebar({ mapData, mapSchema, setShowSatellite })
                 label="Title"
                 value={title}
                 style={{margin: '10px', width: '80%'}}
-                inputProps={{style: { textAlign: 'center'}}} // Do not ask why capitalization matters here...
+                inputProps={{style: { textAlign: 'center'}, maxLength: 50}} // Do not ask why capitalization matters here...
                 InputProps={{ sx: { borderRadius: 3 } }}
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={async () => {store.setMapData({ ...mapInfo, title: title }); const resp = await store.updateMapInfo({ ...mapInfo, title: title }); console.log(resp)}}
@@ -37,6 +37,7 @@ export default function MapInfoSidebar({ mapData, mapSchema, setShowSatellite })
                 rows={20}
                 value={description}
                 style={{margin: '10px', width: '80%'}}
+                inputProps={{ maxLength: 1000 }}
                 InputProps={{ sx: { borderRadius: 3 } }}
                 onChange={(e) => setDescription(e.target.value)}
                 onBlur={async () => {store.setMapData({ ...mapInfo, description: description }); const resp = await store.updateMapInfo({ ...mapInfo, description: description }); console.log(resp)}}
