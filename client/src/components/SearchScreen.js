@@ -12,28 +12,32 @@ import Typography from '@mui/material/Typography';
 
 export default function SearchScreen(props) {
     const { store } = useContext(GlobalStoreContext);
-    const [filter, setFilter] = useState('None');
+    const [filter, setFilter] = useState('none');
     const [sort, setSort] = useState('Newest');
     const [maps, setMaps] = useState([]);
-    const [mapsSchema, setMapsSchema] = useState([]);
+    const [mapTypes, setMapType] = useState([]);
     let search = props.search || null;
 
     useEffect(() => {
         const fetchMaps = async () => {
             const maps = await store.getPublishedMaps();
             const result = [];
+            const types = [];
             for (let i = 0; i < maps.maps.length; i++) {
                 result.push({ map: maps.maps[i], author: maps.authors[i] });
+                if(maps.maps[i].mapSchema) {
+                    let resp = await store.getSchema(maps.maps[i].mapSchema)
+                    if(resp) {
+                        types.push(resp.type)
+                    } else {
+                        types.push("none")
+                    }
+                } else {
+                    types.push("none")
+                }
             }
             setMaps(result)
-
-            // map mapIds to schemas
-            const schemaPromises = result.map(async (map) => {
-                const schema = await store.getSchemaFromServer(map.mapSchema);
-                return { mapId: map._id, schema: schema };
-            });
-            const mappedSchemas = await Promise.all(schemaPromises);
-            setMapsSchema(mappedSchemas);
+            setMapType(types)
         }
         fetchMaps();
     }, [store])
@@ -46,11 +50,6 @@ export default function SearchScreen(props) {
         setSort(event.target.value);
     };
 
-    const getSchema = (mapId) => {
-        const schemaEntry = mapsSchema.find(entry => entry.mapId === mapId);
-        return schemaEntry ? schemaEntry.schema : null;
-    };
-
     function handleSortAndFilter(maps) {
         let sorted
         if(sort === "Newest") {
@@ -60,6 +59,12 @@ export default function SearchScreen(props) {
         } else if(sort === "Most Commented") {
             sorted = maps.sort((a, b) => b.map.comments.length - a.map.comments.length);
         }
+        sorted = sorted.filter((map,index) => {
+            if(filter === 'none' || mapTypes[index] === filter) {
+                return true
+            }
+            return false
+        });
         if (!search) return sorted;
         sorted = sorted.filter(map => {
             const tags = search.toLowerCase().split(' ');
@@ -73,8 +78,6 @@ export default function SearchScreen(props) {
             return map.map.title.toLowerCase().includes(search.toLowerCase())
                     || map.author.username.toLowerCase().includes(search.toLowerCase())
         });
-        if (filter !== "None")
-            sorted = sorted.filter(map => getSchema(map._id)?.type === filter);
         return sorted
     }
 
@@ -125,12 +128,12 @@ export default function SearchScreen(props) {
                             }
                         }}
                     >
-                        <MenuItem value="None">None</MenuItem>
-                        <MenuItem value="Bin Map">Bin Map</MenuItem>
-                        <MenuItem value="Gradient Map">Gradient Map</MenuItem>
-                        <MenuItem value="Heat Map">Heat Map</MenuItem>
-                        <MenuItem value="Point Map">Point Map</MenuItem>
-                        <MenuItem value="Satellite Map">Satellite Map</MenuItem>
+                        <MenuItem value="none">None</MenuItem>
+                        <MenuItem value="bin">Bin Map</MenuItem>
+                        <MenuItem value="gradient">Gradient Map</MenuItem>
+                        <MenuItem value="heat">Heat Map</MenuItem>
+                        <MenuItem value="point">Point Map</MenuItem>
+                        <MenuItem value="satellite">Satellite Map</MenuItem>
                     </Select>
                 </FormControl>
             </Box>
