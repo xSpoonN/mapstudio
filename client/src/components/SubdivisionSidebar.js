@@ -379,7 +379,8 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                     {allProperties.map(option => <MenuItem value={option}>{option}</MenuItem>)}
                 </Select>
                 <List sx={{ width: '90%' }}>
-                    {mapSchema?.subdivisions.map((sub) => (
+                    {mapSchema?.subdivisions.sort((a, b) => a.name.localeCompare(b.name))
+                    .map((sub) => (
                         <>
                             <SubdivisionItem sub={sub} allProperties={allProperties} mapId={mapData?._id} mapSchema={mapSchema} chosenProp={selectedProperty} setFeature={setFeature}/>
                             <Divider variant='middle' style={{ width: '90%', margin: '5px', backgroundColor: '#dddddd', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />

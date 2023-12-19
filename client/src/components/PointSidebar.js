@@ -254,7 +254,8 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
             <>
                 <Typography variant="h6" style={{ margin: '10px' }}>All Points</Typography>
                 <List sx={{ width: '90%' }}>
-                    {mapInfo?.points?.map((point) => (
+                    {mapInfo?.points?.sort((a, b) => a.name.localeCompare(b.name))
+                    .map((point) => (
                         <>
                             <ListItem onClick={() => {setCurrentPoint(point); panToPoint(point?.location.lat, point?.location.lon)}}>
                                 <Grid container spacing={2}>
