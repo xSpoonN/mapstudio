@@ -3,8 +3,14 @@ import { Button, Divider, Box, Slider, Typography, Pagination, Grid, List, ListI
 import 'leaflet.heat';
 
 export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV, clearHeatMap, heatExistingPoints, panToPoint }) {
-    const [radius, setRadius] = useState(mapSchema?.heatmaps ? mapSchema?.heatmaps[0]?.radius : undefined);
-    const [blur, setBlur] = useState(mapSchema?.heatmaps ? mapSchema?.heatmaps[0]?.blur : undefined);
+    function hasHeatMap() {
+        if (!mapSchema) return false;
+        if (!mapSchema.heatmaps) return false;
+        return mapSchema.heatmaps.length !== 0;
+    }
+
+    const [radius, setRadius] = useState(hasHeatMap() ? mapSchema.heatmaps[0].radius : undefined);
+    const [blur, setBlur] = useState(hasHeatMap() ? mapSchema.heatmaps[0].blur : undefined);
     const [currentPage, setCurrentPage] = useState(1);
 
     const handleChangePage = (event, newPage) => {
@@ -13,16 +19,16 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV, 
 
     const startIndex = (currentPage - 1) * 10;
     const endIndex = startIndex + 10;
-    const currentData = mapSchema?.heatmaps[0]?.points?.slice(startIndex, endIndex);
+    const currentData = hasHeatMap() ? mapSchema.heatmaps[0].points?.slice(startIndex, endIndex) : [];
 
     useEffect(() => {
         onHeatMapChange(radius, blur, false);
     }, [radius, blur]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
-        if(mapSchema?.heatmaps?.length !== 0) {
-            setRadius(mapSchema?.heatmaps ? mapSchema?.heatmaps[0]?.radius : undefined)
-            setBlur(mapSchema?.heatmaps ? mapSchema?.heatmaps[0]?.blur : undefined)
+        if(hasHeatMap()) {
+            setRadius(hasHeatMap() ? mapSchema.heatmaps[0].radius : undefined)
+            setBlur(hasHeatMap() ? mapSchema.heatmaps[0].blur : undefined)
         }
     }, [mapSchema]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -31,7 +37,7 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV, 
     }
 
     let list = <></>
-    if(mapSchema?.heatmaps?.length !== 0) {
+    if(hasHeatMap()) {
         list =
             <>
             <Typography variant="h6" style={{ margin: '10px' }}>All Points</Typography>
@@ -56,7 +62,7 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV, 
                     ))}
                 </List>
                 <Pagination
-                    count={Math.ceil(mapSchema?.heatmaps[0]?.points?.length/10)}
+                    count={hasHeatMap() ? Math.ceil(mapSchema.heatmaps[0].points?.length/10) : 0}
                     page={currentPage}
                     onChange={handleChangePage}
                     variant="outlined"
