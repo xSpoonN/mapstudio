@@ -62,6 +62,7 @@ export default function Bin({bin, mapSchema, mapData, setMapEditMode}) {
                 inputProps={{style: { textAlign: 'right'}, maxLength: 30}} 
                 InputProps={{ sx: { borderRadius: 3 } }} 
                     onChange={e => setName(e.target.value)} 
+                    onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                     onBlur={async () => {
                         const nameExists = mapSchema.bins.some(bin2 => bin2.name === name); // Check if the name already exists
                         if (!nameExists) { // If it doesn't, update the schema

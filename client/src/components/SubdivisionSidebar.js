@@ -171,6 +171,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             onChange={e => { 
                                 setValue(e.target.value); 
                             }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                             onBlur={() => {
                                 // Find the subdivision in the map schema
                                 const existing = mapInfo?.subdivisions?.find(subdivision => 
@@ -232,6 +233,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             onChange={e => {
                                 setWeight(e.target.value);
                             }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                             onBlur={() => {
                                 // Find the subdivision in the map schema
                                 const existing = mapInfo?.subdivisions?.find(subdivision => 

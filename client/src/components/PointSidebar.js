@@ -67,6 +67,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         <Typography sx={{ mr: 1, ml: '10%' }}>Name</Typography>  
                         <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} inputProps={{ maxLength: 50 }}
                         onChange={e => setName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                         onBlur={() => {
                             const isNameExists = mapInfo.points.some(point => point.name === name); // Checks if the name already exists
                             if (isNameExists) {
@@ -91,6 +92,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         <Typography sx={{ mr: 1, ml: '10%' }}>Lat/Lon</Typography>  
                         <TextField value={lat} sx={{ marginLeft: 'auto', width: '20%' }} InputProps={{ sx: { borderRadius: 3 } }} 
                         onChange={e => setLat(Number(e.target.value))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                         onBlur={() => {
                             // Finds the point in the mapInfo and updates it with the new lat
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
@@ -103,6 +105,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
 
                         <TextField value={lon} sx={{ width: '20%' }} InputProps={{ sx: { borderRadius: 3 } }} 
                         onChange={e => setLon(Number(e.target.value))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                         onBlur={() => {
                             // Finds the point in the mapInfo and updates it with the new lon
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
@@ -139,6 +142,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         <TextField value={weight.toFixed(2)} sx={{ width: '100px', margin: '2px' }} 
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
                         onChange={e => setWeight(Number(e.target.value))}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                         onBlur={() => {
                             // Finds the point in the mapInfo and updates it with the new weight
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
