@@ -183,7 +183,6 @@ updateMapFileById = async (req, res) => {
     const blobUrl = await uploadToBlobStorage(geojsonData, req.params.id);
     if (!blobUrl) {
         return res.status(400).json({
-            error,
             message: 'Map not updated!',
         })
     }

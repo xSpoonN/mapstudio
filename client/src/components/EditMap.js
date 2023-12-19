@@ -1156,7 +1156,6 @@ export default function EditMap({ mapid }) {
         saveAs(blob, map.title + "_schema.json")
     }
 
-
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Box height='80vh' width='100vw' style={{ flex: 1 }} >
@@ -1244,7 +1243,7 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'gradient' && <GradientSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange} uploadCSV={handleFileUpload} clearHeatMap={clearHeatMap} heatExistingPoints={heatExistingPoints}/>}
-                {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate}/>}
+                {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate} mapId={map?._id}/>}
 
             </Drawer>
             <ConfirmModal map={map}/>
