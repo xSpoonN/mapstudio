@@ -20,14 +20,16 @@ export default function ConfirmModal(props) {
         store.closeModal();
     }
 
-    function handlePublish() {
-        switch (store.modal) {
+    function handleConfirm() {
+        switch (props.type) {
             case 'publishMap':
                 store.publishMap(props.map, props.map._id);
                 break;
             case 'deleteMap':
-                console.log('deleting map');
                 store.deleteMap(props.map._id);
+                break;
+            case 'applyTemplate':
+                props.applyTemplate();
                 break;
             default:
                 break;
@@ -35,40 +37,38 @@ export default function ConfirmModal(props) {
     }
 
     const modalText = () => {
-        switch (store.modal) {
+        switch (props.type) {
             case 'publishMap':
                 return 'Publish Map? (This cannot be undone)';
             case 'deleteMap':
                 return 'Delete Map? (This cannot be undone)';
+            case 'applyTemplate':
+                return 'Apply Template? (This will overwrite your current map)';
             default:
                 return '';
         }
     }
 
     const okButtonText = () => {
-        switch (store.modal) {
+        switch (props.type) {
             case 'publishMap':
                 return 'Ok';
             case 'deleteMap':
                 return 'Delete';
             default:
-                return 'Ok';
+                return 'Confirm';
         }
     }
 
     const cancelButtonText = () => {
-        switch (store.modal) {
-            case 'publishMap':
-                return 'Cancel';
-            case 'deleteMap':
-                return 'Cancel';
+        switch (props.type) {
             default:
                 return 'Cancel';
         }
     }
 
     return (
-        <Modal open={store.modal !== null}>
+        <Modal open={store.modal && store.modal === props.type}>
             <Box sx={style}>
                 <div className="modal-dialog">
                 <header className="dialog-header">
@@ -80,7 +80,7 @@ export default function ConfirmModal(props) {
                     <Button variant="contained"
                         id="dialog-no-button"
                         className="modal-button"
-                        onClick={handlePublish}
+                        onClick={handleConfirm}
                         sx={{mx:2}}
                     >
                         {okButtonText()}
