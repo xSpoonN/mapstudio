@@ -45,6 +45,7 @@ export default function SubdivisionItem({sub, allProperties, mapId, mapSchema, c
                 onChange={e => { 
                     setValue(e.target.value); 
                 }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                 onBlur={() => {
                     if (!chosenProp) return setValue('N/A');
                     // Find the subdivision in the map schema

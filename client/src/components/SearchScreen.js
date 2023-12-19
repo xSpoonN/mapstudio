@@ -8,6 +8,9 @@ import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
+import SearchIcon from '@mui/icons-material/Search';
 import Typography from '@mui/material/Typography';
 
 export default function SearchScreen(props) {
@@ -16,7 +19,7 @@ export default function SearchScreen(props) {
     const [sort, setSort] = useState('Newest');
     const [maps, setMaps] = useState([]);
     const [mapTypes, setMapType] = useState([]);
-    let search = props.search || null;
+    const [search, setSearch] = useState(props.search || '');
 
     useEffect(() => {
         const fetchMaps = async () => {
@@ -47,6 +50,10 @@ export default function SearchScreen(props) {
         setSort(event.target.value);
     };
 
+    const handleSetSearch = (event) => {
+        setSearch(event.target.value);
+    };
+
     function handleSortAndFilter(maps) {
         let sorted
         if(sort === "Newest") {
@@ -61,31 +68,63 @@ export default function SearchScreen(props) {
                 return mapTypes[index] === filter
             })
         }
-        if (!search) return sorted;
-        sorted = sorted.filter(map => {
-            const tags = search.toLowerCase().split(' ');
-            if(tags[0]?.startsWith('author:')) {
-                let author = tags[0].slice('author:'.length)
-                tags.shift()
-                let title = tags.join(" ")
-                return map.map.title.toLowerCase().includes(title.toLowerCase())
-                        && map.author.username.toLowerCase() === author.toLowerCase()
-            }
-            return map.map.title.toLowerCase().includes(search.toLowerCase())
-                    || map.author.username.toLowerCase().includes(search.toLowerCase())
-        });
-        return sorted
+        if (search) {
+            sorted = sorted.filter(map => {
+                const tags = search.toLowerCase().split(' ');
+                if(tags[0]?.startsWith('author:')) {
+                    let author = tags[0].slice('author:'.length)
+                    tags.shift()
+                    let title = tags.join(" ")
+                    return map.map.title.toLowerCase().includes(title.toLowerCase())
+                            && map.author.username.toLowerCase() === author.toLowerCase()
+                }
+                return map.map.title.toLowerCase().includes(search.toLowerCase())
+                        || map.author.username.toLowerCase().includes(search.toLowerCase())
+            });
+        }
+        return sorted;
     }
 
     return (
         <Box>
             <Box display="flex" flexDirection="row" alignItems="center">
                 <Typography variant="h2" align="left" sx={{ m: 6 }} color='#E3256B'>
-                    {!search ? "All Maps" : `Maps matching '${search}':`}
+                    Browse Maps
                 </Typography>
                 <Typography variant="h3" align="left" sx={{ m: 6 }} color='#000000' flexGrow={1}>
                     {handleSortAndFilter(maps).length}
                 </Typography>
+                <Box justifyContent="center" sx={{ flexGrow: 2, mx: 6, my: 6 }}>
+					<TextField
+						id="standard-basic"
+						variant="outlined" 
+						InputProps={{
+							endAdornment: (
+									<IconButton position="end">
+											<SearchIcon/>
+									</IconButton>
+							),
+							style: {fontSize: '14pt'}
+						}}
+						sx={{
+							background: 'white',
+							borderRadius: '16px',
+							"& fieldset": { borderRadius: '16px' },
+							'&:hover fieldset': {
+								border: 'none'
+							},
+							"& .MuiOutlinedInput-root": {
+								"&.Mui-focused fieldset": {
+								  border: 'none'
+								}
+							}
+						}}
+                        placeholder="Search Maps..."
+						style = {{ width: '75%' }}
+                        value={search}
+                        onChange={handleSetSearch}
+					/>
+				</Box>
                 <FormControl sx={{ m: 1, minWidth: 200 }}>
                 <InputLabel>Sort</InputLabel>
                     <Select

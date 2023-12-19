@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { GlobalStoreContext } from '../store';
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'; // eslint-disable-line
-import { IconButton, Box, AppBar, Toolbar, Button, Drawer, Typography } from '@mui/material';
+import { IconButton, Box, AppBar, Toolbar, Button, Drawer, Typography, Snackbar, Alert } from '@mui/material';
 import ReplayIcon from '@mui/icons-material/Replay';
 import SaveIcon from '@mui/icons-material/Save';
 import L from 'leaflet';
@@ -171,7 +171,9 @@ const styles = {
         maxHeight: '45px',
         minWidth: '105px',
         minHeight: '45px',
-        color: '#E3256B'
+        color: '#EEEEEE',
+        backgroundColor: '#E3256B',
+        borderRadius: '10px'
     },
     toolbarButton: {
         position: 'absolute',
@@ -210,6 +212,7 @@ const formatLegend = (legend) => {
             flexDirection: 'column', 
             alignItems: 'center', 
             minWidth: '150px',
+            maxWidth: '300px',
             minHeight: '100px',
             backgroundColor: 'rgba(80,80,80, 0.7)',
             padding: '10px', 
@@ -233,6 +236,10 @@ function interpolateColor(value, min, max, minColor, maxColor) {
 
 export default function EditMap({ mapid }) {
     const [openDrawer, setOpenDrawer] = useState(true);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('info');
+    const [snackbarAutoHide, setSnackbarAutoHide] = useState(3000);
     const [sidebar, setSidebar] = useState('map');
     const [map, setMap] = useState(null); // Map metadata from database
     const [feature, setFeature] = useState(null); // Current feature selected on map (for subdivisions)
@@ -290,6 +297,10 @@ export default function EditMap({ mapid }) {
             loadPoints(newPoints); // Rerender points
             return setMapEditMode('None'); // Reset edit mode
         } else if (mapEditMode === 'MovePoint') {
+            setOpenSnackbar(true);
+            setSnackbarMessage('Click to move the point');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', async function(e) {
                 if (mapEditMode !== 'MovePoint') return console.log(mapEditMode); // Check if edit mode has changed since click handler was installed
@@ -327,6 +338,10 @@ export default function EditMap({ mapid }) {
                 });
             });
         } else if (mapEditMode === 'AddPoint') {
+            setOpenSnackbar(true);
+            setSnackbarMessage('Click to add a point');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', function(e) {
                 if (mapEditMode !== 'AddPoint') return console.log(mapEditMode); // Check if edit mode has changed since click handler was installed
@@ -358,6 +373,10 @@ export default function EditMap({ mapid }) {
                 });
             });
         } else if (mapEditMode.startsWith('AddToBin')) { // AddToBin-<bin name>
+            setOpenSnackbar(true);
+            setSnackbarMessage('Click to add a subdivision to the bin');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             const binName = mapEditMode.split('-').slice(1).join('-'); // Get bin name from edit mode
             const binData = data?.bins?.find(bin => bin.name === binName); // Get bin data from schema
             mapRef.current?.off('click'); // Remove existing click handler
@@ -402,6 +421,10 @@ export default function EditMap({ mapid }) {
                 });
             });
         } else if (mapEditMode.startsWith('DeleteFromBin')) { // DeleteFromBin-<bin name>
+            setOpenSnackbar(true);
+            setSnackbarMessage('Click to remove a subdivision from the bin');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             const binName = mapEditMode.split('-').slice(1).join('-'); // Get bin name from edit mode
             mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', () => {}); // Add empty click handler to prevent clicking on map from doing anything
@@ -436,6 +459,10 @@ export default function EditMap({ mapid }) {
                 });
             });
         } else if (mapEditMode.startsWith('AddToGradient')) { // AddToGradient-<gradient datafield>
+            setOpenSnackbar(true);
+            setSnackbarMessage('Click to add a subdivision to the gradient');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             const grdName = mapEditMode.split('-').slice(1).join('-'); // Get gradient name from edit mode
             const grdData = data?.gradients?.find(grd => grd.dataField === grdName); // Get bin data from schema
             mapRef.current?.off('click'); // Remove existing click handler
@@ -491,6 +518,10 @@ export default function EditMap({ mapid }) {
                 });
             });
         } else if (mapEditMode.startsWith('DeleteFromGradient')) { // DeleteFromGradient-<gradient datafield>
+            setOpenSnackbar(true);
+            setSnackbarMessage('Click to remove a subdivision from the gradient');
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             const grdName = mapEditMode.split('-').slice(1).join('-'); // Get gradient name from edit mode
             mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', () => {}); // Add empty click handler to prevent clicking on map from doing anything
@@ -528,6 +559,9 @@ export default function EditMap({ mapid }) {
                 });
             });
         } else { // None
+            setOpenSnackbar(false);
+            setSnackbarSeverity('info');
+            setSnackbarAutoHide(null);
             mapRef.current?.off('click'); // Remove existing click handler
             mapRef.current?.on('click', () => {setFeature(null); setCurrentPoint(null)}); // Add empty click handler to prevent clicking on map from doing anything
             geoJSONLayerRef.current?.eachLayer((layer) => {
@@ -906,7 +940,8 @@ export default function EditMap({ mapid }) {
         const legend = L.control({position: 'bottomleft'}); // Initialize legend
         legend.onAdd = () => {
             const div = L.DomUtil.create('div', 'info legend');
-            ReactDOM.render(
+            const root = createRoot(div);
+            root.render(
                 formatLegend(
                     [resp2?.bins?.map(bin => {
                         return (                        
@@ -924,12 +959,13 @@ export default function EditMap({ mapid }) {
                         // Find the max and min values for the data field
                         keySubdivisions.forEach(subdivision => {
                             const value = subdivision.data[grd.dataField];
-                            if (value > max) max = value;
-                            if (value < min) min = value;
+                            if (!value) return;
+                            if (Number(value) > max) max = Number(value);
+                            if (Number(value) < min) min = Number(value);
                         });
-                        const levels = Array.from({length: 5}, (_, i) => {
-                            const value = ((max - min) * (i/4) + min);
-                            const color = interpolateColor(((max - min) * (i/4) + min), min, max, grd.minColor, grd.maxColor)
+                        const levels = Array.from({length: 4}, (_, i) => {
+                            const value = ((max - min) * (i/3) + min);
+                            const color = interpolateColor(((max - min) * (i/3) + min), min, max, grd.minColor, grd.maxColor)
                             return { value, color};
                         });
                         return [(<Typography sx={{
@@ -943,13 +979,13 @@ export default function EditMap({ mapid }) {
                         levels.map((level, i) => (
                             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', overflow: '' }}>  
                                 <Box sx={{ width: 22, minWidth: 22, height: 22, borderRadius: '5px', backgroundColor: level.color, marginRight: '10px', marginLeft: '15px'}} />
-                                <Typography sx={{ marginLeft: '5px', marginRight: 'auto', color: '#FFFFFF', fontFamily: 'JetBrains Mono'}} noWrap='true'>{level.value.toFixed(2)}</Typography>
+                                <Typography sx={{ marginLeft: '5px', marginRight: 'auto', color: '#FFFFFF', fontFamily: 'JetBrains Mono'}} noWrap={true}>{level.value.toFixed(2)}</Typography>
                             </Box>
 
                         ))]
                     }))]
                 )
-            , div)
+            )
             return div;
         }
         legend.addTo(mapRef.current); // Add legend to map
@@ -986,7 +1022,6 @@ export default function EditMap({ mapid }) {
                 });
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
-                console.log("resp2")
                 console.log(resp2)
 
                 // Draw subdivisions, points, and legend
@@ -1004,7 +1039,7 @@ export default function EditMap({ mapid }) {
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
             mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
+            /* L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); */ // Add OpenStreetMap tiles
             satelliteLayerRef.current = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ 
                 subdomains:['mt0','mt1','mt2','mt3']
             }).addTo(mapRef.current); // Add Google Satellite tiles
@@ -1012,7 +1047,8 @@ export default function EditMap({ mapid }) {
             const legend = L.control({position: 'bottomleft'}); // Initialize legend
             legend.onAdd = () => {
                 const div = L.DomUtil.create('div', 'info legend');
-                ReactDOM.render(formatLegend(), div)
+                const root = createRoot(div);
+                root.render(formatLegend())
                 return div;
             }
             legend.addTo(mapRef.current); // Add legend to map
@@ -1047,9 +1083,11 @@ export default function EditMap({ mapid }) {
                 case 's': { // Ctrl + s saves map
                     if (e.ctrlKey) {
                         e.preventDefault();
-                        console.log('saving');
                         store.saveMapSchema(mapid, store.getSchema(mapid, true));
-                        alert('Map saved');
+                        setOpenSnackbar(true);
+                        setSnackbarMessage('Map saved');
+                        setSnackbarSeverity('success');
+                        setSnackbarAutoHide(5000);
                     }
                     break;
                 }
@@ -1121,7 +1159,6 @@ export default function EditMap({ mapid }) {
         saveAs(blob, map.title + "_schema.json")
     }
 
-
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Box height='80vh' width='100vw' style={{ flex: 1 }} >
@@ -1141,11 +1178,11 @@ export default function EditMap({ mapid }) {
                         {/* Toolbar Buttons */}
                         <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '1000px', maxWidth: '1000px' }}>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'map' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('map'); store.setMapData(map); setMapEditMode('None')}}>Map Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('subdivision'); setFeature(null); setMapEditMode('None')}}>Subdivision Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'point' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('point'); setCurrentPoint(null); setMapEditMode('None')}}>Point Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('subdivision'); setFeature(null); setMapEditMode('None')}}>Subdivisions</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'point' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('point'); setCurrentPoint(null); setMapEditMode('None')}}>Points</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'heatmap' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('heatmap'); setMapEditMode('None')}}>Heat Map</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'bin' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('bin'); setMapEditMode('None')}}>Bin Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'gradient' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('gradient'); setMapEditMode('None')}}>Gradient Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'bin' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('bin'); setMapEditMode('None')}}>Bins</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'gradient' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('gradient'); setMapEditMode('None')}}>Gradients</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'template' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('template'); setMapEditMode('None')}}>Templates</Button>
                         </Box>
                     </Toolbar>
@@ -1176,7 +1213,10 @@ export default function EditMap({ mapid }) {
                     <IconButton sx={styles.sxOverride} style={{...styles.toolbarButton, top:'80px'}}
                         onClick={async () => {
                             await store.saveMapSchema(mapid, store.getSchema(mapid,true));
-                            alert('Map saved');
+                            setOpenSnackbar(true);
+                            setSnackbarMessage('Map saved');
+                            setSnackbarSeverity('success');
+                            setSnackbarAutoHide(5000);
                         }}
                     ><SaveIcon/></IconButton>
                 </Box>
@@ -1206,10 +1246,20 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'gradient' && <GradientSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange} uploadCSV={handleFileUpload} clearHeatMap={clearHeatMap} heatExistingPoints={heatExistingPoints} panToPoint={panToPoint}/>}
-                {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate}/>}
+                {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate} mapId={map?._id}/>}
 
             </Drawer>
             <ConfirmModal map={map}/>
+            <Snackbar open={openSnackbar} autoHideDuration={snackbarAutoHide} onClose={(event, reason) => {
+                if (reason === 'clickaway' || reason === 'escapeKeyDown') return;
+                setOpenSnackbar(false);
+                if (mapEditMode !== 'None') setMapEditMode('None');
+            }} anchorOrigin={{ vertical: 'bottom', horizontal: 'center'}}>
+                <Alert action={null} onClose={() => {
+                    setOpenSnackbar(false);
+                    if (mapEditMode !== 'None') setMapEditMode('None');
+                }} severity={snackbarSeverity} sx={{ width: '100%' }}>{snackbarMessage}</Alert>
+            </Snackbar>
         </Box>
     );
 }

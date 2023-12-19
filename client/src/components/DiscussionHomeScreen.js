@@ -95,6 +95,7 @@ export default function DiscussionHomeScreen(props) {
 								}
 							}
 						}}
+                        placeholder="Search Posts..."
 						style = {{ width: '75%' }}
                         value={filter}
                         onChange={handleUpdateFilter}

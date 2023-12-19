@@ -3,10 +3,17 @@
 Cypress.on('uncaught:exception', (err, runnable) => { return false })
 describe('Create Map', () => {
 
-    beforeEach(() => {
+    beforeEach(() => { // log in before each test
         cy.visit('http://localhost:3000')
-        cy.get('img.logo').click(); // Click on logo to go to home page
-        cy.contains('Create').click();
+        cy.get('.css-2uchni > .MuiButtonBase-root').click();
+        cy.get('[tabindex="0"] > .MuiTypography-root').click();
+        cy.get('#username').clear();
+        cy.get('#username').type('Kevin');
+        cy.get('#password').clear();
+        cy.get('#password').type('Admin456');
+        cy.get('.css-p2ochh > .MuiBox-root > .MuiButtonBase-root').click(); // login
+        cy.get('.css-p2ochh > .MuiBox-root > .MuiButtonBase-root').should('not.exist', { timeout: 10000 }); // wait for page to refresh
+        cy.contains('button', 'Create').click();
         cy.viewport(1920, 1080);
     })
   
@@ -16,10 +23,10 @@ describe('Create Map', () => {
         cy.contains('Publish').should('exist');
         cy.contains('Delete').should('exist');
         cy.contains('Map Info').should('exist');
-        cy.contains('Subdivision Info').should('exist');
-        cy.contains('Point Info').should('exist');
-        cy.contains('Bin Info').should('exist');
-        cy.contains('Gradient Info').should('exist');
+        cy.contains('Subdivisions').should('exist');
+        cy.contains('Points').should('exist');
+        cy.contains('Bins').should('exist');
+        cy.contains('Gradients').should('exist');
         cy.contains('Templates').should('exist');
     })
 
@@ -34,23 +41,23 @@ describe('Create Map', () => {
     })
 
     it('contains subdivision info sidebar', () => {
-        cy.contains('Subdivision Info').click();
+        cy.contains('Subdivisions').click();
         cy.contains('All Subdivisions').should('exist');
     })
 
     it('contains point info sidebar', () => {
-        cy.contains('Point Info').click();
+        cy.contains('Points').click();
         cy.contains('All Points').should('exist');
     })
 
     it('contains bin info sidebar', () => {
-        cy.contains('Bin Info').click();
+        cy.contains('Bins').click();
         cy.contains('Bin Data').should('exist');
         cy.contains('+ New Bin').should('exist');
     })
     
     it('contains gradient info sidebar', () => {
-        cy.contains('Gradient Info').click();
+        cy.contains('Gradients').click();
         cy.contains('Gradient Data').should('exist');
         cy.contains('+ New Gradient').should('exist');
     })

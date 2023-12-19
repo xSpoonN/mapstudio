@@ -82,9 +82,10 @@ export default function Gradient({gradient, mapSchema, mapData, setMapEditMode})
 
         // Find the max and min values for the data field
         keySubdivisions.forEach(subdivision => {
-            const value = subdivision.data[name];
-            if (value > maxValue) maxValue = value;
-            if (value < minValue) minValue = value;
+            const value = subdivision.data[gradient.dataField];
+            if (!value) return;
+            if (Number(value) > maxValue) maxValue = Number(value);
+            if (Number(value) < minValue) minValue = Number(value);
         });
 
         return {keySubdivisions, maxValue, minValue}

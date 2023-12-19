@@ -123,13 +123,13 @@ export default function DiscussionPost(props) {
             <Box 
                 style={{backgroundColor: '#DDDDDD', borderRadius: '8px'}}
                 sx={{ m: 6, p: 4 }}
-                height='30vh'
+                height='24vh'
                 display="flex" 
                 flexDirection="row"
             >
                 <Box 
                     style={{backgroundColor: '#CCCCCC', borderRadius: '8px', alignItems: 'center', justifyContent:"center"}}
-                    sx={{ p: 4, aspectRatio: '1 / 1' }}
+                    sx={{ p: 2, aspectRatio: '1 / 1' }}
                     height="100%"
                     boxSizing="border-box"
                     display="flex" 
@@ -138,12 +138,12 @@ export default function DiscussionPost(props) {
                     <Avatar 
                         alt="Kenna McRichard" 
                         src={`${user?.pfp}?${SASTOKEN}`}
-                        sx={{ bgcolor: "#E3256B", width: '35%', height: '35%' }}
+                        sx={{ bgcolor: "#E3256B", width: '35%', height: '35%', mt: 2 }}
                         onClick={user ? () => store.changeToProfile(user) : () => {}} 
                     >
                         {post.author[0]}
                     </Avatar>
-                    <Typography variant="h4" sx={{ mt: 4 }} style={{ textAlign: 'center' }} color='#E3256B'>
+                    <Typography variant="h4" sx={{ mt: 2 }} style={{ textAlign: 'center' }} color='#E3256B'>
                         {post.author}
                     </Typography>
                     <Typography variant="h6" flexGrow={1} color='#E3256B'>

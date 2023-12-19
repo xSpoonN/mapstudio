@@ -24,8 +24,9 @@ export default function Property({propName, mapSchema, mapData}) {
         <>
             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                 {/* Property Name */}
-                <TextField value={name} sx={{ marginLeft: 'auto', maxWidth: '250px' }} inputProps={{style: { textAlign: 'right'}}} InputProps={{ sx: { borderRadius: 3 } }} 
+                <TextField value={name} sx={{ marginLeft: 'auto', maxWidth: '250px' }} inputProps={{style: { textAlign: 'right'}, maxLength: 50}} InputProps={{ sx: { borderRadius: 3 } }} 
                     onChange={e => setName(e.target.value)} 
+                    onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                     onBlur={async () => {
                         const nameExists = mapSchema.props?.some(p => p === name); // Check if the name already exists
                         const dataFieldsSet = new Set();

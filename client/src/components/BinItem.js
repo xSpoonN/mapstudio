@@ -58,8 +58,11 @@ export default function Bin({bin, mapSchema, mapData, setMapEditMode}) {
                 <Box sx={{ width: 30, height: 30, backgroundColor: color, borderRadius: '5px', marginLeft: '5px', marginRight: '2px' }} onClick={() => setDisplayColorPicker(!displayColorPicker)} />
                 
                 {/* Bin Name */}
-                <TextField value={name} sx={{ marginLeft: 'auto', maxWidth: '200px' }} inputProps={{style: { textAlign: 'right'}}} InputProps={{ sx: { borderRadius: 3 } }} 
+                <TextField value={name} sx={{ marginLeft: 'auto', maxWidth: '200px' }} 
+                inputProps={{style: { textAlign: 'right'}, maxLength: 30}} 
+                InputProps={{ sx: { borderRadius: 3 } }} 
                     onChange={e => setName(e.target.value)} 
+                    onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                     onBlur={async () => {
                         const nameExists = mapSchema.bins.some(bin2 => bin2.name === name); // Check if the name already exists
                         if (!nameExists) { // If it doesn't, update the schema
