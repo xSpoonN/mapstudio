@@ -563,7 +563,7 @@ export default function EditMap({ mapid }) {
             setSnackbarSeverity('info');
             setSnackbarAutoHide(null);
             mapRef.current?.off('click'); // Remove existing click handler
-            mapRef.current?.on('click', () => setFeature(null)); // Add empty click handler to prevent clicking on map from doing anything
+            mapRef.current?.on('click', () => {setFeature(null); setCurrentPoint(null)}); // Add empty click handler to prevent clicking on map from doing anything
             geoJSONLayerRef.current?.eachLayer((layer) => {
                 layer.off('click'); // Remove existing click handler
                 layer.on('click', function(e) { 
@@ -773,6 +773,8 @@ export default function EditMap({ mapid }) {
             }))
         };
 
+        if(heatMapObject.points.length === 0) return;
+
         const updatedSchema = {...data, heatmaps: [heatMapObject]};
         console.log("updatedSchema")
         console.log(updatedSchema)
@@ -934,6 +936,7 @@ export default function EditMap({ mapid }) {
     const drawLegend = (resp2) => {
         if (!legendRef.current) return;
         legendRef.current.remove();
+        if(resp2?.bins.length === 0 && resp2?.gradients.length === 0) return;
         const legend = L.control({position: 'bottomleft'}); // Initialize legend
         legend.onAdd = () => {
             const div = L.DomUtil.create('div', 'info legend');
@@ -1173,14 +1176,14 @@ export default function EditMap({ mapid }) {
                         </Box>
 
                         {/* Toolbar Buttons */}
-                        <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '875px', maxWidth: '875px' }}>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'map' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('map'); store.setMapData(map);}}>Map Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('subdivision'); setFeature(null)}}>Subdivisions</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'point' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('point'); setCurrentPoint(null)}}>Points</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'heatmap' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('heatmap')}}>Heat Map</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'bin' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('bin')}>Bins</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'gradient' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('gradient')}>Gradients</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'template' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('template')}>Templates</Button>
+                        <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '1000px', maxWidth: '1000px' }}>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'map' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('map'); store.setMapData(map); setMapEditMode('None')}}>Map Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('subdivision'); setFeature(null); setMapEditMode('None')}}>Subdivisions</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'point' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('point'); setCurrentPoint(null); setMapEditMode('None')}}>Points</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'heatmap' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('heatmap'); setMapEditMode('None')}}>Heat Map</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'bin' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('bin'); setMapEditMode('None')}}>Bins</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'gradient' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('gradient'); setMapEditMode('None')}}>Gradients</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'template' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('template'); setMapEditMode('None')}}>Templates</Button>
                         </Box>
                     </Toolbar>
                 </AppBar>
@@ -1242,7 +1245,7 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'point' && <PointSidebar mapData={map} currentPoint={currentPoint} mapSchema={data} setMapEditMode={setMapEditMode} setCurrentPoint={setCurrentPoint} panToPoint={panToPoint}/>}
                 {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'gradient' && <GradientSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
-                {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange} uploadCSV={handleFileUpload} clearHeatMap={clearHeatMap} heatExistingPoints={heatExistingPoints}/>}
+                {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange} uploadCSV={handleFileUpload} clearHeatMap={clearHeatMap} heatExistingPoints={heatExistingPoints} panToPoint={panToPoint}/>}
                 {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate} mapId={map?._id}/>}
 
             </Drawer>

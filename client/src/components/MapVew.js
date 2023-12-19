@@ -67,6 +67,7 @@ export default function MapView({ mapid }) {
     const satelliteLayerRef = useRef(null); // Track satellite layer instance
     const legendRef = useRef(null); // Track legend instance
     const [markers, setMarkers] = useState([]); // eslint-disable-line
+    const [init, setInit] = useState(false)
     const { store } = useContext(GlobalStoreContext);
     const { auth } = useContext(AuthContext);
     const divRef = useRef(null);
@@ -83,8 +84,8 @@ export default function MapView({ mapid }) {
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
             mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
-            /* L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); */ // Add OpenStreetMap tiles
-            satelliteLayerRef.current = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ 
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
+            satelliteLayerRef.current = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ 
                 subdomains:['mt0','mt1','mt2','mt3']
             }).addTo(mapRef.current); // Add Google Satellite tiles
             mapInitializedRef.current = true; // Mark map as initialized
@@ -111,6 +112,7 @@ export default function MapView({ mapid }) {
             });
 
         satelliteLayerRef?.current?.setOpacity(showSatellite ? 1 : 0);
+        setInit(true)
         return () => { if (geoJSONLayerRef.current) geoJSONLayerRef.current.clearLayers(); }; // Remove GeoJSON layer on unmount
     }, [map, showSatellite]); // eslint-disable-line react-hooks/exhaustive-deps
     useEffect(() => {
@@ -126,22 +128,22 @@ export default function MapView({ mapid }) {
                 if (comments?.data.success) setMapComments(comments.data.comments);
                 /* console.log(comments?.data.comments); */
                 if (!resp.mapSchema) return setData({ // If map has no schema, create a new one
-                    "type": "bin",
+                    "type": "none",
                     "bins": [],
                     "subdivisions": [],
                     "points": [],
                     "gradients": [],
-                    "showSatellite": true
+                    "showSatellite": false
                 });
                 const resp2 = await store.getSchema(resp.mapSchema, false);
                 console.log(resp2);
                 if (!resp2) return setData({ // If map has no schema, create a new one
-                    "type": "bin",
+                    "type": "none",
                     "bins": [],
                     "subdivisions": [],
                     "points": [],
                     "gradients": [],
-                    "showSatellite": true
+                    "showSatellite": false
                 });
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
@@ -155,7 +157,7 @@ export default function MapView({ mapid }) {
             }
         }
         fetchMap();
-    }, [store, auth, mapid]);
+    }, [store, auth, mapid, init]);
 
     const drawSubdivisions = (resp2) => {
         if (geoJSONLayerRef.current){
@@ -184,6 +186,7 @@ export default function MapView({ mapid }) {
                 radius: point.weight * 15
             }).addTo(markerLayerRef.current); // Add new marker
             marker.setStyle({fillColor: point.color || '#000000', fillOpacity: 1, stroke: false}); // Set color and size of marker
+            marker.bindPopup(point.name);
             newMarkers.push(marker);
         })
         setMarkers(newMarkers); // Update state variable
@@ -209,6 +212,7 @@ export default function MapView({ mapid }) {
     const drawLegend = (resp2) => {
         if (!legendRef.current) return;
         legendRef.current.remove();
+        if(resp2?.bins.length === 0 && resp2?.gradients.length === 0) return;
         const legend = L.control({position: 'bottomleft'}); // Initialize legend
         legend.onAdd = () => {
             const div = L.DomUtil.create('div', 'info legend');
