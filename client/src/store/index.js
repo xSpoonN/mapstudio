@@ -486,6 +486,7 @@ function GlobalStoreContextProvider(props) {
                         "subdivisions": [],
                         "points": [],
                         "gradients": [],
+                        "heatmaps": [],
                         "showSatellite": false
                     }
                 }

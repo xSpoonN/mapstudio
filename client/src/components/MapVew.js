@@ -181,6 +181,7 @@ export default function MapView({ mapid }) {
                 radius: point.weight * 15
             }).addTo(markerLayerRef.current); // Add new marker
             marker.setStyle({fillColor: point.color || '#000000', fillOpacity: 1, stroke: false}); // Set color and size of marker
+            marker.bindPopup(point.name);
             newMarkers.push(marker);
         })
         setMarkers(newMarkers); // Update state variable

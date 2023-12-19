@@ -169,7 +169,6 @@ export default function AppBanner() {
 			console.log("Recv create new map request");
 			const authReq = await auth.getUserData(auth.user.email);
 			let id = await store.createNewMap(authReq.user._id, 'New Map', 'Description');
-			await store.changeToHome()
 			await store.changeToEditMap(id);
 		} else {
 			store.changeToLogin()
