@@ -384,6 +384,10 @@ export default function MapView({ mapid }) {
     }
 
     async function handleForkMap() {
+        if(!auth.user) {
+            store.changeToLogin()
+            return
+        }
         let mapJSON = null
         await fetch(`${map?.mapFile}?${SASTOKENMAP}`, {mode: "cors"})
             .then((response) => response.json())
