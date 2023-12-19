@@ -64,7 +64,7 @@ export default function Profile({userData}) {
             setPosts(posts);
             const maps = await store.getMapsData(resp.user);
             /* console.log(maps); */
-            setMaps(maps);
+            setMaps(maps.maps);
         }
         /* if (user === null)  */fetchUser();
     }, [auth, store, userData])
