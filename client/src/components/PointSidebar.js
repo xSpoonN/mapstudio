@@ -180,7 +180,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                             const weightVal = parseFloat(weightDisplay);
                             if (isNaN(weightVal) || weightVal < 0 || weightVal > 1) {
                                 snackbar('warning', 'Enter a number between 0 and 1');
-                                setWeightDisplay(currentPoint.weight);
+                                setWeightDisplay(weight);
                                 return;
                             }
                             setWeight(weightVal);
