@@ -36,6 +36,16 @@ describe('Discussion Posts Board', () => {
   /* ==== Test Created with Cypress Studio ==== */
   it('create discussion post menu', function() {
     /* ==== Generated with Cypress Studio ==== */
+    cy.get('.css-2uchni > .MuiButtonBase-root').click();
+    cy.get('[tabindex="0"] > .MuiTypography-root').click();
+    cy.get('#username').clear();
+    cy.get('#username').type('Kevin');
+    cy.get('#password').clear();
+    cy.get('#password').type('Admin456');
+    cy.get('.css-p2ochh > .MuiBox-root > .MuiButtonBase-root').click(); // login
+    cy.get('.css-p2ochh > .MuiBox-root > .MuiButtonBase-root').should('not.exist', { timeout: 10000 }); // wait for page to refresh
+    cy.get('img.logo').click(); // Click on logo to go to home page
+    cy.contains('Discuss').click();
     cy.get('.Mui-focusVisible').click();
     cy.wait(500);
     cy.get('.css-1jby15f > .MuiButton-root').click();
