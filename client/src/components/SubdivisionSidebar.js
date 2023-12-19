@@ -393,12 +393,12 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
 
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
-        {/* Map Info Header */}
-        <Typography variant="h6" style={{ margin: '10px' }}>{mapData?.title ? mapData.title : ''}</Typography>
-        <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
-        <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>{mapData?.description ? mapData.description : ''}</Typography>
-        <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '80px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
-        {content}
+            {/* Map Info Header */}
+            <Typography variant="h6" style={{ margin: '10px' }}>{mapData?.title ? mapData.title : ''}</Typography>
+            <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
+            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center', minHeight: '160px', maxHeight: '160px', overflow: 'scroll' }}>{mapData?.description ? mapData.description : ''}</Typography>
+            <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '40px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
+            {content}
         </Box>
     );
 }
