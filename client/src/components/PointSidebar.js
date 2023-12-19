@@ -195,8 +195,8 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                     }
 
                     {/* Add New Property */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', justifyContent: 'center' }}>
-                        <Button 
+                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', justifyContent: 'center', marginTop: 'auto' }}>
+                        {/* <Button 
                             variant="contained"
                             sx={{ color: 'white', mx: 1, marginTop: 'auto', marginBottom: '10px', marginLeft: 'auto', marginRight: 'auto' }} 
                             style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '190px', minHeight: '20px'}} 
@@ -205,7 +205,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                             onClick={() => setCurrentPoint(undefined)}
                         >
                             Add New Property
-                        </Button>
+                        </Button> */}
                     </Box>
                     
                     {/* Move/Delete Point */}
@@ -299,8 +299,8 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
             {/* Map Info Header */}
             <Typography variant="h6" style={{ margin: '10px' }}>{mapData?.title ? mapData.title : ''}</Typography>
             <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
-            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>{mapData?.description ? mapData.description : ''}</Typography>
-            <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '80px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
+            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center', height: '200px', overflow: 'auto' }}>{mapData?.description ? mapData.description : ''}</Typography>
+            <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '40px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
             {content}
         </Box>
     );
