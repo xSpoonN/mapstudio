@@ -23,10 +23,10 @@ describe('Create Map', () => {
         cy.contains('Publish').should('exist');
         cy.contains('Delete').should('exist');
         cy.contains('Map Info').should('exist');
-        cy.contains('Subdivision Info').should('exist');
-        cy.contains('Point Info').should('exist');
-        cy.contains('Bin Info').should('exist');
-        cy.contains('Gradient Info').should('exist');
+        cy.contains('Subdivisions').should('exist');
+        cy.contains('Points').should('exist');
+        cy.contains('Bins').should('exist');
+        cy.contains('Gradients').should('exist');
         cy.contains('Templates').should('exist');
     })
 
