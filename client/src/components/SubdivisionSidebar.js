@@ -352,7 +352,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                     color='razzmatazz'
                     onClick={async () => {
                         const maxExistingNum = (mapSchema.props || []).reduce((max, str) => {
-                            const match = str.match(/^New Property(?: \d+)?$/);
+                            const match = str.match(/^New Property (?:\d+)?$/);
                             if (match) {
                                 const num = Number(str.split(' ')[2]);
                                 return num > max ? num : max;
