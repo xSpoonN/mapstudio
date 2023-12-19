@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
-import { Button, TextField, ClickAwayListener, /* FormControl, Select, MenuItem, */ IconButton, Divider, Box, Typography, ListItem } from '@mui/material';
+import { Button, TextField, ClickAwayListener, /* FormControl, Select, MenuItem, */ IconButton, Divider, Box, Typography, ListItem, Snackbar, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 // import DeleteIcon from '@mui/icons-material/Delete';
@@ -15,9 +15,14 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
     const [name, setName] = useState('');
     const [lat, setLat] = useState(0)
     const [lon, setLon] = useState(0)
-    const [weight, setWeight] = useState(0.5); 
+    const [weight, setWeight] = useState(0.5);
+    const [weightDisplay, setWeightDisplay] = useState(0.5);
     const [color, setColor] = useState('#000000');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMsg, setSnackbarMsg] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('info');
+    const snackbarTimeout = 2000;
 
     // Handles updating the map schema when something changes elsewhere, and on initial load
     useEffect(() => {
@@ -34,6 +39,10 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
         }
         retrieveData();
     }, [currentPoint, mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        setWeightDisplay(weight);
+    }, [weight])
 
     // Handles pushing the updated map schema to store
     const updateSchema = async (updatedSchema, newPoint, param) => {
@@ -54,6 +63,12 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
         setColor(match.color ? match.color : '#000000');
     }
 
+    function snackbar(severity, msg) {
+        setSnackbarMsg(msg);
+        setSnackbarSeverity(severity);
+        setOpenSnackbar(true);
+    }
+
     let content = <></>
     if(currentPoint) {
         content = 
@@ -69,13 +84,15 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         onChange={e => setName(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                         onBlur={() => {
+                            if (name === currentPoint.name) return;
                             const isNameExists = mapInfo.points.some(point => point.name === name); // Checks if the name already exists
                             if (isNameExists) {
-                                // Handle the case when the name already exists
-                                console.log('Name already exists');
-                                return setName(currentPoint.name);
+                                snackbar('warning', 'Name already exists');
+                                setName(currentPoint.name);
+                                return;
                             }
                             // Finds the point in the mapInfo and updates it with the new name
+                            snackbar('success', 'New name saved');
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name
                                 ? {...point, name: name} : point;
@@ -91,10 +108,19 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <Typography sx={{ mr: 1, ml: '10%' }}>Lat/Lon</Typography>  
                         <TextField value={lat} sx={{ marginLeft: 'auto', width: '20%' }} InputProps={{ sx: { borderRadius: 3 } }} 
-                        onChange={e => setLat(Number(e.target.value))}
+                        onChange={e => setLat(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                         onBlur={() => {
+                            if (lat === currentPoint.location.lat) return;
+                            // Verify the value entered is a valid latitude
+                            const latVal = parseFloat(lat);
+                            if (isNaN(latVal) || latVal < -90 || latVal > 90) {
+                                snackbar('warning', 'Enter a number between -90 and 90');
+                                setLat(currentPoint.location.lat);
+                                return;
+                            }
                             // Finds the point in the mapInfo and updates it with the new lat
+                            snackbar('success', 'New latitude saved');
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name 
                                 ? {...point, location: {lat: lat, lon: lon}} : point;
@@ -104,10 +130,19 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         />
 
                         <TextField value={lon} sx={{ width: '20%' }} InputProps={{ sx: { borderRadius: 3 } }} 
-                        onChange={e => setLon(Number(e.target.value))}
+                        onChange={e => setLon(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                         onBlur={() => {
+                            if (lon === currentPoint.location.lon) return;
+                            // Verify the value entered is a valid longitude
+                            const lonVal = parseFloat(lon);
+                            if (isNaN(lonVal) || lonVal < -180 || lonVal > 180) {
+                                snackbar('warning', 'Enter a number between -180 and 180');
+                                setLon(currentPoint.location.lon);
+                                return;
+                            }
                             // Finds the point in the mapInfo and updates it with the new lon
+                            snackbar('success', 'New longitude saved');
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name 
                                 ? {...point, location: {lat: lat, lon: lon}} : point;
@@ -139,16 +174,25 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         <RemoveIcon />
                         </IconButton>
 
-                        <TextField value={weight.toFixed(2)} sx={{ width: '100px', margin: '2px' }} 
+                        <TextField value={weightDisplay === weight ? weight.toFixed(2) : weightDisplay} sx={{ width: '100px', margin: '2px' }} 
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
-                        onChange={e => setWeight(Number(e.target.value))}
+                        onChange={e => setWeightDisplay(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                         onBlur={() => {
+                            if (weightDisplay === currentPoint.weight) return;
+                            // Verify the value entered is a valid weight
+                            const weightVal = parseFloat(weightDisplay);
+                            if (isNaN(weightVal) || weightVal < 0 || weightVal > 1) {
+                                snackbar('warning', 'Enter a number between 0 and 1');
+                                setWeightDisplay(weight);
+                                return;
+                            }
+                            setWeight(weightVal);
                             // Finds the point in the mapInfo and updates it with the new weight
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name
-                                ? {...point, weight: Number(weight)} : point;
-                            })}, {...currentPoint, name: Number(weight)})
+                                ? {...point, weight: weightVal} : point;
+                            })}, {...currentPoint, name: weightVal})
                         }}
                         />
 
@@ -175,6 +219,22 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         <CheckIcon  sx={{ marginLeft: 'auto', color: 'white' }} />  
                         </IconButton>
                     </Box>
+
+                    {/* Alerts/Snackbar */}
+                    <Snackbar
+                    open={openSnackbar}
+                    autoHideDuration={snackbarTimeout}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    onClose = {(event, reason) => {
+                        if (reason === 'clickaway' || reason === 'escapeKeyDown') return;
+                        setOpenSnackbar(false);
+                    }}
+                    style={{ top: '30%' }}
+                    >
+                        <Alert action={null} onClose={() => {
+                            setOpenSnackbar(false);
+                        }} severity={snackbarSeverity} sx={{ width: '100%' }}>{snackbarMsg}</Alert>
+                    </Snackbar>
 
                     {/* Color Picker */}
                     {displayColorPicker && 
