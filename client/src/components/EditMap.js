@@ -1017,7 +1017,6 @@ export default function EditMap({ mapid }) {
                 });
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
-                console.log("resp2")
                 console.log(resp2)
 
                 // Draw subdivisions, points, and legend
