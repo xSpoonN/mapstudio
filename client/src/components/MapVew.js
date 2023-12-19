@@ -410,22 +410,6 @@ export default function MapView({ mapid }) {
         }
     }
 
-    let forkButton
-    if(auth.user) {
-        forkButton =
-            <Button
-                variant="contained"
-                sx={{ color: 'white', marginLeft: 'auto' }}
-                style={{ fontSize: '16pt', maxWidth: '135px', maxHeight: '35px', minWidth: '135px', minHeight: '35px' }}
-                disableRipple
-                color='razzmatazz'
-                alignItems='right'
-                onClick={handleForkMap}
-            >
-                Fork
-            </Button>
-    }
-
     return (
         <Box display="flex" flexDirection="row">
             <Box 
@@ -493,7 +477,17 @@ export default function MapView({ mapid }) {
                     >
                         JPG
                     </Button>
-                    {forkButton}
+                    <Button
+                        variant="contained"
+                        sx={{ color: 'white', marginLeft: 'auto' }}
+                        style={{ fontSize: '16pt', maxWidth: '135px', maxHeight: '35px', minWidth: '135px', minHeight: '35px' }}
+                        disableRipple
+                        color='razzmatazz'
+                        alignItems='right'
+                        onClick={handleForkMap}
+                    >
+                        Fork
+                    </Button>
                 </Box>
                 <Box 
                     style={{backgroundColor: '#FFFFFF'}}
