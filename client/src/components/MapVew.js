@@ -206,6 +206,7 @@ export default function MapView({ mapid }) {
     const drawLegend = (resp2) => {
         if (!legendRef.current) return;
         legendRef.current.remove();
+        if(resp2?.bins.length === 0 && resp2?.gradients.length === 0) return;
         const legend = L.control({position: 'bottomleft'}); // Initialize legend
         legend.onAdd = () => {
             const div = L.DomUtil.create('div', 'info legend');

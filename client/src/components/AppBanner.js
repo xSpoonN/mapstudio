@@ -164,11 +164,15 @@ export default function AppBanner() {
 		store.changeToSearch();
 	}
 
-	function handleCreate() {
-		if(true /*auth.user*/) {
-			store.changeToEditMap()
-		//} else {
-		//	store.changeToLogin()
+	async function handleCreate() {
+		if(auth.user) {
+			console.log("Recv create new map request");
+			const authReq = await auth.getUserData(auth.user.email);
+			let id = await store.createNewMap(authReq.user._id, 'New Map', 'Description');
+			await store.changeToHome()
+			await store.changeToEditMap(id);
+		} else {
+			store.changeToLogin()
 		}
 	}
 

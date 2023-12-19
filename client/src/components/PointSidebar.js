@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
-import { Button, TextField, ClickAwayListener, /* FormControl, Select, MenuItem, */ IconButton, Divider, Box, Typography, ListItem } from '@mui/material';
+import { Button, TextField, ClickAwayListener, /* FormControl, Select, MenuItem, */ IconButton, Divider, Box, Typography, ListItem, Pagination } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 // import DeleteIcon from '@mui/icons-material/Delete';
@@ -18,6 +18,15 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
     const [weight, setWeight] = useState(0.5); 
     const [color, setColor] = useState('#000000');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const handleChangePage = (event, newPage) => {
+        setCurrentPage(newPage);
+    };
+
+    const startIndex = (currentPage - 1) * 10;
+    const endIndex = startIndex + 10;
+    const currentData = mapInfo?.points.slice(startIndex, endIndex);
 
     // Handles updating the map schema when something changes elsewhere, and on initial load
     useEffect(() => {
@@ -250,7 +259,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
             <>
                 <Typography variant="h6" style={{ margin: '10px' }}>All Points</Typography>
                 <List sx={{ width: '90%' }}>
-                    {mapInfo?.points?.map((point) => (
+                    {currentData.map((point) => (
                         <>
                             <ListItem onClick={() => {setCurrentPoint(point); panToPoint(point?.location.lat, point?.location.lon)}}>
                                 <Grid container spacing={2}>
@@ -272,6 +281,13 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         </>
                     ))}
                 </List>
+                <Pagination
+                    count={Math.ceil(mapInfo?.points?.length/10)}
+                    page={currentPage}
+                    onChange={handleChangePage}
+                    variant="outlined"
+                    color="razzmatazz"
+                />
                 <Box sx={{ display: 'flex', width: '80%', justifyContent: 'center', mt: 2 }}>  
                         <Button 
                             variant="contained"

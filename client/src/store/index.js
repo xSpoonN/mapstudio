@@ -334,6 +334,7 @@ function GlobalStoreContextProvider(props) {
     // Map Actions
     store.createNewMap = async function(author, title, description) {
         try {
+            store.clearHistory()
             let response = await mapAPI.createMap(author, title, description);
             console.log("createNewMap response: " + JSON.stringify(response));
             if (response.status === 201) {

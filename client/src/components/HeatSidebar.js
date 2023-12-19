@@ -1,10 +1,19 @@
 import React ,{ useState, useEffect } from 'react';
-import { Button, Divider, Box, Slider, Typography } from '@mui/material';
+import { Button, Divider, Box, Slider, Typography, Pagination, Grid, List, ListItem} from '@mui/material';
 import 'leaflet.heat';
 
-export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV, clearHeatMap, heatExistingPoints }) {
+export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV, clearHeatMap, heatExistingPoints, panToPoint }) {
     const [radius, setRadius] = useState(mapSchema?.heatmaps[0]?.radius);
     const [blur, setBlur] = useState(mapSchema?.heatmaps[0]?.blur);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const handleChangePage = (event, newPage) => {
+        setCurrentPage(newPage);
+    };
+
+    const startIndex = (currentPage - 1) * 10;
+    const endIndex = startIndex + 10;
+    const currentData = mapSchema?.heatmaps[0]?.points?.slice(startIndex, endIndex);
 
     useEffect(() => {
         onHeatMapChange(radius, blur, false);
@@ -19,6 +28,42 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV, 
 
     function handleCommit() {
         onHeatMapChange(radius, blur, true);
+    }
+
+    let list = <></>
+    if(mapSchema?.heatmaps?.length !== 0) {
+        list =
+            <>
+            <Typography variant="h6" style={{ margin: '10px' }}>All Points</Typography>
+                <List sx={{ width: '90%' }}>
+                    {currentData.map((point) => (
+                        <>
+                            <ListItem onClick={() => panToPoint(point?.location.lat, point?.location.lon)}>
+                                <Grid container spacing={2}>
+                                <Grid item xs={4}>
+                                    <Typography variant="h6">{point.name}</Typography>
+                                </Grid>
+                                <Grid item xs={4}>
+                                    <Typography>{point?.location?.lat.toFixed(2)}, {point?.location?.lon.toFixed(2)}</Typography>
+                                </Grid>
+                                <Grid item xs={4}>
+                                    <Typography>Weight: {point?.weight.toFixed(2)}</Typography>
+                                </Grid>
+                                </Grid>
+                            </ListItem>
+                            <Divider variant='middle' style={{ width: '100%', margin: '5px', backgroundColor: '#dddddd', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
+                        </>
+                    ))}
+                </List>
+                <Pagination
+                    count={Math.ceil(mapSchema?.heatmaps[0]?.points?.length/10)}
+                    page={currentPage}
+                    onChange={handleChangePage}
+                    variant="outlined"
+                    color="razzmatazz"
+                />
+            </>
+
     }
 
     return (
@@ -79,6 +124,7 @@ export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV, 
             <Button variant="contained" component="label" style={{ margin: '10px', backgroundColor: '#E3256B'}} onClick={() => clearHeatMap()}>
                 Clear
             </Button>
+            {list}
         </Box>
     );
 }
