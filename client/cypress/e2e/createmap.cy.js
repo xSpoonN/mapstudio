@@ -41,23 +41,23 @@ describe('Create Map', () => {
     })
 
     it('contains subdivision info sidebar', () => {
-        cy.contains('Subdivision Info').click();
+        cy.contains('Subdivisions').click();
         cy.contains('All Subdivisions').should('exist');
     })
 
     it('contains point info sidebar', () => {
-        cy.contains('Point Info').click();
+        cy.contains('Points').click();
         cy.contains('All Points').should('exist');
     })
 
     it('contains bin info sidebar', () => {
-        cy.contains('Bin Info').click();
+        cy.contains('Bins').click();
         cy.contains('Bin Data').should('exist');
         cy.contains('+ New Bin').should('exist');
     })
     
     it('contains gradient info sidebar', () => {
-        cy.contains('Gradient Info').click();
+        cy.contains('Gradients').click();
         cy.contains('Gradient Data').should('exist');
         cy.contains('+ New Gradient').should('exist');
     })
