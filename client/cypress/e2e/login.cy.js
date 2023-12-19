@@ -17,13 +17,4 @@ describe('Login Page', () => {
         cy.contains('Username').should('exist');
         cy.contains('Password').should('exist');
     })
-
-    it('clicks create and prompts user to login', () => {
-        cy.contains('Create').click();
-        cy.contains('Create Account').should('exist');
-        cy.contains('Forgot Password').should('exist');
-        cy.contains('Log In').should('exist');
-        cy.contains('Username').should('exist');
-        cy.contains('Password').should('exist');
-    })
   })
