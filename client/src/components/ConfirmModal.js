@@ -28,7 +28,11 @@ export default function ConfirmModal(props) {
             case 'deleteMap':
                 store.deleteMap(props.map._id);
                 break;
-            case 'applyTemplate':
+            case 'applyTemplate_Bin Map':
+            case 'applyTemplate_Gradient Map':
+            case 'applyTemplate_Heat Map':
+            case 'applyTemplate_Point Map':
+            case 'applyTemplate_Satellite Map':
                 props.applyTemplate();
                 break;
             default:
@@ -42,8 +46,12 @@ export default function ConfirmModal(props) {
                 return 'Publish Map? (This cannot be undone)';
             case 'deleteMap':
                 return 'Delete Map? (This cannot be undone)';
-            case 'applyTemplate':
-                return 'Apply Template? (This will overwrite your current map)';
+            case 'applyTemplate_Bin Map':
+            case 'applyTemplate_Gradient Map':
+            case 'applyTemplate_Heat Map':
+            case 'applyTemplate_Point Map':
+            case 'applyTemplate_Satellite Map':
+                return 'Apply Template? (This will OVERWRITE your current map)';
             default:
                 return '';
         }

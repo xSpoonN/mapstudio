@@ -75,7 +75,7 @@ export default function TemplateSidebar({mapSchema, changeTemplate, mapId}) {
                 <Box
                     key={template.name}
                     sx={{ display: 'flex', alignItems: 'center', p: 2, m: 0.5, borderRadius: 5, width: '75%', height: '20%', cursor: 'pointer', backgroundColor: '#EEEEEE', border: mapSchema?.type === template.name.split(" ")[0].toLowerCase() ? 3 : ((mapSchema?.type === 'heatmap' && template.name === "Heat Map") ? 3 : 0) }}
-                    onClick={() => store.openModal('applyTemplate')}
+                    onClick={() => store.openModal('applyTemplate_' + template.name)}
                 >
                     <img src={template.image} width={150} alt="Template Preview" />
                     <Box sx={{ ml: 2 }}>
@@ -85,7 +85,7 @@ export default function TemplateSidebar({mapSchema, changeTemplate, mapId}) {
                 </Box>
             ))}
         {templates.map(template => (
-            <ConfirmModal key={template.name} type={'applyTemplate'} applyTemplate={() => handleTemplate(template.name)} />
+            <ConfirmModal key={template.name} type={'applyTemplate_' + template.name} applyTemplate={() => handleTemplate(template.name)} />
         ))}
         </Box>
     );
