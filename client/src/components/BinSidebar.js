@@ -11,7 +11,11 @@ export default function BinInfoSidebar({mapData, mapSchema, setMapEditMode}) {
     const updateSchema = async () => {
         // Append number of 'New Bin's there are to the name
         const newBinCount = mapSchema.bins.filter(bin => bin.name.startsWith('New Bin')).length;
-        const newBinName = `New Bin ${newBinCount}`;
+        var newBinName = `New Bin ${newBinCount}`;
+        // eslint-disable-next-line no-loop-func
+        while (mapSchema.bins.find(bin => bin.name === newBinName)) {
+            newBinName += '1';
+        }
         const updatedSchema = { ...mapSchema, bins: [...mapSchema.bins, { name: newBinName, color: '#E3256B', subdivisions: [] }] };
         await store.updateMapSchema(mapData._id, updatedSchema);
     }
