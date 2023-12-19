@@ -9,35 +9,35 @@ const templates = [
         description: 'Useful for discrete categorization',
         mapFile: 'https://mapstudio.blob.core.windows.net/mapfiles/geojson6580c020336ecfedb50999db.json',
         mapSchema: '6580c091336ecfedb5099b89',
-        image: 'https://source.unsplash.com/random/500x300'
+        image: '/bin.PNG'
     },
     {
         name: 'Gradient Map',
         description: 'Useful for representing continuous data',
         mapFile: 'https://mapstudio.blob.core.windows.net/mapfiles/geojson6580c9d2f3d530d8d2c03702.json',
         mapSchema: '6580cb85452cc86fb14a10d4',
-        image: 'https://source.unsplash.com/random/500x300'
+        image: '/gradient.PNG'
     },
     {
         name: 'Heat Map',
         description: 'Useful for representing areas of intensity',
         mapFile: 'https://mapstudio.blob.core.windows.net/mapfiles/geojson6580f485336ecfedb509c63e.json',
         mapSchema: '6580f49c336ecfedb509c64e',
-        image: 'https://source.unsplash.com/random/500x300'
+        image: '/heat.PNG'
     },
     {
         name: 'Point Map',
         description: 'Useful for representing labeled points',
         mapFile: 'https://mapstudio.blob.core.windows.net/mapfiles/geojson6580e99e452cc86fb14a15b8.json',
         mapSchema: '6580ea41336ecfedb509be93',
-        image: 'https://source.unsplash.com/random/500x300'
+        image: '/point.PNG'
     },
     {
         name: 'Satellite Map',
         description: 'Useful for visualizing geography',
         mapFile: 'https://mapstudio.blob.core.windows.net/mapfiles/geojson6580efae2b06b54815324f22.json',
         mapSchema: '6580f0eb2b06b54815324fec',
-        image: 'https://source.unsplash.com/random/500x300'
+        image: '/satellite.PNG'
     }
 ]
 
