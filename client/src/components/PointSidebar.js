@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
-import { Button, TextField, ClickAwayListener, /* FormControl, Select, MenuItem, */ IconButton, Divider, Box, Typography, ListItem } from '@mui/material';
+import { Button, TextField, ClickAwayListener, /* FormControl, Select, MenuItem, */ IconButton, Divider, Box, Typography, ListItem, Snackbar, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 // import DeleteIcon from '@mui/icons-material/Delete';
@@ -18,6 +18,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
     const [weight, setWeight] = useState(0.5); 
     const [color, setColor] = useState('#000000');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
 
     // Handles updating the map schema when something changes elsewhere, and on initial load
     useEffect(() => {
@@ -70,8 +71,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         onBlur={() => {
                             const isNameExists = mapInfo.points.some(point => point.name === name); // Checks if the name already exists
                             if (isNameExists) {
-                                // Handle the case when the name already exists
-                                console.log('Name already exists');
+                                setOpenSnackbar(true);
                                 return setName(currentPoint.name);
                             }
                             // Finds the point in the mapInfo and updates it with the new name
@@ -171,6 +171,22 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         <CheckIcon  sx={{ marginLeft: 'auto', color: 'white' }} />  
                         </IconButton>
                     </Box>
+
+                    {/* Alerts/Snackbar */}
+                    <Snackbar
+                    open={openSnackbar}
+                    autoHideDuration={1500}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    onClose = {(event, reason) => {
+                        if (reason === 'clickaway' || reason === 'escapeKeyDown') return;
+                        setOpenSnackbar(false);
+                    }}
+                    style={{ top: '30%' }}
+                    >
+                        <Alert action={null} onClose={() => {
+                            setOpenSnackbar(false);
+                        }} severity='warning' sx={{ width: '100%' }}>Name already exists</Alert>
+                    </Snackbar>
 
                     {/* Color Picker */}
                     {displayColorPicker && 
