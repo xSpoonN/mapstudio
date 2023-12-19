@@ -64,7 +64,7 @@ export default function DiscussionPostNew() {
                             mx: 4
                         }}
                         style = {{ width: '75%' }}
-                        inputProps={{style: {fontSize: 24}}}
+                        inputProps={{style: {fontSize: 24}, maxLength: 100}}
                         value={title}
                         onChange={handleUpdateTitle}
                     />
@@ -93,7 +93,7 @@ export default function DiscussionPostNew() {
                             mx: 4
                         }}
                         style = {{ width: '100%' }}
-                        inputProps={{style: {fontSize: 24}}}
+                        inputProps={{style: {fontSize: 24}, maxLength: 2000}}
                         value={content}
                         onChange={handleUpdateContent}
                     />

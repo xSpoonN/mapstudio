@@ -9,6 +9,8 @@ import { TwitterPicker } from 'react-color';
 import SubdivisionItem from './SubdivisionItem';
 import Property from './SubdivisionProperty';
 
+const SASTOKEN = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
+
 export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSchema, setFeature }) {
     const { store } = useContext(GlobalStoreContext);
     /* const [sdData, setSdData] = useState({}); */
@@ -34,11 +36,17 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                     subdivision.name === currentFeature.name || subdivision.name === currentFeature.NAME || subdivision.name === currentFeature.Name
                 );
                 setName(currentFeature.name || currentFeature.NAME || currentFeature.Name);
-                if (match?.data) {
-                    const options = Object.getOwnPropertyNames(match.data); // Get the object properties of the subdivision as an array
+                if (match) {
+                    // Get all unique data fields from subdivisions
+                    const dataFieldsSet = new Set();
+                    mapSchema?.subdivisions?.forEach(subdivision => {
+                        Object.keys(subdivision.data || {}).forEach(key => dataFieldsSet.add(key));
+                    })
+                    const dataFields = [...dataFieldsSet];
+                    const options = allProperties.length ? allProperties : [...(mapSchema.props || []), ...dataFields]; // Get the object properties of the subdivision as an array
                     setDropdownOptions(options)
                     setDropdownValue(options ? options[0] : '');
-                    setValue(options ? match.data[options[0]] : '');
+                    setValue(options ? (match.data ? match.data[options[0]] || 'N/A' : 'N/A') : '');
                 } else {
                     setDropdownOptions([]);
                     setDropdownValue('');
@@ -47,6 +55,24 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                 setWeight(match?.weight ? match.weight : 0.5);
                 setColor(match?.color ? match.color : '#DDDDDD');
             } else {
+                if (mapSchema && !mapSchema.subdivisions?.length) { // eslint-disable-line
+                    console.log("Fetching");
+                    fetch(`${mapData?.mapFile}?${SASTOKEN}`, {mode: "cors"}) // Fetch GeoJSON data
+                    .then((response) =>  response.json()) // Parse response as JSON
+                    .then((geojson) => {
+                        const subdivisions = geojson.features.map(feature => {
+                            return {
+                                name: feature.properties.NAME || feature.properties.name || feature.properties.Name, 
+                                weight: 0.5, 
+                                color: '#DDDDDD'
+                            }
+                        })
+                        console.log("subdivisions", subdivisions);
+                        updateSchema({...mapSchema, subdivisions: subdivisions});
+                    }).catch((error) => {
+                        console.error('Error reading GeoJSON', error);
+                    });
+                }
                 // Get all unique data fields from subdivisions
                 const dataFieldsSet = new Set();
                 mapSchema?.subdivisions?.forEach(subdivision => {
@@ -75,11 +101,17 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
             if (match) {
                 setWeight(match.weight ? match.weight : 0.5);
                 setColor(match.color ? match.color : '#E3256B');
-                if (match.data) {
-                    const options = Object.getOwnPropertyNames(match.data); // Get the object properties of the subdivision as an array
+                if (match) {
+                    // Get all unique data fields from subdivisions
+                    const dataFieldsSet = new Set();
+                    mapSchema?.subdivisions?.forEach(subdivision => {
+                        Object.keys(subdivision.data || {}).forEach(key => dataFieldsSet.add(key));
+                    })
+                    const dataFields = [...dataFieldsSet];
+                    const options = allProperties.length ? allProperties : [...(mapSchema.props || []), ...dataFields]; // Get the object properties of the subdivision as an array
                     setDropdownOptions(options)
                     setDropdownValue(options ? options[0] : '');
-                    setValue(options ? match.data[options[0]] : '');
+                    setValue(options ? (match.data ? match.data[options[0]] || 'N/A' : 'N/A') : '');
                 } else {
                     setDropdownOptions([]);
                     setDropdownValue('');
@@ -135,10 +167,11 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             </FormControl>
 
                             <TextField value={value} sx={{ margin: '2px', marginLeft: 'auto', width: '100px' }}
-                            inputProps={{style: { textAlign: 'right'}}} InputProps={{ sx: { borderRadius: 3 } }}
+                            inputProps={{style: { textAlign: 'right'}, maxLength: 16}} InputProps={{ sx: { borderRadius: 3 } }}
                             onChange={e => { 
                                 setValue(e.target.value); 
                             }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                             onBlur={() => {
                                 // Find the subdivision in the map schema
                                 const existing = mapInfo?.subdivisions?.find(subdivision => 
@@ -200,6 +233,7 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                             onChange={e => {
                                 setWeight(e.target.value);
                             }}
+                            onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                             onBlur={() => {
                                 // Find the subdivision in the map schema
                                 const existing = mapInfo?.subdivisions?.find(subdivision => 
@@ -345,7 +379,8 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
                     {allProperties.map(option => <MenuItem value={option}>{option}</MenuItem>)}
                 </Select>
                 <List sx={{ width: '90%' }}>
-                    {mapSchema?.subdivisions.map((sub) => (
+                    {mapSchema?.subdivisions.sort((a, b) => a.name.localeCompare(b.name))
+                    .map((sub) => (
                         <>
                             <SubdivisionItem sub={sub} allProperties={allProperties} mapId={mapData?._id} mapSchema={mapSchema} chosenProp={selectedProperty} setFeature={setFeature}/>
                             <Divider variant='middle' style={{ width: '90%', margin: '5px', backgroundColor: '#dddddd', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
@@ -358,12 +393,12 @@ export default function SubdivisionInfoSidebar({ mapData, currentFeature, mapSch
 
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
-        {/* Map Info Header */}
-        <Typography variant="h6" style={{ margin: '10px' }}>{mapData?.title ? mapData.title : ''}</Typography>
-        <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
-        <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>{mapData?.description ? mapData.description : ''}</Typography>
-        <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '80px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
-        {content}
+            {/* Map Info Header */}
+            <Typography variant="h6" style={{ margin: '10px' }}>{mapData?.title ? mapData.title : ''}</Typography>
+            <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
+            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center', minHeight: '160px', maxHeight: '160px', overflow: 'scroll' }}>{mapData?.description ? mapData.description : ''}</Typography>
+            <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '40px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
+            {content}
         </Box>
     );
 }

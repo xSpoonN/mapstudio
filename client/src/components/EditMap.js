@@ -171,7 +171,9 @@ const styles = {
         maxHeight: '45px',
         minWidth: '105px',
         minHeight: '45px',
-        color: '#E3256B'
+        color: '#EEEEEE',
+        backgroundColor: '#E3256B',
+        borderRadius: '10px'
     },
     toolbarButton: {
         position: 'absolute',
@@ -558,7 +560,6 @@ export default function EditMap({ mapid }) {
             });
         } else { // None
             setOpenSnackbar(false);
-            setSnackbarMessage('');
             setSnackbarSeverity('info');
             setSnackbarAutoHide(null);
             mapRef.current?.off('click'); // Remove existing click handler
@@ -955,8 +956,9 @@ export default function EditMap({ mapid }) {
                         // Find the max and min values for the data field
                         keySubdivisions.forEach(subdivision => {
                             const value = subdivision.data[grd.dataField];
-                            if (value > max) max = value;
-                            if (value < min) min = value;
+                            if (!value) return;
+                            if (Number(value) > max) max = Number(value);
+                            if (Number(value) < min) min = Number(value);
                         });
                         const levels = Array.from({length: 4}, (_, i) => {
                             const value = ((max - min) * (i/3) + min);
@@ -974,7 +976,7 @@ export default function EditMap({ mapid }) {
                         levels.map((level, i) => (
                             <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', overflow: '' }}>  
                                 <Box sx={{ width: 22, minWidth: 22, height: 22, borderRadius: '5px', backgroundColor: level.color, marginRight: '10px', marginLeft: '15px'}} />
-                                <Typography sx={{ marginLeft: '5px', marginRight: 'auto', color: '#FFFFFF', fontFamily: 'JetBrains Mono'}} noWrap='true'>{level.value.toFixed(2)}</Typography>
+                                <Typography sx={{ marginLeft: '5px', marginRight: 'auto', color: '#FFFFFF', fontFamily: 'JetBrains Mono'}} noWrap={true}>{level.value.toFixed(2)}</Typography>
                             </Box>
 
                         ))]
@@ -1017,13 +1019,12 @@ export default function EditMap({ mapid }) {
                 });
                 /* store.setSchemaData(resp2?.schema); */
                 setData(resp2);
-                console.log("resp2")
                 console.log(resp2)
 
                 // Draw subdivisions, points, and legend
                 drawSubdivisions(resp2);
                 loadPoints(resp2?.points);
-                setShowSatellite(resp2?.satelliteView);
+                setShowSatellite(resp2?.showSatellite);
                 renderHeatSchemaToHeatMap(resp2);
                 drawLegend(resp2);
             }
@@ -1035,7 +1036,7 @@ export default function EditMap({ mapid }) {
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
             mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
+            /* L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); */ // Add OpenStreetMap tiles
             satelliteLayerRef.current = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ 
                 subdomains:['mt0','mt1','mt2','mt3']
             }).addTo(mapRef.current); // Add Google Satellite tiles
@@ -1155,7 +1156,6 @@ export default function EditMap({ mapid }) {
         saveAs(blob, map.title + "_schema.json")
     }
 
-
     return (
         <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Box height='80vh' width='100vw' style={{ flex: 1 }} >
@@ -1173,13 +1173,13 @@ export default function EditMap({ mapid }) {
                         </Box>
 
                         {/* Toolbar Buttons */}
-                        <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '1000px', maxWidth: '1000px' }}>
+                        <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '875px', maxWidth: '875px' }}>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'map' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('map'); store.setMapData(map);}}>Map Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('subdivision'); setFeature(null)}}>Subdivision Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'point' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('point'); setCurrentPoint(null)}}>Point Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('subdivision'); setFeature(null)}}>Subdivisions</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'point' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('point'); setCurrentPoint(null)}}>Points</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'heatmap' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('heatmap')}}>Heat Map</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'bin' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('bin')}>Bin Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'gradient' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('gradient')}>Gradient Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'bin' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('bin')}>Bins</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'gradient' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('gradient')}>Gradients</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'template' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('template')}>Templates</Button>
                         </Box>
                     </Toolbar>
@@ -1243,11 +1243,12 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'bin' && <BinSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'gradient' && <GradientSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange} uploadCSV={handleFileUpload} clearHeatMap={clearHeatMap} heatExistingPoints={heatExistingPoints}/>}
-                {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate}/>}
+                {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate} mapId={map?._id}/>}
 
             </Drawer>
             <ConfirmModal map={map}/>
-            <Snackbar open={openSnackbar} autoHideDuration={snackbarAutoHide} onClose={() => {
+            <Snackbar open={openSnackbar} autoHideDuration={snackbarAutoHide} onClose={(event, reason) => {
+                if (reason === 'clickaway' || reason === 'escapeKeyDown') return;
                 setOpenSnackbar(false);
                 if (mapEditMode !== 'None') setMapEditMode('None');
             }} anchorOrigin={{ vertical: 'bottom', horizontal: 'center'}}>
