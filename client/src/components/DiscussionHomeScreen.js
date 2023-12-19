@@ -1,6 +1,7 @@
 import { useState, useContext } from 'react';
 import GlobalStoreContext from '../store';
 import AuthContext from '../auth';
+import AuthContext from '../auth';
 
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -33,10 +34,11 @@ export default function DiscussionHomeScreen(props) {
     };
 
     function handleCreate() {
-        if (auth.user)
+        if(auth.user) {
             store.changeToDiscussionPostNew();
-        else
+        } else {
             store.changeToLogin();
+        }
     }
 
     function handleSortAndFilter(posts) {
