@@ -83,7 +83,7 @@ export default function MapView({ mapid }) {
     useEffect(() => {
         if (!mapInitializedRef.current) { // Initialize map if it hasn't been initialized yet
             mapRef.current = L.map(mapRef.current).setView([0, 0], 2); // Initialize Leaflet map with default view/zoom
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); // Add OpenStreetMap tiles
+            /* L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(mapRef.current); */ // Add OpenStreetMap tiles
             satelliteLayerRef.current = L.tileLayer('http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',{ 
                 subdomains:['mt0','mt1','mt2','mt3']
             }).addTo(mapRef.current); // Add Google Satellite tiles
@@ -231,8 +231,9 @@ export default function MapView({ mapid }) {
                         // Find the max and min values for the data field
                         keySubdivisions.forEach(subdivision => {
                             const value = subdivision.data[grd.dataField];
-                            if (value > max) max = value;
-                            if (value < min) min = value;
+                            if (!value) return;
+                            if (Number(value) > max) max = Number(value);
+                            if (Number(value) < min) min = Number(value);
                         });
                         const levels = Array.from({length: 4}, (_, i) => {
                             const value = ((max - min) * (i/3) + min);
@@ -259,7 +260,7 @@ export default function MapView({ mapid }) {
             )
             return div;
         }
-        legend.addTo(mapRef.current); // Add legend to map
+        if (mapRef?.current) legend.addTo(mapRef.current); // Add legend to map
         legendRef.current = legend; // Store legend in ref
     }
 
@@ -407,7 +408,7 @@ export default function MapView({ mapid }) {
             <Button
                 variant="contained"
                 sx={{ color: 'white', marginLeft: 'auto' }}
-                style={{ fontSize: '16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px' }}
+                style={{ fontSize: '16pt', maxWidth: '135px', maxHeight: '35px', minWidth: '135px', minHeight: '35px' }}
                 disableRipple
                 color='razzmatazz'
                 alignItems='right'
@@ -421,13 +422,13 @@ export default function MapView({ mapid }) {
         <Box display="flex" flexDirection="row">
             <Box 
                 style={{backgroundColor: '#DDDDDD', borderRadius: '8px'}}
-                sx={{ mx: 2, my: 6, p:4 }}
+                sx={{ mx: 2, mt: 2, p:4 }}
                 height='80vh'
                 width='70vw'
             >
                 <Box 
                     style={{backgroundColor: '#CCCCCC', borderRadius: '8px'}}
-                    sx={{ p: 2, mb: 2 }}
+                    sx={{ p: 2, mb: 1.5 }}
                     display="flex"
                     flexDirection="row"
                     alignItems="center"
@@ -453,11 +454,11 @@ export default function MapView({ mapid }) {
                     {handleLikeCounter()}
                     {handleDislikeCounter()}
                 </Box>
-                <Box display="flex" sx={{ pb: 2 }}>
+                <Box display="flex" sx={{ pb: 1.5 }}>
                     <Button 
                         variant="contained"
                         sx={{ color: 'white', mr: 1 }} 
-                        style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px'}} 
+                        style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '35px', minWidth: '135px', minHeight: '35px'}} 
                         disableRipple
                         color='razzmatazz'
                         onClick={handleJSON}
@@ -467,7 +468,7 @@ export default function MapView({ mapid }) {
                     <Button 
                         variant="contained"
                         sx={{ color: 'white', mx: 1 }} 
-                        style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px'}} 
+                        style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '35px', minWidth: '135px', minHeight: '35px'}} 
                         disableRipple
                         color='razzmatazz'
                         onClick={handlePNG}
@@ -477,7 +478,7 @@ export default function MapView({ mapid }) {
                     <Button 
                         variant="contained"
                         sx={{ color: 'white', mx: 1 }} 
-                        style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '50px', minWidth: '135px', minHeight: '50px'}} 
+                        style={{fontSize:'16pt', maxWidth: '135px', maxHeight: '35px', minWidth: '135px', minHeight: '35px'}} 
                         disableRipple
                         color='razzmatazz'
                         onClick={handleJPG}
@@ -501,7 +502,7 @@ export default function MapView({ mapid }) {
                     display="flex"
                     flexDirection="column"
                     alignItems="center"
-                    height="12vh"
+                    height="10vh"
                 >
                     <Typography
                         style={{
@@ -516,7 +517,7 @@ export default function MapView({ mapid }) {
             </Box>
             <Box 
                 style={{backgroundColor: '#DDDDDD', borderRadius: '8px'}}
-                sx={{ mx: 2, my: 6, p: 4 }}
+                sx={{ mx: 2, mt: 2, p: 4 }}
                 height='80vh'
                 width='30vw'
             >
@@ -528,7 +529,7 @@ export default function MapView({ mapid }) {
                         {map?.comments?.length}
                     </Typography>
                 </Box>
-                <Box className="map-comments" height="85%" style={styles.scroll} sx={{ mb: 2 }}>
+                <Box className="map-comments" height="80%" style={styles.scroll} sx={{ mb: 2 }}>
                     <List sx={{ width: '90%', left: '5%' }}>
                         {mapComments?.map((cmt) => (
                                 <Comment

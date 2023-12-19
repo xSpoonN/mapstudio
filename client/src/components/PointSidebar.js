@@ -80,8 +80,9 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                     {/* Point Name */}
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <Typography sx={{ mr: 1, ml: '10%' }}>Name</Typography>  
-                        <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} 
+                        <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} inputProps={{ maxLength: 50 }}
                         onChange={e => setName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                         onBlur={() => {
                             if (name === currentPoint.name) return;
                             const isNameExists = mapInfo.points.some(point => point.name === name); // Checks if the name already exists
@@ -108,6 +109,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         <Typography sx={{ mr: 1, ml: '10%' }}>Lat/Lon</Typography>  
                         <TextField value={lat} sx={{ marginLeft: 'auto', width: '20%' }} InputProps={{ sx: { borderRadius: 3 } }} 
                         onChange={e => setLat(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                         onBlur={() => {
                             if (lat === currentPoint.location.lat) return;
                             // Verify the value entered is a valid latitude
@@ -129,6 +131,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
 
                         <TextField value={lon} sx={{ width: '20%' }} InputProps={{ sx: { borderRadius: 3 } }} 
                         onChange={e => setLon(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                         onBlur={() => {
                             if (lon === currentPoint.location.lon) return;
                             // Verify the value entered is a valid longitude
@@ -174,6 +177,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         <TextField value={weightDisplay === weight ? weight.toFixed(2) : weightDisplay} sx={{ width: '100px', margin: '2px' }} 
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
                         onChange={e => setWeightDisplay(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                         onBlur={() => {
                             if (weightDisplay === currentPoint.weight) return;
                             // Verify the value entered is a valid weight
@@ -251,8 +255,8 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                     }
 
                     {/* Add New Property */}
-                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', justifyContent: 'center' }}>
-                        <Button 
+                    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', height: '100%', justifyContent: 'center', marginTop: 'auto' }}>
+                        {/* <Button 
                             variant="contained"
                             sx={{ color: 'white', mx: 1, marginTop: 'auto', marginBottom: '10px', marginLeft: 'auto', marginRight: 'auto' }} 
                             style={{fontSize:'12pt', maxWidth: '200px', maxHeight: '30px', minWidth: '190px', minHeight: '20px'}} 
@@ -261,7 +265,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                             onClick={() => setCurrentPoint(undefined)}
                         >
                             Add New Property
-                        </Button>
+                        </Button> */}
                     </Box>
                     
                     {/* Move/Delete Point */}
@@ -310,7 +314,8 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
             <>
                 <Typography variant="h6" style={{ margin: '10px' }}>All Points</Typography>
                 <List sx={{ width: '90%' }}>
-                    {mapInfo?.points?.map((point) => (
+                    {mapInfo?.points?.sort((a, b) => a.name.localeCompare(b.name))
+                    .map((point) => (
                         <>
                             <ListItem onClick={() => {setCurrentPoint(point); panToPoint(point?.location.lat, point?.location.lon)}}>
                                 <Grid container spacing={2}>
@@ -354,8 +359,8 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
             {/* Map Info Header */}
             <Typography variant="h6" style={{ margin: '10px' }}>{mapData?.title ? mapData.title : ''}</Typography>
             <Divider variant='middle' style={{ width: '60%', margin: '5px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
-            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center' }}>{mapData?.description ? mapData.description : ''}</Typography>
-            <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '80px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
+            <Typography variant="subtitle1" style={{ margin: '10px', textAlign: 'center', minHeight: '160px', maxHeight: '160px', overflow: 'scroll' }}>{mapData?.description ? mapData.description : ''}</Typography>
+            <Divider variant='middle' style={{ width: '80%', margin: '10px', marginTop: '40px', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2 }} />
             {content}
         </Box>
     );
