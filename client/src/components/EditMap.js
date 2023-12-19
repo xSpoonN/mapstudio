@@ -1256,9 +1256,9 @@ export default function EditMap({ mapid }) {
                 {sidebar === 'gradient' && <GradientSidebar mapData={map} mapSchema={data} setMapEditMode={setMapEditMode}/>}
                 {sidebar === 'heatmap' && <HeatMapSidebar mapSchema={data} onHeatMapChange={handleHeatMapChange} uploadCSV={handleFileUpload} clearHeatMap={clearHeatMap} heatExistingPoints={heatExistingPoints} panToPoint={panToPoint}/>}
                 {sidebar === 'template' && <TemplateSidebar mapSchema={data} changeTemplate={changeTemplate} mapId={map?._id}/>}
-
             </Drawer>
-            <ConfirmModal map={map}/>
+            <ConfirmModal type='publishMap' map={map}/>
+            <ConfirmModal type='deleteMap' map={map}/>
             <Snackbar open={openSnackbar} autoHideDuration={snackbarAutoHide} onClose={(event, reason) => {
                 if (reason === 'clickaway' || reason === 'escapeKeyDown') return;
                 setOpenSnackbar(false);

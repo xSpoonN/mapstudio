@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { GlobalStoreContext } from '../store';
 import { Divider, Box, Typography } from '@mui/material';
+import ConfirmModal from './ConfirmModal';
 
 const SASTOKENMAP = 'sp=r&st=2023-12-03T19:46:53Z&se=2025-01-09T03:46:53Z&sv=2022-11-02&sr=c&sig=LL0JUIq%2F3ZfOrYW8y4F4lk67ZXHFlGdmY%2BktKsHPkss%3D';
 const templates = [
@@ -43,6 +44,7 @@ const templates = [
 
 export default function TemplateSidebar({mapSchema, changeTemplate, mapId}) {
     const { store } = useContext(GlobalStoreContext);
+
     async function handleTemplate(template) {
         const map = templates.find(t => t.name === template)
         let mapJSON = null
@@ -64,6 +66,7 @@ export default function TemplateSidebar({mapSchema, changeTemplate, mapId}) {
         await store.updateMapFile(mapId, mapJSON);
         await store.updateMapSchema(mapId, schema);
     }
+    
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
             <Typography variant="h6" style={{ margin: '10px' }}>Templates</Typography>
@@ -71,8 +74,8 @@ export default function TemplateSidebar({mapSchema, changeTemplate, mapId}) {
             {templates.map(template => (
                 <Box
                     key={template.name}
-                    sx={{ display: 'flex', alignItems: 'center', p: 2, m: 0.5, borderRadius: 5, width: '75%', height: '20%', backgroundColor: '#EEEEEE', border: mapSchema?.type === template.name.split(" ")[0].toLowerCase() ? 3 : ((mapSchema?.type === 'heatmap' && template.name === "Heat Map") ? 3 : 0) }}
-                    onClick={() => handleTemplate(template.name)}
+                    sx={{ display: 'flex', alignItems: 'center', p: 2, m: 0.5, borderRadius: 5, width: '75%', height: '20%', cursor: 'pointer', backgroundColor: '#EEEEEE', border: mapSchema?.type === template.name.split(" ")[0].toLowerCase() ? 3 : ((mapSchema?.type === 'heatmap' && template.name === "Heat Map") ? 3 : 0) }}
+                    onClick={() => store.openModal('applyTemplate_' + template.name)}
                 >
                     <img src={template.image} width={150} alt="Template Preview" />
                     <Box sx={{ ml: 2 }}>
@@ -81,6 +84,9 @@ export default function TemplateSidebar({mapSchema, changeTemplate, mapId}) {
                     </Box>
                 </Box>
             ))}
+        {templates.map(template => (
+            <ConfirmModal key={template.name} type={'applyTemplate_' + template.name} applyTemplate={() => handleTemplate(template.name)} />
+        ))}
         </Box>
     );
 }
