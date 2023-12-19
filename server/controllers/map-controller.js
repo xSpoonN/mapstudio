@@ -218,11 +218,16 @@ updateMapFileById = async (req, res) => {
 getMapsByUser = async (req, res) => {
     if(req.userId === req.params.id) {
         Map.find({ author: req.params.id })
-        .then(maps => {
+        .then(async maps => {
             maps.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate));
+            const schemaIds = maps.map(map => map.mapSchema);
+            const schemas = await Promise.all(schemaIds.map(schemaId =>
+                MapSchema.findOne({ _id: schemaId })
+            ));
             return res.status(200).json({
                 success: true,
                 maps: maps,
+                schemas: schemas,
                 message: 'Maps retrieved!'
             })
         }).catch(error => {
@@ -259,10 +264,15 @@ getPublishedMaps = async (req, res) => {
             const authors = await Promise.all(authorIds.map(authorId =>
                 User.findOne({ _id: authorId })
             ));
+            const schemaIds = maps.map(map => map.mapSchema);
+            const schemas = await Promise.all(schemaIds.map(schemaId =>
+                MapSchema.findOne({ _id: schemaId })
+            ));
             return res.status(200).json({
                 success: true,
                 maps: maps,
                 authors: authors,
+                schemas: schemas,
                 message: 'Maps retrieved!'
             })
         }).catch(error => {

@@ -23,7 +23,6 @@ export default function PersonalMapsScreen() {
     const [sort, setSort] = useState('Newest');
     const [search, setSearch] = useState('')
     const [maps, setMaps] = useState([]);
-    const [mapTypes, setMapTypes] = useState([]);
 
     useEffect(() => {
         const fetchMaps = async () => {
@@ -31,20 +30,12 @@ export default function PersonalMapsScreen() {
             console.log(resp);
             if (resp.success) {
                 const maps = await store.getMapsData(resp.user);
-                console.log(maps);
-                setMaps(maps);
-                // get types for maps with schemas
-                const types = [];
-                for (let i = 0; i < maps.length; i++) {
-                    if (!maps[i].mapSchema) {
-                        types.push("none");
-                        continue;
-                    }
-                    let resp = await store.getSchema(maps[i].mapSchema)
-                    console.log(resp.type)
-                    types.push(resp ? resp.type : "none");
+                const result = [];
+                for (let i = 0; i < maps.maps.length; i++) {
+                    result.push({ map: maps.maps[i], type: maps.schemas[i] ? maps.schemas[i].type : 'none' });
                 }
-                setMapTypes(types);
+                console.log(result)
+                setMaps(result)
             }
         }
         fetchMaps();
@@ -71,20 +62,20 @@ export default function PersonalMapsScreen() {
     };
 
     function handleSortAndFilter(maps) {
-        let sorted
-        if(sort === "Newest") {
-            sorted = maps.sort((a, b) => new Date(b.creationDate) - new Date(a.creationDate));
-        } else if(sort === "Most Liked") {
-            sorted = maps.sort((a, b) => b.likes - a.likes);
-        } else if(sort === "Most Commented") {
-            sorted = maps.sort((a, b) => b.comments.length - a.comments.length);
-        }
+        let sorted = maps
         if (filter !== "none") {
-            sorted = sorted.filter((map, index) => {
-                return mapTypes[index] === filter
+            sorted = maps.filter((map, index) => {
+                return map.type === filter
             })
         }
-        return sorted.filter(map => map.title.toLowerCase().includes(search?.toLowerCase()));
+        if(sort === "Newest") {
+            sorted = sorted.sort((a, b) => new Date(b.map.creationDate) - new Date(a.map.creationDate));
+        } else if(sort === "Most Liked") {
+            sorted = sorted.sort((a, b) => b.map.likes - a.map.likes);
+        } else if(sort === "Most Commented") {
+            sorted = sorted.sort((a, b) => b.map.comments.length - a.map.comments.length);
+        }
+        return sorted.filter(map => map.map.title.toLowerCase().includes(search?.toLowerCase()));
     }
 
     return (
@@ -194,14 +185,14 @@ export default function PersonalMapsScreen() {
                 {handleSortAndFilter(maps).map((map, index) => (
                     <Grid item lg={3} md={4} sm={6} xs={12} align="center" sx={{ my: 4 }}>
                         <MapCard 
-                        mapID={map._id}
-                        name={map.title}
-                        lastEdited={map.updateDate} 
-                        shared={map.isPublished ? "Public" : "Private"}
-                        views={map.__v}
-                        likes={map.likes}
-                        dislikes={map.dislikes}
-                        comments={map.comments.length}
+                        mapID={map.map._id}
+                        name={map.map.title}
+                        lastEdited={map.map.updateDate} 
+                        shared={map.map.isPublished ? "Public" : "Private"}
+                        views={map.map.__v}
+                        likes={map.map.likes}
+                        dislikes={map.map.dislikes}
+                        comments={map.map.comments.length}
                         />
                     </Grid>   
                 ))}
