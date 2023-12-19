@@ -171,7 +171,9 @@ const styles = {
         maxHeight: '45px',
         minWidth: '105px',
         minHeight: '45px',
-        color: '#E3256B'
+        color: '#EEEEEE',
+        backgroundColor: '#E3256B',
+        borderRadius: '10px'
     },
     toolbarButton: {
         position: 'absolute',
@@ -1172,13 +1174,13 @@ export default function EditMap({ mapid }) {
                         </Box>
 
                         {/* Toolbar Buttons */}
-                        <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '1000px', maxWidth: '1000px' }}>
+                        <Box sx={{ marginRight: '20%', backgroundColor: '#DDDDDD', borderRadius: '20px', minWidth: '875px', maxWidth: '875px' }}>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'map' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('map'); store.setMapData(map);}}>Map Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('subdivision'); setFeature(null)}}>Subdivision Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'point' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('point'); setCurrentPoint(null)}}>Point Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'subdivision' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('subdivision'); setFeature(null)}}>Subdivisions</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'point' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('point'); setCurrentPoint(null)}}>Points</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'heatmap' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => {setSidebar('heatmap')}}>Heat Map</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'bin' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('bin')}>Bin Info</Button>
-                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'gradient' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('gradient')}>Gradient Info</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'bin' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('bin')}>Bins</Button>
+                            <Button variant="text" sx={styles.sxOverride} style={sidebar === 'gradient' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('gradient')}>Gradients</Button>
                             <Button variant="text" sx={styles.sxOverride} style={sidebar === 'template' ? styles.bigButtonSelected : styles.bigButton} disableRipple onClick={() => setSidebar('template')}>Templates</Button>
                         </Box>
                     </Toolbar>
