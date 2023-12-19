@@ -41,6 +41,7 @@ export default function PersonalMapsScreen() {
                         continue;
                     }
                     let resp = await store.getSchema(maps[i].mapSchema)
+                    console.log(resp.type)
                     types.push(resp ? resp.type : "none");
                 }
                 setMapTypes(types);
@@ -78,7 +79,7 @@ export default function PersonalMapsScreen() {
         } else if(sort === "Most Commented") {
             sorted = maps.sort((a, b) => b.comments.length - a.comments.length);
         }
-        if (filter !== "None") {
+        if (filter !== "none") {
             sorted = sorted.filter((map, index) => {
                 return mapTypes[index] === filter
             })
@@ -176,7 +177,7 @@ export default function PersonalMapsScreen() {
                         <MenuItem value="none">None</MenuItem>
                         <MenuItem value="bin">Bin Map</MenuItem>
                         <MenuItem value="gradient">Gradient Map</MenuItem>
-                        <MenuItem value="heat">Heat Map</MenuItem>
+                        <MenuItem value="heatmap">Heat Map</MenuItem>
                         <MenuItem value="point">Point Map</MenuItem>
                         <MenuItem value="satellite">Satellite Map</MenuItem>
                     </Select>
