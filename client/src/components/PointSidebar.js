@@ -19,6 +19,9 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
     const [color, setColor] = useState('#000000');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
     const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [snackbarMsg, setSnackbarMsg] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('info');
+    const snackbarTimeout = 2000;
 
     // Handles updating the map schema when something changes elsewhere, and on initial load
     useEffect(() => {
@@ -55,6 +58,12 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
         setColor(match.color ? match.color : '#000000');
     }
 
+    function snackbar(severity, msg) {
+        setSnackbarMsg(msg);
+        setSnackbarSeverity(severity);
+        setOpenSnackbar(true);
+    }
+
     let content = <></>
     if(currentPoint) {
         content = 
@@ -69,12 +78,15 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         <TextField value={name} sx={{ marginLeft: 'auto' }} InputProps={{ sx: { borderRadius: 3 } }} 
                         onChange={e => setName(e.target.value)}
                         onBlur={() => {
+                            if (name === currentPoint.name) return;
                             const isNameExists = mapInfo.points.some(point => point.name === name); // Checks if the name already exists
                             if (isNameExists) {
-                                setOpenSnackbar(true);
-                                return setName(currentPoint.name);
+                                snackbar('warning', 'Name already exists');
+                                setName(currentPoint.name);
+                                return;
                             }
                             // Finds the point in the mapInfo and updates it with the new name
+                            snackbar('success', 'New name saved');
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name
                                 ? {...point, name: name} : point;
@@ -90,9 +102,18 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                     <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
                         <Typography sx={{ mr: 1, ml: '10%' }}>Lat/Lon</Typography>  
                         <TextField value={lat} sx={{ marginLeft: 'auto', width: '20%' }} InputProps={{ sx: { borderRadius: 3 } }} 
-                        onChange={e => setLat(Number(e.target.value))}
+                        onChange={e => setLat(e.target.value)}
                         onBlur={() => {
+                            if (lat === currentPoint.location.lat) return;
+                            // Verify the value entered is a valid latitude
+                            const latVal = parseFloat(lat);
+                            if (isNaN(latVal) || latVal < -90 || latVal > 90) {
+                                snackbar('warning', 'Enter a number between -90 and 90');
+                                setLat(currentPoint.location.lat);
+                                return;
+                            }
                             // Finds the point in the mapInfo and updates it with the new lat
+                            snackbar('success', 'New latitude saved');
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name 
                                 ? {...point, location: {lat: lat, lon: lon}} : point;
@@ -102,9 +123,18 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         />
 
                         <TextField value={lon} sx={{ width: '20%' }} InputProps={{ sx: { borderRadius: 3 } }} 
-                        onChange={e => setLon(Number(e.target.value))}
+                        onChange={e => setLon(e.target.value)}
                         onBlur={() => {
+                            if (lon === currentPoint.location.lon) return;
+                            // Verify the value entered is a valid longitude
+                            const lonVal = parseFloat(lon);
+                            if (isNaN(lonVal) || lonVal < -180 || lonVal > 180) {
+                                snackbar('warning', 'Enter a number between -180 and 180');
+                                setLon(currentPoint.location.lon);
+                                return;
+                            }
                             // Finds the point in the mapInfo and updates it with the new lon
+                            snackbar('success', 'New longitude saved');
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name 
                                 ? {...point, location: {lat: lat, lon: lon}} : point;
@@ -175,7 +205,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                     {/* Alerts/Snackbar */}
                     <Snackbar
                     open={openSnackbar}
-                    autoHideDuration={1500}
+                    autoHideDuration={snackbarTimeout}
                     anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                     onClose = {(event, reason) => {
                         if (reason === 'clickaway' || reason === 'escapeKeyDown') return;
@@ -185,7 +215,7 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                     >
                         <Alert action={null} onClose={() => {
                             setOpenSnackbar(false);
-                        }} severity='warning' sx={{ width: '100%' }}>Name already exists</Alert>
+                        }} severity={snackbarSeverity} sx={{ width: '100%' }}>{snackbarMsg}</Alert>
                     </Snackbar>
 
                     {/* Color Picker */}
