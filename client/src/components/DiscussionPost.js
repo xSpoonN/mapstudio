@@ -193,7 +193,7 @@ export default function DiscussionPost(props) {
                     <div ref={divRef} />
                 </List>
             </Box> 
-            <TextField
+            {auth.user && <TextField
                 id="standard-basic"
                 variant="outlined"
                 multiline
@@ -222,7 +222,7 @@ export default function DiscussionPost(props) {
                 style = {{ width: '90%', left: '5%' }}
                 value={comment}
                 onChange={handleUpdateComment}
-			/>
+			/>}
         </Box>
     )
 }

@@ -411,7 +411,7 @@ export default function MapView({ mapid }) {
     }
 
     let forkButton
-    if(true /*auth.user*/) {
+    if(auth.user) {
         forkButton =
             <Button
                 variant="contained"
