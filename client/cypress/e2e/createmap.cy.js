@@ -13,6 +13,7 @@ describe('Create Map', () => {
         cy.get('#password').type('Admin456');
         cy.get('.css-p2ochh > .MuiBox-root > .MuiButtonBase-root').click(); // login
         cy.get('.css-p2ochh > .MuiBox-root > .MuiButtonBase-root').should('not.exist', { timeout: 20000 }); // wait for page to refresh
+        cy.wait(100);
         cy.contains('button', 'Create').click();
         cy.viewport(1920, 1080);
     })

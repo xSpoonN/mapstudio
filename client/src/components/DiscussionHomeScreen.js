@@ -1,5 +1,6 @@
 import { useState, useContext } from 'react';
 import GlobalStoreContext from '../store';
+import AuthContext from '../auth';
 
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
@@ -23,6 +24,7 @@ const styles = {
 
 export default function DiscussionHomeScreen(props) {
     const { store } = useContext(GlobalStoreContext);
+    const { auth } = useContext(AuthContext);
     const [sort, setSort] = useState('Newest');
     const [filter, setFilter] = useState(props.filter || '')
 
@@ -31,7 +33,10 @@ export default function DiscussionHomeScreen(props) {
     };
 
     function handleCreate() {
-        store.changeToDiscussionPostNew();
+        if (auth.user)
+            store.changeToDiscussionPostNew();
+        else
+            store.changeToLogin();
     }
 
     function handleSortAndFilter(posts) {
