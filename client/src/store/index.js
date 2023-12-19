@@ -797,7 +797,7 @@ function GlobalStoreContextProvider(props) {
         try{
             const response = await mapAPI.getMapsByUser(user._id);
             if (response.data.success) {
-                return response.data.maps
+                return response.data
             }
         } catch (error) {
             console.log("Failed getting maps")

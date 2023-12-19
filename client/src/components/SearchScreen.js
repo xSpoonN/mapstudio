@@ -18,26 +18,17 @@ export default function SearchScreen(props) {
     const [filter, setFilter] = useState('none');
     const [sort, setSort] = useState('Newest');
     const [maps, setMaps] = useState([]);
-    const [mapTypes, setMapType] = useState([]);
     const [search, setSearch] = useState(props.search || '');
 
     useEffect(() => {
         const fetchMaps = async () => {
             const maps = await store.getPublishedMaps();
             const result = [];
-            const types = [];
             for (let i = 0; i < maps.maps.length; i++) {
-                result.push({ map: maps.maps[i], author: maps.authors[i] });
-                // get types for maps with schemas
-                if (!maps.maps[i].mapSchema) {
-                    types.push("none");
-                    continue;
-                }
-                let resp = await store.getSchema(maps.maps[i].mapSchema)
-                types.push(resp ? resp.type : "none");
+                result.push({ map: maps.maps[i], author: maps.authors[i], type: maps.schemas[i] ?  maps.schemas[i].type : 'none'});
             }
+            console.log(result)
             setMaps(result)
-            setMapType(types)
         }
         fetchMaps();
     }, [store])
@@ -55,18 +46,18 @@ export default function SearchScreen(props) {
     };
 
     function handleSortAndFilter(maps) {
-        let sorted
-        if(sort === "Newest") {
-            sorted = maps.sort((a, b) => new Date(b.map.publishedDate) - new Date(a.map.publishedDate));
-        } else if(sort === "Most Liked") {
-            sorted = maps.sort((a, b) => b.map.likes - a.map.likes);
-        } else if(sort === "Most Commented") {
-            sorted = maps.sort((a, b) => b.map.comments.length - a.map.comments.length);
-        }
+        let sorted = maps
         if (filter !== 'none') {
-            sorted = sorted.filter((map, index) => {
-                return mapTypes[index] === filter
+            sorted = maps.filter((map, index) => {
+                return map.type === filter
             })
+        }
+        if(sort === "Newest") {
+            sorted = sorted.sort((a, b) => new Date(b.map.publishedDate) - new Date(a.map.publishedDate));
+        } else if(sort === "Most Liked") {
+            sorted = sorted.sort((a, b) => b.map.likes - a.map.likes);
+        } else if(sort === "Most Commented") {
+            sorted = sorted.sort((a, b) => b.map.comments.length - a.map.comments.length);
         }
         if (search) {
             sorted = sorted.filter(map => {

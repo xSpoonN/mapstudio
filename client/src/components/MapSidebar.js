@@ -1,12 +1,13 @@
 import { useEffect, useState, useContext } from 'react';
 import { GlobalStoreContext } from '../store';
-import { TextField, FormControlLabel, Checkbox, Divider, Box } from '@mui/material';
+import { TextField, FormControlLabel, Checkbox, Divider, Box, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
 export default function MapInfoSidebar({ mapData, mapSchema, setShowSatellite }) {
     const [mapInfo, setMapInfo] = useState({});
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [satelliteView, setSatelliteView] = useState(false);
+    const [category, setCategory] = useState('none')
     const { store } = useContext(GlobalStoreContext);
 
     useEffect(() => {
@@ -16,9 +17,14 @@ export default function MapInfoSidebar({ mapData, mapSchema, setShowSatellite })
             setMapInfo(mapData);
             setTitle(mapData?.title ? mapData.title : '');
             setDescription(mapData?.description ? mapData.description : '');
+            setCategory(mapSchema?.type ? mapSchema.type : 'none')
         }
         retrieveData();
     }, [/* mapData, */ mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleSetCategory = (event) => {
+        store.updateMapSchema(mapData._id, {...mapSchema, type: event.target.value});
+    };
 
     return (
         <Box style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%' }} >
@@ -55,6 +61,30 @@ export default function MapInfoSidebar({ mapData, mapSchema, setShowSatellite })
                     console.log(resp)
                 }}
             />
+            <FormControl sx={{ m: 1, minWidth: 200 }}>
+                <InputLabel>Category</InputLabel>
+                <Select
+                    id="demo-select-small"
+                    value={category}
+                    label="Category"
+                    onChange={handleSetCategory}
+                    displayEmpty
+                    sx={{
+                        background: 'white',
+                        borderRadius: '16px',
+                        "& label.Mui-focused": {
+                            color: '#E3256B'
+                        }
+                    }}
+                >
+                    <MenuItem value="none">None</MenuItem>
+                    <MenuItem value="bin">Bin Map</MenuItem>
+                    <MenuItem value="gradient">Gradient Map</MenuItem>
+                    <MenuItem value="heatmap">Heat Map</MenuItem>
+                    <MenuItem value="point">Point Map</MenuItem>
+                    <MenuItem value="satellite">Satellite Map</MenuItem>
+                </Select>
+            </FormControl>
             <Divider variant='middle' style={{ width: '80%', margin: '5px', marginTop: 'auto', backgroundColor: '#555555', borderRadius: '2px' }} sx={{ borderBottomWidth: 2}}/>
             <FormControlLabel
                 label="Satellite View"
