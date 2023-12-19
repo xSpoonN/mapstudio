@@ -15,7 +15,8 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
     const [name, setName] = useState('');
     const [lat, setLat] = useState(0)
     const [lon, setLon] = useState(0)
-    const [weight, setWeight] = useState(0.5); 
+    const [weight, setWeight] = useState(0.5);
+    const [weightDisplay, setWeightDisplay] = useState(0.5);
     const [color, setColor] = useState('#000000');
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
     const [openSnackbar, setOpenSnackbar] = useState(false);
@@ -38,6 +39,10 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
         }
         retrieveData();
     }, [currentPoint, mapSchema]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        setWeightDisplay(weight);
+    }, [weight])
 
     // Handles pushing the updated map schema to store
     const updateSchema = async (updatedSchema, newPoint, param) => {
@@ -166,15 +171,24 @@ export default function PointInfoSidebar({mapData, currentPoint, mapSchema, setM
                         <RemoveIcon />
                         </IconButton>
 
-                        <TextField value={weight.toFixed(2)} sx={{ width: '100px', margin: '2px' }} 
+                        <TextField value={weightDisplay === weight ? weight.toFixed(2) : weightDisplay} sx={{ width: '100px', margin: '2px' }} 
                         inputProps={{style: { textAlign: 'center'}}} InputProps={{ sx: { borderRadius: 3 } }}
-                        onChange={e => setWeight(Number(e.target.value))}
+                        onChange={e => setWeightDisplay(e.target.value)}
                         onBlur={() => {
+                            if (weightDisplay === currentPoint.weight) return;
+                            // Verify the value entered is a valid weight
+                            const weightVal = parseFloat(weightDisplay);
+                            if (isNaN(weightVal) || weightVal < 0 || weightVal > 1) {
+                                snackbar('warning', 'Enter a number between 0 and 1');
+                                setWeightDisplay(currentPoint.weight);
+                                return;
+                            }
+                            setWeight(weightVal);
                             // Finds the point in the mapInfo and updates it with the new weight
                             updateSchema({...mapInfo, points: mapInfo.points.map(point => {
                                 return point.name === currentPoint.name
-                                ? {...point, weight: Number(weight)} : point;
-                            })}, {...currentPoint, name: Number(weight)})
+                                ? {...point, weight: weightVal} : point;
+                            })}, {...currentPoint, name: weightVal})
                         }}
                         />
 
