@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useContext, useState, useEffect } from 'react'
 import { GlobalStoreContext } from '../store'
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
@@ -15,12 +15,19 @@ const style = {
 
 export default function ConfirmModal(props) {
     const { store } = useContext(GlobalStoreContext);
+    const [disabled, setDisabled] = useState(false);
+
+    useEffect(() => {
+        setDisabled(false);
+    }, [store.modal])
 
     function handleCloseModal() {
         store.closeModal();
     }
 
     function handleConfirm() {
+        if (disabled) return;
+        setDisabled(true);
         switch (props.type) {
             case 'publishMap':
                 store.publishMap(props.map, props.map._id);
@@ -90,6 +97,7 @@ export default function ConfirmModal(props) {
                         className="modal-button"
                         onClick={handleConfirm}
                         sx={{mx:2}}
+                        disabled={disabled}
                     >
                         {okButtonText()}
                     </Button>
