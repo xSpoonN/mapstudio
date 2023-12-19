@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from 'react';
 import { GlobalStoreContext } from '../store';
-import { Box, /* Typography, */ IconButton, TextField, ClickAwayListener } from '@mui/material';
+import { Box, /* Typography, */ IconButton, TextField, ClickAwayListener, Snackbar, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -11,6 +11,8 @@ export default function Bin({bin, mapSchema, mapData, setMapEditMode}) {
     const [color, setColor] = useState(bin?.color);
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
     const { store } = useContext(GlobalStoreContext);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const snackbarTimeout = 2000;
 
     // Handles updating the bin data when something changes elsewhere, and on initial load
     useEffect(() => {
@@ -69,7 +71,7 @@ export default function Bin({bin, mapSchema, mapData, setMapEditMode}) {
                             await updateSchema({...mapSchema, bins: mapSchema.bins.map(bin2 => bin2.name === bin.name ? {...bin2, name: name} : bin2)});
                         } else { // If it does, reset the name
                             setName(bin.name);
-                            console.log('Name already exists');
+                            setOpenSnackbar(true);
                         }
                     }}
                 />
@@ -111,6 +113,20 @@ export default function Bin({bin, mapSchema, mapData, setMapEditMode}) {
                     </Box>
                 </ClickAwayListener>
             }
+            {/* Alerts/Snackbar */}
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={snackbarTimeout}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                onClose={(event, reason) => {
+                    if (reason === 'clickaway' || reason === 'escapeKeyDown') return;
+                    setOpenSnackbar(false);
+                }}
+            >
+                <Alert action={null} onClose={() => {
+                    setOpenSnackbar(false);
+                }} severity='error' sx={{ width: '100%' }}>A Bin with that name already exists</Alert>
+            </Snackbar>
         </>
     )
 }

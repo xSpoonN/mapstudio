@@ -1,4 +1,4 @@
-import { /* useEffect, useState,  */useContext } from 'react';
+import { useContext } from 'react';
 import { GlobalStoreContext } from '../store';
 import { Button, IconButton, Divider, Box, Typography } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
@@ -9,7 +9,10 @@ export default function BinInfoSidebar({mapData, mapSchema, setMapEditMode}) {
 
     // The only reason we need to update the schema here is to add a new bin
     const updateSchema = async () => {
-        const updatedSchema = {...mapSchema, bins: [...mapSchema.bins, {name: 'New Bin', color: '#E3256B', subdivisions: []}]};
+        // Append number of 'New Bin's there are to the name
+        const newBinCount = mapSchema.bins.filter(bin => bin.name.startsWith('New Bin')).length;
+        const newBinName = `New Bin ${newBinCount}`;
+        const updatedSchema = { ...mapSchema, bins: [...mapSchema.bins, { name: newBinName, color: '#E3256B', subdivisions: [] }] };
         await store.updateMapSchema(mapData._id, updatedSchema);
     }
 
