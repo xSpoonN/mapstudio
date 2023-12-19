@@ -1,7 +1,6 @@
 import { useState, useContext } from 'react';
 import GlobalStoreContext from '../store';
 import AuthContext from '../auth';
-import AuthContext from '../auth';
 
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
