@@ -604,6 +604,15 @@ export default function EditMap({ mapid }) {
         try {
             const resp = await store.updateMapFile(mapid, geojsonData);
             console.log(resp);
+            await store.updateMapSchema2(mapid, {
+                "type": "none",
+                "bins": [],
+                "subdivisions": [],
+                "points": [],
+                "gradients": [],
+                "heatmaps": [],
+                "showSatellite": false
+            });
         } catch (err) {
             console.log('Error updating map file data in database');
         }
