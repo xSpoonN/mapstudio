@@ -1,11 +1,13 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { GlobalStoreContext } from '../store';
-import { Button, IconButton, Divider, Box, Typography } from '@mui/material';
+import { Button, IconButton, Divider, Box, Typography, Snackbar, Alert } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import Gradient from './GradientItem';
 
 export default function GradientInfoSidebar({mapData, mapSchema, setMapEditMode}) {
     const { store } = useContext(GlobalStoreContext);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
+    const snackbarTimeout = 2000;
 
     // The only reason we need to update the schema here is to add a new gradient
     const updateSchema = async () => {
@@ -24,7 +26,10 @@ export default function GradientInfoSidebar({mapData, mapSchema, setMapEditMode}
                 break;
             }
         }
-        if (!unusedKey) return alert('No more data fields to add a gradient for!'); // TODO: Replace with a toast
+        if (!unusedKey) {
+            setOpenSnackbar(true);
+            return;
+        }
 
         console.log(unusedKey)
 
@@ -65,6 +70,21 @@ export default function GradientInfoSidebar({mapData, mapSchema, setMapEditMode}
                         >
                             + New Gradient
                         </Button>
+
+                        {/* Alerts/Snackbar */}
+                        <Snackbar
+                        open={openSnackbar}
+                        autoHideDuration={snackbarTimeout}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                        onClose = {(event, reason) => {
+                            if (reason === 'clickaway' || reason === 'escapeKeyDown') return;
+                            setOpenSnackbar(false);
+                        }}
+                        >
+                            <Alert action={null} onClose={() => {
+                                setOpenSnackbar(false);
+                            }} severity='error' sx={{ width: '100%' }}>No more data fields to add gradient for</Alert>
+                        </Snackbar>
 
                         {/* Placeholder to take up space for alignment */}
                         <IconButton disabled={true}>
