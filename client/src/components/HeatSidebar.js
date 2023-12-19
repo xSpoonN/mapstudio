@@ -3,17 +3,17 @@ import { Button, Divider, Box, Slider, Typography } from '@mui/material';
 import 'leaflet.heat';
 
 export default function HeatMapSidebar({ mapSchema, onHeatMapChange, uploadCSV, clearHeatMap, heatExistingPoints }) {
-    const [radius, setRadius] = useState(mapSchema?.heatmaps[0]?.radius);
-    const [blur, setBlur] = useState(mapSchema?.heatmaps[0]?.blur);
+    const [radius, setRadius] = useState(mapSchema?.heatmaps ? mapSchema?.heatmaps[0]?.radius : undefined);
+    const [blur, setBlur] = useState(mapSchema?.heatmaps ? mapSchema?.heatmaps[0]?.blur : undefined);
 
     useEffect(() => {
         onHeatMapChange(radius, blur, false);
     }, [radius, blur]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
-        if(mapSchema?.heatmaps.length !== 0) {
-            setRadius(mapSchema?.heatmaps[0]?.radius)
-            setBlur(mapSchema?.heatmaps[0]?.blur)
+        if(mapSchema?.heatmaps?.length !== 0) {
+            setRadius(mapSchema?.heatmaps ? mapSchema?.heatmaps[0]?.radius : undefined)
+            setBlur(mapSchema?.heatmaps ? mapSchema?.heatmaps[0]?.blur : undefined)
         }
     }, [mapSchema]); // eslint-disable-line react-hooks/exhaustive-deps
 
