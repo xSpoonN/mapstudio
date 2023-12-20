@@ -216,7 +216,7 @@ forgotPassword = async (req, res) => {
                 pass: 'oyat swph tqry qxtl',
                 clientId: '869790817840-dr6nvnf91281qpeq8jqgtfecpugm0suv.apps.googleusercontent.com',
                 clientSecret: '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',
-                refreshToken: '1//04VPjCv_y6DX0CgYIARAAGAQSNwF-L9IrfhXsG8_eLp3DLW4jtNrWjzVo5YxA-wz_h30pNiHBI9OHGzMWLiquXAkgsMDCcnLy_ic'
+                refreshToken: '1//04WI8eRlvQgCSCgYIARAAGAQSNwF-L9IrS_Y6TE2J1KrnHZAsAJaKM8xTlyro_OS2LKDoJPmDEDwqMneTrmHBP0d7d8vSMoucxt8'
             }
         });
         let message = {
