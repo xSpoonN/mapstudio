@@ -31,7 +31,8 @@ export default function MapInfoSidebar({ mapData, mapSchema, setShowSatellite })
                 onChange={(e) => setTitle(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                 onBlur={async () => {
-                    store.setMapData({ ...mapInfo, title: title }); 
+                    /* store.setMapData({ ...mapInfo, title: title });  */
+                    setMapInfo({ ...mapInfo, title: title });
                     const resp = await store.updateMapInfo({ ...mapInfo, title: title }); 
                     mapData.title = title;
                     console.log(resp)
@@ -49,7 +50,8 @@ export default function MapInfoSidebar({ mapData, mapSchema, setShowSatellite })
                 onChange={(e) => setDescription(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }}
                 onBlur={async () => {
-                    store.setMapData({ ...mapInfo, description: description }); 
+                    /* store.setMapData({ ...mapInfo, description: description }); */
+                    setMapInfo({ ...mapInfo, description: description }); 
                     const resp = await store.updateMapInfo({ ...mapInfo, description: description }); 
                     mapData.description = description;
                     console.log(resp)
@@ -64,6 +66,7 @@ export default function MapInfoSidebar({ mapData, mapSchema, setShowSatellite })
                         onChange={async (e) => {
                             setSatelliteView(e.target.checked)
                             setShowSatellite(e.target.checked)
+                            setMapInfo({ ...mapInfo, showSatellite: e.target.checked })
                             await store.updateMapSchema(mapData._id, { ...mapSchema, showSatellite: e.target.checked })
                             mapSchema.showSatellite = e.target.checked;
                         }}
